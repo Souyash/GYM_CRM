@@ -8,7 +8,7 @@ dotenv.config();
 const app = createApp();
 const server = http.createServer(app);
 
-const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+const clientOrigin = process.env.CLIENT_ORIGIN || '*';
 initializeSocket(server, clientOrigin);
 
 const PORT = process.env.PORT || 5001;
