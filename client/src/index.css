@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    @apply bg-slate-50 text-slate-900 min-h-screen antialiased transition-colors duration-200;
+  }
+
+  .dark body {
+    @apply bg-black text-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Commercial Theme Utility Classes */
+  .app-card {
+    @apply bg-white dark:bg-[#09090b] border border-slate-200/90 dark:border-zinc-800 rounded-3xl transition-all duration-200 shadow-sm dark:shadow-2xl;
+  }
+
+  .app-card-subtle {
+    @apply bg-slate-50 dark:bg-[#121215] border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl transition-all duration-200;
+  }
+
+  .btn-primary-green {
+    @apply bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-extrabold shadow-sm active:scale-95 transition-all duration-150 flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary-gym {
+    @apply bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-zinc-700 font-bold transition-all duration-150 flex items-center justify-center gap-2;
+  }
+
+  .badge-active-green {
+    @apply bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5;
+  }
+
+  .badge-alert-coral {
+    @apply bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5;
+  }
+
+  /* High-energy Community Card */
+  .community-card {
+    @apply bg-white dark:bg-[#0c0c0e] border border-slate-200/90 dark:border-zinc-800 rounded-3xl p-5 sm:p-6 transition-all duration-200 hover:border-emerald-500/40 dark:hover:border-emerald-500/30 shadow-sm dark:shadow-xl;
+  }
+
+  /* Interactive Quick Action Touch Button (48px+ Touch Target) */
+  .btn-quick-action {
+    @apply min-h-[48px] px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 transition active:scale-[0.98] select-none;
+  }
+
+  /* Social cheer/reaction pill */
+  .social-pill {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-zinc-800/80 text-slate-700 dark:text-zinc-300 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-300 border border-slate-200/60 dark:border-zinc-700/60 transition active:scale-95 cursor-pointer select-none;
+  }
+
+  /* Clean role selection card */
+  .role-selector-card {
+    @apply p-4 rounded-2xl border transition-all flex flex-col gap-1.5 cursor-pointer select-none text-left;
+  }
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+
+/* Printable facility poster */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-qr-poster, #printable-qr-poster * {
+    visibility: visible;
+  }
+  #printable-qr-poster {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: white !important;
+    color: black !important;
+  }
+}

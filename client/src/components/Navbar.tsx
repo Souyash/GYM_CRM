@@ -1,0 +1,265 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Shield,
+  LogOut,
+  User as UserIcon,
+  QrCode,
+  Users,
+  Activity,
+  CreditCard,
+  Building2,
+  Sun,
+  Moon,
+  CheckCircle,
+  HelpCircle
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+interface NavbarProps {
+  currentTab: string;
+  setCurrentTab: (tab: string) => void;
+  onOpenScanner?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpenScanner }) => {
+  const { user, logout, quickSwitchUser } = useAuth();
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gym_theme');
+      if (saved) return saved === 'dark';
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('gym_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('gym_theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
+
+  // Keyboard shortcut: Cmd+S for check-in
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (onOpenScanner) onOpenScanner();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenScanner]);
+
+  return (
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          {/* Brand */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center shadow-md dark:shadow-glow-green text-white dark:text-black">
+              <Shield className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div>
+              <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
+                IRON<span className="text-emerald-600 dark:text-emerald-400">VAULT</span>
+              </span>
+              <span className="text-[10px] block font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 -mt-1">
+                FITNESS & HEALTH CLUB
+              </span>
+            </div>
+          </div>
+
+          {/* Clean Commercial Navigation Tabs */}
+          {user && (
+            <div className="hidden md:flex items-center gap-2.5">
+              {/* Role Fast Switcher Pill Bar for Seamless Testing */}
+              <div className="flex items-center gap-1 bg-slate-200/70 dark:bg-zinc-800/80 p-1 rounded-xl border border-slate-300/60 dark:border-zinc-700/60 text-xs">
+                <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 px-2 select-none">
+                  Test Role:
+                </span>
+                <button
+                  onClick={async () => {
+                    await quickSwitchUser('admin@ironvaultgym.com');
+                    setCurrentTab('admin_dashboard');
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
+                    user.role === 'SUPER_ADMIN'
+                      ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-bold shadow-sm'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  👑 Owner
+                </button>
+                <button
+                  onClick={async () => {
+                    await quickSwitchUser('manager@ironvaultgym.com');
+                    setCurrentTab('manager_dashboard');
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
+                    user.role === 'MANAGER'
+                      ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-bold shadow-sm'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  🧑‍💼 Front Desk
+                </button>
+                <button
+                  onClick={async () => {
+                    await quickSwitchUser('macbook.member@ironvaultgym.com');
+                    setCurrentTab('member_profile');
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
+                    user.role === 'MEMBER'
+                      ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-bold shadow-sm'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  🏃 Member
+                </button>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-zinc-800">
+                {user.role === 'SUPER_ADMIN' && (
+                  <>
+                    <button
+                      onClick={() => setCurrentTab('admin_dashboard')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'admin_dashboard'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      Gym Overview
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('device_approvals')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'device_approvals'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      Visitor Review
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('facility_qr')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'facility_qr'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Building2 className="w-3.5 h-3.5" />
+                      Entrance Poster
+                    </button>
+                  </>
+                )}
+
+                {(user.role === 'MANAGER' || user.role === 'SUPER_ADMIN') && (
+                  <>
+                    <button
+                      onClick={() => setCurrentTab('manager_dashboard')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'manager_dashboard'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      Live Attendance
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('desk_billing')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'desk_billing'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      Front Desk Billing
+                    </button>
+                  </>
+                )}
+
+                {user.role === 'MEMBER' && (
+                  <button
+                    onClick={() => setCurrentTab('member_profile')}
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                      currentTab === 'member_profile'
+                        ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    <UserIcon className="w-3.5 h-3.5" />
+                    My Membership Card
+                  </button>
+                )}
+              </nav>
+            </div>
+          )}
+
+          {/* Right Controls */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Interactive Theme Switcher: White & Green vs Black & Green */}
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-200 transition active:scale-95"
+              title={isDark ? 'Switch to Light Mode (White & Green)' : 'Switch to Dark Mode (Black & Green)'}
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-emerald-600" />
+              )}
+            </button>
+
+            {/* Member Quick Check-In Button */}
+            {user?.role === 'MEMBER' && onOpenScanner && (
+              <button
+                onClick={onOpenScanner}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black text-xs font-black flex items-center gap-2 shadow-sm transition active:scale-95"
+              >
+                <QrCode className="w-4 h-4 stroke-[2.5]" />
+                <span className="hidden sm:inline">Check In with QR</span>
+                <span className="sm:hidden">Check In</span>
+              </button>
+            )}
+
+            {/* User Profile Badge */}
+            {user && (
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-zinc-800">
+                <div className="hidden sm:block text-right">
+                  <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                    {user.fullName}
+                  </p>
+                  <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    {user.role === 'SUPER_ADMIN' ? 'Owner' : user.role === 'MANAGER' ? 'Staff' : 'Member'}
+                  </span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-600 dark:bg-zinc-900 dark:hover:bg-red-950/40 dark:hover:text-red-400 border border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 transition active:scale-95"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};

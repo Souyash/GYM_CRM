@@ -1,0 +1,23 @@
+{
+  "name": "ironvault-gym-crm",
+  "version": "1.0.0",
+  "description": "Commercial Gym CRM & Member Management System with Turnstile Entry/Exit Scanning",
+  "private": true,
+  "scripts": {
+    "build": "cd client && npm run build",
+    "client:dev": "npm run dev --prefix client",
+    "server:dev": "npm run dev --prefix server",
+    "server:build": "npm run build --prefix server"
+  },
+  "keywords": [
+    "gym-crm",
+    "turnstile",
+    "fitness",
+    "react",
+    "vite",
+    "express",
+    "prisma"
+  ],
+  "author": "IronVault Team",
+  "license": "MIT"
+}

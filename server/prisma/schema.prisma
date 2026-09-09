@@ -1,0 +1,173 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// 1. Facility / Gym Location
+// -------------------------------------------------------------
+model Facility {
+  id                   String            @id @default(uuid())
+  name                 String
+  address              String
+  latitude             Float             // Physical GPS Latitude
+  longitude            Float             // Physical GPS Longitude
+  geofenceRadiusMeters Float             @default(50.0) // 50m geofence
+  staticQrCodeHash     String            @unique // Unique gym_id token for printed static QR
+  exitQrCodeHash       String?           // Unique exit QR token for printed exit gate QR
+  ownerContactEmail    String
+  ownerContactPhone    String
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  users                User[]
+  attendanceEntries    AttendanceEntry[]
+  failedAccessLogs     FailedAccessLog[]
+}
+
+// -------------------------------------------------------------
+// 2. User Roles & Profiles
+// Roles: "SUPER_ADMIN" | "MANAGER" | "MEMBER"
+// DeviceStatus: "NORMAL" | "FLAGGED_MULTI_DEVICE"
+// -------------------------------------------------------------
+model User {
+  id                     String                @id @default(uuid())
+  email                  String                @unique
+  passwordHash           String
+  fullName               String
+  phone                  String?
+  role                   String                @default("MEMBER") // SUPER_ADMIN, MANAGER, MEMBER
+  facilityId             String?
+  facility               Facility?             @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  
+  // Hardware Binding & Multi-Device Security
+  boundDeviceId          String?               // Bound hardware ID on 1st login
+  boundDeviceName        String?               // User agent / Device Model
+  deviceStatus           String                @default("NORMAL") // NORMAL, FLAGGED_MULTI_DEVICE
+  
+  isActive               Boolean               @default(true)
+  avatarUrl              String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  subscriptions          Subscription[]        @relation("UserSubscriptions")
+  attendanceEntries      AttendanceEntry[]
+  failedAccessLogs       FailedAccessLog[]
+  deviceChangeRequests   DeviceChangeRequest[] @relation("UserDeviceRequests")
+  reviewedDeviceRequests DeviceChangeRequest[] @relation("AdminReviewedRequests")
+  deskBilledSubs         Subscription[]        @relation("DeskBilledBy")
+}
+
+// -------------------------------------------------------------
+// 3. Subscriptions & Desk Billing
+// Status: "ACTIVE" | "EXPIRED" | "CANCELLED" | "PENDING_PAYMENT"
+// -------------------------------------------------------------
+model Subscription {
+  id             String      @id @default(uuid())
+  userId         String
+  user           User        @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  planName       String      // e.g., "Monthly Pro", "Annual VIP", "Quarterly Standard"
+  price          Float
+  startDate      DateTime    @default(now())
+  endDate        DateTime    // Access expiration timestamp
+  status         String      @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED, PENDING_PAYMENT
+  deskBilledById String?     // Manager who processed billing at desk
+  deskBilledBy   User?       @relation("DeskBilledBy", fields: [deskBilledById], references: [id], onDelete: SetNull)
+  paymentMethod  String      @default("CASH") // CASH, CARD, ONLINE
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId, status])
+}
+
+// -------------------------------------------------------------
+// 4. Attendance Entries (Successful Access)
+// -------------------------------------------------------------
+model AttendanceEntry {
+  id                   String    @id @default(uuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facilityId           String
+  facility             Facility  @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  scannedAt            DateTime  @default(now())
+  exitedAt             DateTime? // Departure timestamp when exiting gym
+  sessionDurationMinutes Int?    // Total workout duration in minutes
+  status               String    @default("ACTIVE") // ACTIVE (in gym), COMPLETED (departed), AUTO_CLOSED
+  deviceId             String    // Validated entrance device ID
+  exitDeviceId         String?   // Device or desk used for checkout
+  gpsLat               Float     // Verified device GPS latitude
+  gpsLng               Float     // Verified device GPS longitude
+  distanceFromFacility Float     // Computed Haversine distance in meters (<= 50m)
+  cooldownExpiresAt    DateTime  // 3-5 minute anti-passback cooldown lock
+
+  @@index([userId, scannedAt])
+  @@index([facilityId, status])
+}
+
+// -------------------------------------------------------------
+// 5. Failed Access Logs (Threat Monitoring)
+// AttemptType: "UNVERIFIED_SCAN" | "EXPIRED_MEMBERSHIP" | "GPS_GEOFENCE_BREACH" | "MULTI_DEVICE_BLOCKED" | "ANTI_PASSBACK_LOCKED"
+// -------------------------------------------------------------
+model FailedAccessLog {
+  id                String            @id @default(uuid())
+  timestamp         DateTime          @default(now())
+  userId            String?           // Nullable if unrecognized
+  user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  facilityId        String?
+  facility          Facility?         @relation(fields: [facilityId], references: [id], onDelete: SetNull)
+  attemptedDeviceId String?
+  attemptType       String            // UNVERIFIED_SCAN, EXPIRED_MEMBERSHIP, etc.
+  failureReason     String            // Human-readable explanation
+  gpsLat            Float?
+  gpsLng            Float?
+  distanceMeters    Float?
+  payloadDetails    String?           // JSON string of request context
+  isAlertDismissed  Boolean           @default(false)
+  notificationLogs  NotificationLog[]
+
+  @@index([timestamp, attemptType])
+}
+
+// -------------------------------------------------------------
+// 6. Device Change Requests (Multi-Device Resolution)
+// Status: "PENDING" | "APPROVED" | "REJECTED"
+// -------------------------------------------------------------
+model DeviceChangeRequest {
+  id                  String    @id @default(uuid())
+  userId              String
+  user                User      @relation("UserDeviceRequests", fields: [userId], references: [id], onDelete: Cascade)
+  currentDeviceId     String?
+  attemptedDeviceId   String
+  attemptedDeviceName String?
+  ipAddress           String?
+  userAgent           String?
+  status              String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewedById        String?
+  reviewedBy          User?     @relation("AdminReviewedRequests", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt          DateTime?
+  adminNotes          String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, userId])
+}
+
+// -------------------------------------------------------------
+// 7. Notification & Webhook Logs
+// -------------------------------------------------------------
+model NotificationLog {
+  id             String          @id @default(uuid())
+  failedLogId    String
+  failedLog      FailedAccessLog @relation(fields: [failedLogId], references: [id], onDelete: Cascade)
+  channel        String          // SMS, EMAIL, WEBHOOK
+  recipient      String
+  status         String          // DISPATCHED, SIMULATED, FAILED
+  payload        String          // Message / payload content
+  dispatchedAt   DateTime        @default(now())
+  responseStatus Int?
+}
+

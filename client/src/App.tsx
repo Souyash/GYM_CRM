@@ -1,0 +1,277 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from './context/AuthContext';
+import { Navbar } from './components/Navbar';
+import { RedAlertBanner } from './components/RedAlertBanner';
+import { ScannerModal } from './components/ScannerModal';
+import { PrintableFacilityQR } from './components/PrintableFacilityQR';
+import { SuperAdminDashboard } from './views/SuperAdminDashboard';
+import { DeviceApprovalsView } from './views/DeviceApprovalsView';
+import { ManagerDashboard } from './views/ManagerDashboard';
+import { DeskBillingModal } from './views/DeskBillingModal';
+import { MemberProfile } from './views/MemberProfile';
+import { LoginView } from './views/LoginView';
+import { AccountCreationModal } from './components/AccountCreationModal';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import {
+  Users,
+  CreditCard,
+  QrCode,
+  Shield,
+  Activity,
+  Plus
+} from 'lucide-react';
+import { api } from './services/api';
+
+export const AppContent: React.FC = () => {
+  const { user, isLoading } = useAuth();
+  const [currentTab, setCurrentTab] = useState<string>('member_profile');
+  const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
+  const [scannerInitialMode, setScannerInitialMode] = useState<'ENTER' | 'EXIT'>('ENTER');
+  const [isBillingModalOpen, setIsBillingModalOpen] = useState<boolean>(false);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
+  const [billingMode, setBillingMode] = useState<'ONBOARD' | 'BILL'>('ONBOARD');
+
+  // Member table state for Desk Billing tab
+  const [membersList, setMembersList] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const loadMembers = async () => {
+    try {
+      const data = await api.getMembers(searchQuery);
+      setMembersList(data.members || []);
+    } catch (e) {
+      console.error('Failed to load members:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'SUPER_ADMIN') {
+        setCurrentTab('admin_dashboard');
+      } else if (user.role === 'MANAGER') {
+        setCurrentTab('manager_dashboard');
+      } else {
+        setCurrentTab('member_profile');
+      }
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    if (currentTab === 'desk_billing') {
+      loadMembers();
+    }
+  }, [currentTab, searchQuery]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex items-center justify-center font-poppins">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500 flex items-center justify-center animate-pulse">
+            <Shield className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">
+            Loading IronVault Fitness...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginView />;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-100 flex flex-col font-poppins transition-colors duration-200">
+      {/* Real-Time WebSocket Red Alert Drop-Down Banner */}
+      <RedAlertBanner />
+
+      {/* Main Top Navigation */}
+      <Navbar
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        onOpenScanner={() => setIsScannerOpen(true)}
+      />
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Super Admin Tabs */}
+        {currentTab === 'admin_dashboard' && <SuperAdminDashboard />}
+        {currentTab === 'device_approvals' && <DeviceApprovalsView />}
+        {currentTab === 'facility_qr' && <PrintableFacilityQR />}
+
+        {/* Manager Tabs */}
+        {currentTab === 'manager_dashboard' && (
+          <ManagerDashboard
+            onOpenOnboarding={() => {
+              setIsAccountModalOpen(true);
+            }}
+            onOpenBilling={() => {
+              setBillingMode('BILL');
+              setIsBillingModalOpen(true);
+            }}
+          />
+        )}
+
+        {/* Desk Billing & Member Management Directory */}
+        {currentTab === 'desk_billing' && (
+          <div className="space-y-6 max-w-5xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl app-card">
+              <div>
+                <h1 className="text-xl font-black text-slate-900 dark:text-white">Desk Billing & Member Roster</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Manage memberships, issue monthly passes, and register new members
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsAccountModalOpen(true);
+                  }}
+                  className="btn-primary-green flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Member Sign-Up
+                </button>
+                <button
+                  onClick={() => {
+                    setBillingMode('BILL');
+                    setIsBillingModalOpen(true);
+                  }}
+                  className="btn-secondary-gym flex items-center gap-1.5"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Renew Pass
+                </button>
+              </div>
+            </div>
+
+            {/* Member Directory Table */}
+            <div className="app-card rounded-2xl overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-slate-100 dark:border-dark-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-dark-900/50">
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Active Members ({membersList.length})</h3>
+                <input
+                  type="text"
+                  placeholder="Search members by name, email, or phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 w-full sm:w-72 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead className="bg-slate-50 dark:bg-dark-850 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-100 dark:border-dark-800">
+                    <tr>
+                      <th className="py-3 px-4 font-bold">Member</th>
+                      <th className="py-3 px-4 font-bold">Contact</th>
+                      <th className="py-3 px-4 font-bold">Current Subscription</th>
+                      <th className="py-3 px-4 font-bold">Membership ID</th>
+                      <th className="py-3 px-4 font-bold">Access Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-dark-800">
+                    {membersList.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                          No members found. Use "New Member Sign-Up" above to register athletes.
+                        </td>
+                      </tr>
+                    ) : (
+                      membersList.map((m) => (
+                        <tr key={m.id} className="hover:bg-slate-50/80 dark:hover:bg-dark-850/50 transition">
+                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                            {m.fullName}
+                          </td>
+                          <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                            {m.email}
+                            {m.phone && <span className="block text-[10px] text-slate-400 dark:text-slate-500">{m.phone}</span>}
+                          </td>
+                          <td className="py-3 px-4 text-xs whitespace-nowrap">
+                            {m.latestSubscription ? (
+                              <div>
+                                <span className="font-bold text-slate-900 dark:text-white">{m.latestSubscription.planName}</span>
+                                <span className="block text-[10px] text-slate-500 dark:text-slate-400">
+                                  Valid until: {new Date(m.latestSubscription.endDate).toLocaleDateString()}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400">No active pass</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                            IV-{m.id.substring(0, 8).toUpperCase()}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                                m.isAccessGranted
+                                  ? 'badge-active-green'
+                                  : 'badge-alert-coral'
+                              }`}
+                            >
+                              {m.isAccessGranted ? 'Active / Granted' : 'Expired / On Hold'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Member Profile */}
+        {currentTab === 'member_profile' && (
+          <MemberProfile
+            onOpenScanner={(mode) => {
+              setScannerInitialMode(mode || 'ENTER');
+              setIsScannerOpen(true);
+            }}
+          />
+        )}
+      </main>
+
+      {/* Mobile Sticky Bottom Thumb Navigation */}
+      <MobileBottomNav
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        onOpenScanner={() => {
+          setScannerInitialMode('ENTER');
+          setIsScannerOpen(true);
+        }}
+      />
+
+      {/* Modals */}
+      <ScannerModal
+        isOpen={isScannerOpen}
+        initialMode={scannerInitialMode}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={() => {
+          // Handled in modal
+        }}
+      />
+
+      <AccountCreationModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        onSuccess={() => {
+          loadMembers();
+        }}
+      />
+
+      <DeskBillingModal
+        isOpen={isBillingModalOpen}
+        mode={billingMode}
+        onClose={() => setIsBillingModalOpen(false)}
+        onSuccess={() => {
+          loadMembers();
+        }}
+      />
+    </div>
+  );
+};
+
