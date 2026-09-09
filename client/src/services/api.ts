@@ -1,9 +1,53 @@
 import { getOrCreateDeviceId } from './device';
 
-const RAW_API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
-const API_BASE = RAW_API_URL
-  ? (RAW_API_URL.endsWith('/api') ? RAW_API_URL : `${RAW_API_URL.replace(/\/+$/, '')}/api`)
-  : '/api';
+export function getApiBase(): string {
+  const customUrl = localStorage.getItem('ironvault_backend_url');
+  if (customUrl && customUrl.trim()) {
+    const clean = customUrl.trim().replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  const rawEnv = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (rawEnv) {
+    const clean = rawEnv.replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  return '/api';
+}
+
+export function setCustomBackendUrl(url: string): void {
+  if (!url || !url.trim()) {
+    localStorage.removeItem('ironvault_backend_url');
+  } else {
+    let clean = url.trim().replace(/\/+$/, '');
+    if (clean.endsWith('/api')) clean = clean.slice(0, -4);
+    localStorage.setItem('ironvault_backend_url', clean);
+  }
+}
+
+export function getCustomBackendUrl(): string {
+  return localStorage.getItem('ironvault_backend_url') || (import.meta.env.VITE_API_URL as string) || '';
+}
+
+export async function testBackendConnection(url?: string): Promise<{ success: boolean; message: string }> {
+  const custom = url !== undefined ? url.trim() : (localStorage.getItem('ironvault_backend_url') || (import.meta.env.VITE_API_URL as string) || '');
+  if (!custom && window.location.hostname.includes('vercel.app')) {
+    return { success: false, message: 'Please enter your Render backend URL below to connect.' };
+  }
+
+  const base = url
+    ? (url.trim().replace(/\/+$/, '').endsWith('/api') ? url.trim().replace(/\/+$/, '') : `${url.trim().replace(/\/+$/, '')}/api`)
+    : getApiBase();
+
+  try {
+    const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      return { success: true, message: 'Backend connected and responding!' };
+    }
+    return { success: false, message: `Server returned HTTP ${res.status}` };
+  } catch (err: any) {
+    return { success: false, message: err.message || 'Unable to reach backend URL' };
+  }
+}
 
 export async function apiRequest<T = any>(
   endpoint: string,
@@ -11,6 +55,7 @@ export async function apiRequest<T = any>(
 ): Promise<T> {
   const token = localStorage.getItem('ironvault_jwt_token');
   const deviceId = getOrCreateDeviceId();
+  const apiBase = getApiBase();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -24,12 +69,14 @@ export async function apiRequest<T = any>(
 
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${endpoint}`, {
+    response = await fetch(`${apiBase}${endpoint}`, {
       ...options,
       headers
     });
   } catch (networkErr: any) {
-    const error: any = new Error('Unable to connect to the server. Please check your network connection.');
+    const error: any = new Error(
+      `Unable to connect to backend server (${apiBase}). Please check your Render backend URL.`
+    );
     error.status = 0;
     throw error;
   }
@@ -49,8 +96,8 @@ export async function apiRequest<T = any>(
     const errorMsg =
       data.error ||
       data.message ||
-      (response.status === 404
-        ? 'Requested service or facility not found.'
+      (response.status === 405
+        ? `Backend not connected at ${apiBase}. On Vercel, please enter your Render backend URL below.`
         : `Request failed with status ${response.status}`);
     const error: any = new Error(errorMsg);
     error.status = response.status;

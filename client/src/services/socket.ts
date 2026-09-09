@@ -2,18 +2,25 @@ import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
-const RAW_SOCKET_URL = (
-  (import.meta.env.VITE_SOCKET_URL as string | undefined) ||
-  (import.meta.env.VITE_API_URL as string | undefined)
-)?.trim();
-
-const SOCKET_SERVER_URL = RAW_SOCKET_URL
-  ? RAW_SOCKET_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '')
-  : '/';
+export function getSocketUrl(): string {
+  const custom = localStorage.getItem('ironvault_backend_url');
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/api\/?$/, '').replace(/\/+$/, '');
+  }
+  const raw = (
+    (import.meta.env.VITE_SOCKET_URL as string | undefined) ||
+    (import.meta.env.VITE_API_URL as string | undefined)
+  )?.trim();
+  if (raw) {
+    return raw.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+  }
+  return '/';
+}
 
 export function getSocket(): Socket {
   if (!socket) {
-    socket = io(SOCKET_SERVER_URL, {
+    const serverUrl = getSocketUrl();
+    socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true,
