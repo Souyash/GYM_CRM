@@ -6,12 +6,15 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && prisma db push && tsc",
-    "start": "node dist/server.js",
-    "seed": "tsx prisma/seed.ts",
-    "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prebuild": "node setup-env.js",
+    "build": "node setup-env.js && prisma generate && prisma db push && tsc",
+    "prestart": "node setup-env.js",
+    "start": "node setup-env.js && node dist/server.js",
+    "preseed": "node setup-env.js",
+    "seed": "node setup-env.js && tsx prisma/seed.ts",
+    "prisma:generate": "node setup-env.js && prisma generate",
+    "prisma:push": "node setup-env.js && prisma db push",
+    "prisma:seed": "node setup-env.js && tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.0",
