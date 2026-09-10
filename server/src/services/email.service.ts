@@ -1,21 +1,32 @@
 import nodemailer from 'nodemailer';
 
-const GMAIL_USER = process.env.GMAIL_USER || process.env.SMTP_USER || '';
-const rawPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '').replace(/\s+/g, '');
-const GMAIL_PASS = rawPass.length > 16 ? rawPass.slice(0, 16) : rawPass;
-const FROM_NAME = process.env.EMAIL_FROM_NAME || 'IronVault Fitness';
+export function getGmailUser(): string {
+  return (process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
+}
+
+export function getGmailPass(): string {
+  const raw = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '').replace(/\s+/g, '');
+  return raw.length > 16 ? raw.slice(0, 16) : raw;
+}
+
+export function getFromName(): string {
+  return process.env.EMAIL_FROM_NAME || 'IronVault Fitness';
+}
 
 let transporter: any = null;
 
 function getTransporter(): any {
   if (transporter) return transporter;
 
-  if (GMAIL_USER && GMAIL_PASS) {
+  const user = getGmailUser();
+  const pass = getGmailPass();
+
+  if (user && pass) {
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: GMAIL_USER,
-        pass: GMAIL_PASS
+        user,
+        pass
       }
     });
 
@@ -24,11 +35,11 @@ function getTransporter(): any {
       if (err) {
         console.warn(`[Email Service] ⚠️ Gmail connection warning: ${err.message}. Ensure App Password is generated at Google Account > Security > 2-Step Verification > App passwords.`);
       } else {
-        console.log(`[Email Service] ✅ Gmail SMTP authenticated and connected for ${GMAIL_USER}`);
+        console.log(`[Email Service] ✅ Gmail SMTP authenticated and connected for ${user}`);
       }
     });
   } else {
-    console.log(`[Email Service] ℹ️ Running in local development mode. To send real Gmail messages, add GMAIL_USER and GMAIL_APP_PASSWORD to server/.env`);
+    console.log(`[Email Service] ℹ️ Running in local development mode. GMAIL_USER=${user ? 'SET' : 'EMPTY'}, GMAIL_APP_PASSWORD=${pass ? 'SET' : 'EMPTY'}`);
   }
 
   return transporter;
@@ -117,10 +128,13 @@ export async function sendSignupOtpEmail(params: {
 </html>
   `;
 
-  if (activeTransporter && GMAIL_USER) {
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
     try {
       await activeTransporter.sendMail({
-        from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+        from: `"${fromName}" <${user}>`,
         to: toEmail,
         subject: `🔐 ${otpCode} is your IronVault verification code`,
         html,
@@ -225,10 +239,13 @@ export async function sendWelcomeEmail(params: {
 </html>
   `;
 
-  if (activeTransporter && GMAIL_USER) {
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
     try {
       await activeTransporter.sendMail({
-        from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+        from: `"${fromName}" <${user}>`,
         to: toEmail,
         subject: `🎉 Welcome to IronVault Fitness, ${fullName}! Your pass is active`,
         html,
@@ -266,10 +283,13 @@ export async function sendTurnstileScanEmail(params: {
     ? `Hi ${fullName},\n\nYou checked into ${facilityName} at ${timeStr}. Have a great workout!`
     : `Hi ${fullName},\n\nYou checked out of ${facilityName} at ${timeStr}. Great job on today's session!`;
 
-  if (activeTransporter && GMAIL_USER) {
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
     try {
       await activeTransporter.sendMail({
-        from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+        from: `"${fromName}" <${user}>`,
         to: toEmail,
         subject,
         text: messageText
@@ -308,10 +328,13 @@ export async function sendClassBookingEmail(params: {
   const subject = `📅 Booking Confirmed: ${className} with Coach ${coach}`;
   const messageText = `Hi ${fullName},\n\nYour spot is reserved for:\n\nClass: ${className}\nCoach: ${coach}\nDate & Time: ${dateStr} at ${timeStr}\nLocation: ${zone}\n\nSee you on the gym floor!`;
 
-  if (activeTransporter && GMAIL_USER) {
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
     try {
       await activeTransporter.sendMail({
-        from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+        from: `"${fromName}" <${user}>`,
         to: toEmail,
         subject,
         text: messageText
@@ -415,10 +438,13 @@ export async function sendDeskOnboardOtpEmail(params: {
 </html>
   `;
 
-  if (activeTransporter && GMAIL_USER) {
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
     try {
       await activeTransporter.sendMail({
-        from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+        from: `"${fromName}" <${user}>`,
         to: toEmail,
         subject: `🔐 ${otpCode} is your IronVault Desk Verification Code`,
         html,
