@@ -1,7 +1,8 @@
 import nodemailer from 'nodemailer';
 
 const GMAIL_USER = process.env.GMAIL_USER || process.env.SMTP_USER || '';
-const GMAIL_PASS = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '').replace(/\s+/g, '');
+const rawPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '').replace(/\s+/g, '');
+const GMAIL_PASS = rawPass.length > 16 ? rawPass.slice(0, 16) : rawPass;
 const FROM_NAME = process.env.EMAIL_FROM_NAME || 'IronVault Fitness';
 
 let transporter: any = null;
