@@ -13,7 +13,7 @@ import {
   toggleBookClass,
   getLiveLeaderboard
 } from '../controllers/community.controller.js';
-import { authenticateJWT } from '../middleware/auth.middleware.js';
+import { authenticateJWT, optionalAuthenticateJWT } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -28,8 +28,8 @@ router.post('/posts/:id/like', authenticateJWT, toggleLikePost);
 router.post('/posts/:id/comments', authenticateJWT, addPostComment);
 router.delete('/posts/:postId/comments/:commentId', authenticateJWT, deletePostComment);
 
-// Group Classes (Front Desk / Admin schedule, Members book)
-router.get('/classes', authenticateJWT, getGroupClasses);
+// Group Classes (Front Desk / Admin schedule, Members book, Public preview)
+router.get('/classes', optionalAuthenticateJWT, getGroupClasses);
 router.post('/classes', authenticateJWT, createGroupClass);
 router.delete('/classes/:id', authenticateJWT, deleteGroupClass);
 router.post('/classes/:id/book', authenticateJWT, toggleBookClass);
