@@ -8,12 +8,15 @@ import {
   LogOut,
   LogIn,
   AlertOctagon,
-  SwitchCamera
+  SwitchCamera,
+  Upload,
+  Zap,
+  ZapOff
 } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Facility } from '../types';
+import { scanVideoFrame, scanImageFile } from '../services/qrScanner';
 
 interface ScannerModalProps {
   isOpen: boolean;
@@ -37,14 +40,21 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   const [cameraActive, setCameraActive] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isStartingCamera, setIsStartingCamera] = useState<boolean>(false);
+  const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
+  const [hasTorch, setHasTorch] = useState<boolean>(false);
 
   // Status & verification state
   const [verificationState, setVerificationState] = useState<'IDLE' | 'VERIFYING' | 'SUCCESS' | 'DENIED'>('IDLE');
   const [resultMessage, setResultMessage] = useState<string>('');
 
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const isMountedRef = useRef<boolean>(false);
+  const isScanningRef = useRef<boolean>(false);
   const isProcessingRef = useRef<boolean>(false);
+  const scanTimerRef = useRef<any>(null);
 
   // Sound effects generator using Web Audio API
   const playFeedbackAudio = (type: 'success' | 'denied' | 'info') => {
@@ -133,10 +143,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         }
       }).catch(console.error);
 
-      // Auto-start back camera when opened
+      // Auto-start back camera
       const timer = setTimeout(() => {
-        startBackCamera('environment');
-      }, 300);
+        startCamera('environment');
+      }, 250);
 
       return () => {
         clearTimeout(timer);
@@ -149,138 +159,186 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
     return () => {
       isMountedRef.current = false;
+      stopCamera();
     };
   }, [isOpen, initialMode]);
 
-  const startBackCamera = async (facing: 'environment' | 'user' = 'environment') => {
-    try {
-      isProcessingRef.current = false;
-      setIsStartingCamera(true);
-      setCameraError(null);
-
-      // Stop existing instance
-      if (scannerRef.current) {
+  const stopCamera = () => {
+    isScanningRef.current = false;
+    if (scanTimerRef.current) {
+      clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
         try {
-          await scannerRef.current.stop();
-          scannerRef.current.clear();
+          track.stop();
         } catch {}
-        scannerRef.current = null;
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setCameraActive(false);
+    setIsStartingCamera(false);
+    setIsTorchOn(false);
+    setHasTorch(false);
+  };
+
+  const startCamera = async (facing: 'environment' | 'user' = 'environment') => {
+    stopCamera();
+    isProcessingRef.current = false;
+    setIsStartingCamera(true);
+    setCameraError(null);
+
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera access is not supported on this browser or connection.');
       }
 
-      const container = document.getElementById('qr-reader-container');
-      if (!container) {
-        setIsStartingCamera(false);
-        return;
-      }
+      // Enumerate cameras to target rear/world lens on mobile
+      let targetDeviceId: string | undefined = undefined;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter((d) => d.kind === 'videoinput');
 
-      const html5QrCode = new Html5Qrcode('qr-reader-container');
-      scannerRef.current = html5QrCode;
-
-      // Query cameras to prioritize rear/back lens on mobile phones
-      const cameras = await Html5Qrcode.getCameras().catch(() => []);
-      let cameraConfig: any = { facingMode: facing };
-
-      if (cameras && cameras.length > 0) {
         if (facing === 'environment') {
-          // Look for rear, back, environment, or world cameras
-          const rearCam = cameras.find((c) => {
-            const label = c.label.toLowerCase();
-            return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('world');
-          }) || cameras[cameras.length - 1]; // On Android and iOS, the rear camera is usually the last enumerated device
-
-          if (rearCam?.id) {
-            cameraConfig = rearCam.id;
-          }
+          const rear = videoDevices.find((d) => {
+            const label = d.label.toLowerCase();
+            return label.includes('back') || label.includes('rear') || label.includes('environment');
+          }) || videoDevices[videoDevices.length - 1];
+          if (rear?.deviceId) targetDeviceId = rear.deviceId;
         } else {
-          // Front camera
-          const frontCam = cameras.find((c) => {
-            const label = c.label.toLowerCase();
+          const front = videoDevices.find((d) => {
+            const label = d.label.toLowerCase();
             return label.includes('front') || label.includes('user') || label.includes('facetime');
-          }) || cameras[0];
+          }) || videoDevices[0];
+          if (front?.deviceId) targetDeviceId = front.deviceId;
+        }
+      } catch {}
 
-          if (frontCam?.id) {
-            cameraConfig = frontCam.id;
+      const constraints: MediaStreamConstraints = {
+        audio: false,
+        video: targetDeviceId
+          ? { deviceId: { exact: targetDeviceId }, width: { ideal: 1920, min: 640 }, height: { ideal: 1080, min: 480 } }
+          : {
+              facingMode: facing === 'environment' ? { ideal: 'environment' } : 'user',
+              width: { ideal: 1920, min: 640 },
+              height: { ideal: 1080, min: 480 }
+            }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+
+        // Check torch capability
+        const track = stream.getVideoTracks()[0];
+        if (track && (track as any).getCapabilities) {
+          const capabilities = (track as any).getCapabilities();
+          if (capabilities && 'torch' in capabilities) {
+            setHasTorch(true);
           }
         }
-      }
 
-      await html5QrCode.start(
-        cameraConfig,
-        {
-          fps: 15,
-          qrbox: (viewfinderWidth, viewfinderHeight) => {
-            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            const qrEdgeSize = Math.floor(minEdge * 0.72);
-            return { width: qrEdgeSize, height: qrEdgeSize };
-          },
-          aspectRatio: 1.0
-        },
-        (decodedText) => {
-          handleQrCodeScanned(decodedText);
-        },
-        () => {}
-      );
-
-      if (isMountedRef.current) {
-        setCameraActive(true);
-        setIsStartingCamera(false);
+        if (isMountedRef.current) {
+          setCameraActive(true);
+          setIsStartingCamera(false);
+          isScanningRef.current = true;
+          startScanLoop();
+        }
       }
     } catch (err: any) {
-      console.warn('Direct back camera start failed, attempting fallback:', err);
-      // Fallback: try standard environment facingMode
+      console.error('Camera startup error:', err);
+      // Fallback: try minimal constraint
       try {
-        if (scannerRef.current) {
-          await scannerRef.current.start(
-            { facingMode: 'environment' },
-            { fps: 15, qrbox: { width: 250, height: 250 } },
-            (decodedText) => handleQrCodeScanned(decodedText),
-            () => {}
-          );
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+        streamRef.current = fallbackStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+          await videoRef.current.play();
           if (isMountedRef.current) {
             setCameraActive(true);
             setIsStartingCamera(false);
+            isScanningRef.current = true;
+            startScanLoop();
           }
-          return;
         }
       } catch (fallbackErr: any) {
-        console.error('Camera fallback error:', fallbackErr);
+        console.error('Fallback camera error:', fallbackErr);
         if (isMountedRef.current) {
-          setCameraError(
-            'Back camera could not be accessed. Please ensure camera permissions are allowed in your browser settings.'
-          );
-          setCameraActive(false);
           setIsStartingCamera(false);
+          setCameraActive(false);
+          setCameraError(
+            'Camera could not be accessed. Please ensure camera permissions are allowed in your browser settings.'
+          );
         }
       }
     }
-  };
-
-  const stopCamera = async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-      } catch (e) {}
-      scannerRef.current = null;
-    }
-    setCameraActive(false);
   };
 
   const toggleCamera = async () => {
     const nextFacing = cameraFacing === 'environment' ? 'user' : 'environment';
     setCameraFacing(nextFacing);
-    await stopCamera();
-    await startBackCamera(nextFacing);
+    await startCamera(nextFacing);
   };
 
-  // Process and actually verify the scanned QR Code
+  const toggleTorch = async () => {
+    if (!streamRef.current) return;
+    const track = streamRef.current.getVideoTracks()[0];
+    if (!track) return;
+    try {
+      const nextTorch = !isTorchOn;
+      await (track as any).applyConstraints({
+        advanced: [{ torch: nextTorch }]
+      });
+      setIsTorchOn(nextTorch);
+    } catch (e) {
+      console.warn('Torch toggle failed:', e);
+    }
+  };
+
+  // High-performance continuous frame scanner loop
+  const startScanLoop = () => {
+    const loop = async () => {
+      if (!isMountedRef.current || !isScanningRef.current || isProcessingRef.current) {
+        return;
+      }
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (video && canvas && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+        try {
+          const qrCode = await scanVideoFrame(video, canvas);
+          if (qrCode && !isProcessingRef.current) {
+            handleQrCodeScanned(qrCode);
+            return;
+          }
+        } catch {}
+      }
+
+      // Re-schedule next frame check (~14 FPS is optimal for real-time decoding without battery drain)
+      scanTimerRef.current = setTimeout(loop, 70);
+    };
+
+    loop();
+  };
+
+  // Process and verify the scanned QR Code
   const handleQrCodeScanned = async (qrText: string) => {
-    // 1. Concurrency debounce lock: Prevent Html5Qrcode multiple frame calls
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
+    isScanningRef.current = false;
 
     try {
-      await stopCamera();
       setVerificationState('VERIFYING');
       setResultMessage(
         gateMode === 'ENTER'
@@ -313,7 +371,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         }
       }
 
-      // Check if scanned QR is a valid IronVault Gate QR
+      // Check if scanned QR looks like an IronVault gate QR
       const looksLikeValidGate =
         gymId.startsWith('FACILITY_') ||
         (facility && (gymId === facility.id || gymId === facility.staticQrCodeHash || gymId === facility.exitQrCodeHash)) ||
@@ -326,12 +384,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         setResultMessage(
           'Invalid Gate QR Code. Please point your camera at the official IronVault Gate poster.'
         );
-        // Resume camera scan after notice
+
         setTimeout(() => {
           if (isMountedRef.current && isOpen) {
             isProcessingRef.current = false;
+            isScanningRef.current = true;
             setVerificationState('IDLE');
-            startBackCamera(cameraFacing);
+            startScanLoop();
           }
         }, 2500);
         return;
@@ -394,7 +453,6 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           });
         }
 
-        // Check response access type
         if (response.access === 'EXIT_CONFIRMED') {
           playFeedbackAudio('success');
           triggerHaptic(true);
@@ -439,15 +497,55 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         err.message || 'Access notice: Scanned QR code was not recognized. Please scan the official gate poster.'
       );
 
-      // Auto-restart camera after 3.2 seconds so the member can scan again without modal disruption
+      // Auto-resume camera scanning after 3.2 seconds
+      setTimeout(() => {
+        if (isMountedRef.current && isOpen) {
+          isProcessingRef.current = false;
+          isScanningRef.current = true;
+          setVerificationState('IDLE');
+          startScanLoop();
+        }
+      }, 3200);
+    }
+  };
+
+  // Handle image upload fallback (photo of QR poster)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setVerificationState('VERIFYING');
+    setResultMessage('Scanning uploaded QR image...');
+
+    try {
+      const qrCode = await scanImageFile(file);
+      if (qrCode) {
+        handleQrCodeScanned(qrCode);
+      } else {
+        playFeedbackAudio('denied');
+        triggerHaptic(false);
+        setVerificationState('DENIED');
+        setResultMessage('No valid QR code could be detected in this image. Please ensure the QR is clear and well lit.');
+
+        setTimeout(() => {
+          if (isMountedRef.current && isOpen) {
+            isProcessingRef.current = false;
+            setVerificationState('IDLE');
+          }
+        }, 3000);
+      }
+    } catch (err: any) {
+      setVerificationState('DENIED');
+      setResultMessage('Failed to process image. Please try another photo.');
       setTimeout(() => {
         if (isMountedRef.current && isOpen) {
           isProcessingRef.current = false;
           setVerificationState('IDLE');
-          startBackCamera(cameraFacing);
         }
-      }, 3200);
+      }, 3000);
     }
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   if (!isOpen) return null;
@@ -455,6 +553,16 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 dark:bg-black/85 backdrop-blur-md animate-fade-in font-poppins">
       <div className="app-card w-full max-w-md overflow-hidden shadow-2xl flex flex-col relative border border-slate-200 dark:border-zinc-800">
+        {/* Hidden Canvas and File Input for scanning */}
+        <canvas ref={canvasRef} className="hidden" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50/80 dark:bg-zinc-900/80">
           <div className="flex items-center gap-3">
@@ -557,33 +665,58 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             </div>
           )}
 
-          {/* Real-time Back Camera Viewfinder */}
+          {/* Real-time Back Camera Viewfinder with Native Video Stream */}
           <div className="relative rounded-3xl overflow-hidden bg-black border-2 border-emerald-500/40 aspect-square max-h-72 mx-auto flex items-center justify-center shadow-inner">
-            <div id="qr-reader-container" className="w-full h-full"></div>
+            <video
+              ref={videoRef}
+              playsInline
+              autoPlay
+              muted
+              className={`w-full h-full object-cover ${cameraActive ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+            />
 
             {/* Overlaid Animated Scanner Reticle */}
             {cameraActive && verificationState === 'IDLE' && (
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
-                <div className="w-48 h-48 border-2 border-dashed border-emerald-400/70 rounded-2xl relative flex items-center justify-center">
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald-400" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-emerald-400" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald-400" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald-400" />
-                  <div className="w-full h-0.5 bg-emerald-400/80 shadow-glow-green animate-pulse" />
+                <div className="w-48 h-48 border-2 border-dashed border-emerald-400/80 rounded-2xl relative flex items-center justify-center shadow-2xl">
+                  {/* Glowing corner brackets */}
+                  <div className="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-emerald-400 rounded-tl-sm" />
+                  <div className="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-emerald-400 rounded-tr-sm" />
+                  <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-emerald-400 rounded-bl-sm" />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 border-b-4 border-r-4 border-emerald-400 rounded-br-sm" />
+
+                  {/* Pulsing horizontal laser beam */}
+                  <div className="w-full h-0.5 bg-emerald-400/90 shadow-glow-green animate-pulse" />
                 </div>
               </div>
             )}
 
-            {/* Camera Switcher Icon (Flip between Back/Front camera) */}
+            {/* Controls Bar (Camera Switch, Torch, Upload) */}
             {cameraActive && (
-              <button
-                type="button"
-                onClick={toggleCamera}
-                title="Switch Camera (Back/Front)"
-                className="absolute top-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 transition active:scale-95 shadow-lg"
-              >
-                <SwitchCamera className="w-4 h-4" />
-              </button>
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                {hasTorch && (
+                  <button
+                    type="button"
+                    onClick={toggleTorch}
+                    title={isTorchOn ? 'Turn Off Flashlight' : 'Turn On Flashlight'}
+                    className={`p-2 rounded-xl backdrop-blur-md border transition active:scale-95 shadow-lg ${
+                      isTorchOn
+                        ? 'bg-amber-500 text-black border-amber-300'
+                        : 'bg-black/60 hover:bg-black/80 text-white border-white/20'
+                    }`}
+                  >
+                    {isTorchOn ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={toggleCamera}
+                  title="Switch Camera (Back/Front)"
+                  className="p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 transition active:scale-95 shadow-lg"
+                >
+                  <SwitchCamera className="w-4 h-4" />
+                </button>
+              </div>
             )}
 
             {/* Inactive or Error State */}
@@ -596,7 +729,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                   {cameraError || (isStartingCamera ? 'Opening back camera...' : 'Starting turnstile scanner...')}
                 </p>
                 <button
-                  onClick={() => startBackCamera(cameraFacing)}
+                  onClick={() => startCamera(cameraFacing)}
                   disabled={isStartingCamera}
                   className="px-5 py-2.5 rounded-xl btn-primary-green text-xs font-black flex items-center gap-2"
                 >
@@ -605,6 +738,18 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Quick Fallback: Upload Photo Button */}
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="py-2 px-4 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 text-xs font-bold flex items-center gap-2 transition"
+            >
+              <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Or Upload Photo of QR Poster</span>
+            </button>
           </div>
 
           {/* Location Verification & Instruction */}
