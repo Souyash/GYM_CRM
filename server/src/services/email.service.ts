@@ -67,7 +67,39 @@ async function dispatchEmail(params: {
 }): Promise<{ success: boolean; deliveredVia: 'GMAIL' | 'DEV_CONSOLE'; error?: string }> {
   const { toEmail, subject, html, text, devOtpCode, fullName } = params;
 
-  // Tier 1: Try Resend HTTPS API (Fastest: ~400ms over port 443)
+  // Tier 1: Try Brevo HTTPS API (Sends from subhaarthabusiness@gmail.com to ANY member over HTTPS port 443)
+  const brevoKey = process.env.BREVO_API_KEY;
+  const fromName = getFromName();
+  const user = getGmailUser();
+
+  if (brevoKey) {
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': brevoKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: fromName || 'IronVault Fitness', email: user || 'subhaarthabusiness@gmail.com' },
+          to: [{ email: toEmail, name: fullName || 'Gym Member' }],
+          subject,
+          htmlContent: html,
+          textContent: text
+        })
+      });
+      const data = await res.json() as any;
+      if (res.ok && data.messageId) {
+        console.log(`[Email Service] ✉️ Successfully dispatched via Brevo API to: ${toEmail} (MessageId: ${data.messageId})`);
+        return { success: true, deliveredVia: 'GMAIL' };
+      }
+      console.warn(`[Email Service] Brevo fallback required:`, data?.message || data?.error);
+    } catch (err: any) {
+      console.warn(`[Email Service] Brevo error:`, err.message);
+    }
+  }
+
+  // Tier 2: Try Resend HTTPS API (Fastest: ~400ms over port 443)
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     try {
@@ -120,8 +152,6 @@ async function dispatchEmail(params: {
 
   // Tier 3: Direct Gmail SMTP (Local Mac & non-restricted cloud instances)
   const activeTransporter = getTransporter();
-  const user = getGmailUser();
-  const fromName = getFromName();
 
   if (activeTransporter && user) {
     try {
