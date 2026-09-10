@@ -169,12 +169,98 @@ async function main() {
     }
   });
 
-  console.log('✅ Clean database initialized successfully with Community Feed!');
+  // Seed Group Classes (Official gym classes scheduled by staff)
+  const class1Time = new Date(now);
+  class1Time.setHours(17, 30, 0, 0); // 5:30 PM today
+  const class2Time = new Date(now);
+  class2Time.setHours(18, 45, 0, 0); // 6:45 PM today
+  const class3Time = new Date(now);
+  class3Time.setDate(class3Time.getDate() + 1);
+  class3Time.setHours(7, 30, 0, 0); // 7:30 AM tomorrow
+
+  const gc1 = await prisma.groupClass.create({
+    data: {
+      title: 'High-Octane HIIT & Core Circuit',
+      coach: 'Coach Elena',
+      startTime: class1Time,
+      durationMinutes: 45,
+      zone: 'Functional Turf Zone',
+      maxSeats: 16,
+      intensity: 'High',
+      facilityId: facility.id,
+      createdById: manager.id
+    }
+  });
+
+  const gc2 = await prisma.groupClass.create({
+    data: {
+      title: 'Powerlifting Heavy Squat & Bench Clinic',
+      coach: 'Coach Marcus',
+      startTime: class2Time,
+      durationMinutes: 60,
+      zone: 'Olympic Lifting Platforms',
+      maxSeats: 10,
+      intensity: 'High',
+      facilityId: facility.id,
+      createdById: superAdmin.id
+    }
+  });
+
+  const gc3 = await prisma.groupClass.create({
+    data: {
+      title: 'Athletic Mobility & Deep Recovery',
+      coach: 'Sarah Jenkins',
+      startTime: class3Time,
+      durationMinutes: 40,
+      zone: 'Mind & Body Studio',
+      maxSeats: 20,
+      intensity: 'Recovery',
+      facilityId: facility.id,
+      createdById: manager.id
+    }
+  });
+
+  // Seed Member Booking on gc1
+  await prisma.classBooking.create({
+    data: {
+      classId: gc1.id,
+      userId: member.id
+    }
+  });
+
+  // Seed verified Attendance Entries for realistic Leaderboard demonstration
+  for (let i = 0; i < 4; i++) {
+    const scanDate = new Date();
+    scanDate.setDate(scanDate.getDate() - i);
+    scanDate.setHours(8 + i, 15, 0, 0);
+
+    const exitDate = new Date(scanDate);
+    exitDate.setMinutes(exitDate.getMinutes() + 55);
+
+    await prisma.attendanceEntry.create({
+      data: {
+        userId: member.id,
+        facilityId: facility.id,
+        scannedAt: scanDate,
+        exitedAt: exitDate,
+        sessionDurationMinutes: 55,
+        status: 'COMPLETED',
+        deviceId: 'seed-verified-device-macbook',
+        exitDeviceId: 'seed-exit-turnstile',
+        gpsLat: facility.latitude,
+        gpsLng: facility.longitude,
+        distanceFromFacility: 4.2,
+        cooldownExpiresAt: new Date(scanDate.getTime() + 180000)
+      }
+    });
+  }
+
+  console.log('✅ Clean database initialized successfully with Community Feed, Group Classes & Leaderboard!');
   console.log('---------------------------------------------------------');
   console.log('👑 Gym Owner:  admin@ironvaultgym.com / Admin@12345');
   console.log('🧑‍💼 Front Desk: manager@ironvaultgym.com / Manager@12345');
   console.log('🏃 Active Member: macbook.member@ironvaultgym.com / Member@12345');
-  console.log('✨ 0 attendance entries logged - Ready for clean real testing!');
+  console.log('✨ Seeded group classes and attendance entries for live testing!');
   console.log('---------------------------------------------------------');
 }
 

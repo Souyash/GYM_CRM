@@ -120,4 +120,23 @@ export function emitDeletePostComment(data: { postId: string; commentId: string 
   io.emit('community:comment_deleted', data);
 }
 
+/**
+ * Real-time Group Class broadcast events
+ */
+export function emitClassCreated(classItem: any) {
+  if (!io) return;
+  io.emit('community:class_created', classItem);
+}
+
+export function emitClassDeleted(classId: string) {
+  if (!io) return;
+  io.emit('community:class_deleted', { classId });
+}
+
+export function emitClassBookingUpdated(data: { classId: string; bookedSeats: number; maxSeats: number; userId: string; isBooked: boolean }) {
+  if (!io) return;
+  io.emit('community:class_booking_updated', data);
+}
+
+
 

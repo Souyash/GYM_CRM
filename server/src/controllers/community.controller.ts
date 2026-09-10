@@ -7,7 +7,10 @@ import {
   emitPostPinnedChanged,
   emitPostLikeUpdated,
   emitNewPostComment,
-  emitDeletePostComment
+  emitDeletePostComment,
+  emitClassCreated,
+  emitClassDeleted,
+  emitClassBookingUpdated
 } from '../services/socket.service.js';
 
 /**
@@ -386,4 +389,452 @@ export async function deletePostComment(req: AuthenticatedRequest, res: Response
     res.status(500).json({ error: 'Failed to delete comment.' });
   }
 }
+
+// -------------------------------------------------------------
+// GROUP CLASSES MANAGEMENT (Staff / Admin create, Members book)
+// -------------------------------------------------------------
+
+/**
+ * Fetch all upcoming group classes with capacity and booking status for requester
+ */
+export async function getGroupClasses(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const currentUserId = req.user?.userId;
+
+    const classes = await prisma.groupClass.findMany({
+      include: {
+        bookings: {
+          select: {
+            userId: true
+          }
+        },
+        createdBy: {
+          select: {
+            fullName: true,
+            role: true
+          }
+        }
+      },
+      orderBy: {
+        startTime: 'asc'
+      }
+    });
+
+    const formatted = classes.map((c) => {
+      const bookedCount = c.bookings.length;
+      const isBooked = c.bookings.some((b) => b.userId === currentUserId);
+
+      return {
+        id: c.id,
+        title: c.title,
+        coach: c.coach,
+        startTime: c.startTime.toISOString(),
+        durationMinutes: c.durationMinutes,
+        duration: `${c.durationMinutes} min`,
+        zone: c.zone,
+        maxSeats: c.maxSeats,
+        bookedSeats: bookedCount,
+        availableSeats: Math.max(0, c.maxSeats - bookedCount),
+        intensity: c.intensity,
+        isBooked,
+        facilityId: c.facilityId,
+        createdAt: c.createdAt.toISOString()
+      };
+    });
+
+    res.json({ classes: formatted });
+  } catch (error: any) {
+    console.error('getGroupClasses error:', error);
+    res.status(500).json({ error: 'Failed to load group classes.' });
+  }
+}
+
+/**
+ * Create a new group class (Restricted to SUPER_ADMIN and MANAGER)
+ */
+export async function createGroupClass(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    // Strict role enforcement: Only Front Desk staff and Admin can schedule classes
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'MANAGER') {
+      res.status(403).json({
+        error: 'Permission denied. Only gym administrators and front desk staff can schedule official group classes.'
+      });
+      return;
+    }
+
+    const {
+      title,
+      coach,
+      startTime,
+      durationMinutes,
+      zone,
+      maxSeats,
+      intensity,
+      facilityId
+    } = req.body;
+
+    if (!title || !coach || !startTime) {
+      res.status(400).json({ error: 'Class title, coach name, and scheduled start time are required.' });
+      return;
+    }
+
+    const parsedStartTime = new Date(startTime);
+    if (isNaN(parsedStartTime.getTime())) {
+      res.status(400).json({ error: 'Invalid date/time format for start time.' });
+      return;
+    }
+
+    const newClass = await prisma.groupClass.create({
+      data: {
+        title: title.trim(),
+        coach: coach.trim(),
+        startTime: parsedStartTime,
+        durationMinutes: durationMinutes ? Number(durationMinutes) : 45,
+        zone: zone ? zone.trim() : 'Functional Turf Zone',
+        maxSeats: maxSeats ? Math.max(1, Number(maxSeats)) : 16,
+        intensity: intensity ? intensity.trim() : 'Moderate',
+        facilityId: facilityId || req.user?.facilityId || null,
+        createdById: userId
+      },
+      include: {
+        createdBy: {
+          select: {
+            fullName: true,
+            role: true
+          }
+        }
+      }
+    });
+
+    const payload = {
+      id: newClass.id,
+      title: newClass.title,
+      coach: newClass.coach,
+      startTime: newClass.startTime.toISOString(),
+      durationMinutes: newClass.durationMinutes,
+      duration: `${newClass.durationMinutes} min`,
+      zone: newClass.zone,
+      maxSeats: newClass.maxSeats,
+      bookedSeats: 0,
+      availableSeats: newClass.maxSeats,
+      intensity: newClass.intensity,
+      isBooked: false,
+      facilityId: newClass.facilityId,
+      createdAt: newClass.createdAt.toISOString()
+    };
+
+    // Broadcast live to all members & staff
+    emitClassCreated(payload);
+
+    res.status(201).json({ class: payload });
+  } catch (error: any) {
+    console.error('createGroupClass error:', error);
+    res.status(500).json({ error: 'Failed to create group class.' });
+  }
+}
+
+/**
+ * Delete / Cancel a group class (Restricted to SUPER_ADMIN and MANAGER)
+ */
+export async function deleteGroupClass(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const userRole = req.user?.role;
+    const { id } = req.params;
+
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'MANAGER') {
+      res.status(403).json({ error: 'Permission denied. Only gym staff and admins can cancel classes.' });
+      return;
+    }
+
+    const targetClass = await prisma.groupClass.findUnique({
+      where: { id }
+    });
+
+    if (!targetClass) {
+      res.status(404).json({ error: 'Class not found.' });
+      return;
+    }
+
+    await prisma.groupClass.delete({
+      where: { id }
+    });
+
+    emitClassDeleted(id);
+
+    res.json({ message: 'Class cancelled successfully.', classId: id });
+  } catch (error: any) {
+    console.error('deleteGroupClass error:', error);
+    res.status(500).json({ error: 'Failed to delete group class.' });
+  }
+}
+
+/**
+ * Toggle Member Reservation on a Group Class
+ */
+export async function toggleBookClass(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    const { id: classId } = req.params;
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized.' });
+      return;
+    }
+
+    const groupClass = await prisma.groupClass.findUnique({
+      where: { id: classId },
+      include: {
+        bookings: true
+      }
+    });
+
+    if (!groupClass) {
+      res.status(404).json({ error: 'Group class not found.' });
+      return;
+    }
+
+    const existingBooking = groupClass.bookings.find((b) => b.userId === userId);
+
+    if (existingBooking) {
+      // Cancel booking
+      await prisma.classBooking.delete({
+        where: { id: existingBooking.id }
+      });
+
+      const updatedCount = Math.max(0, groupClass.bookings.length - 1);
+
+      emitClassBookingUpdated({
+        classId,
+        bookedSeats: updatedCount,
+        maxSeats: groupClass.maxSeats,
+        userId,
+        isBooked: false
+      });
+
+      res.json({
+        message: 'Reservation cancelled.',
+        isBooked: false,
+        bookedSeats: updatedCount,
+        availableSeats: groupClass.maxSeats - updatedCount
+      });
+    } else {
+      // Check seat availability
+      if (groupClass.bookings.length >= groupClass.maxSeats) {
+        res.status(400).json({ error: 'This class has reached full capacity. No seats left.' });
+        return;
+      }
+
+      await prisma.classBooking.create({
+        data: {
+          classId,
+          userId
+        }
+      });
+
+      const updatedCount = groupClass.bookings.length + 1;
+
+      emitClassBookingUpdated({
+        classId,
+        bookedSeats: updatedCount,
+        maxSeats: groupClass.maxSeats,
+        userId,
+        isBooked: true
+      });
+
+      res.json({
+        message: 'Spot reserved successfully!',
+        isBooked: true,
+        bookedSeats: updatedCount,
+        availableSeats: groupClass.maxSeats - updatedCount
+      });
+    }
+  } catch (error: any) {
+    console.error('toggleBookClass error:', error);
+    res.status(500).json({ error: 'Failed to update class booking.' });
+  }
+}
+
+// -------------------------------------------------------------
+// LIVE TURNSTILE-DRIVEN LEADERBOARD
+// Computed automatically from physical AttendanceEntry check-ins
+// -------------------------------------------------------------
+
+/**
+ * Calculates current active training streak in days
+ */
+function computeMemberStreak(scannedDates: Date[]): number {
+  if (!scannedDates || scannedDates.length === 0) return 0;
+
+  // Extract unique calendar days YYYY-MM-DD in descending order
+  const uniqueDays = Array.from(
+    new Set(
+      scannedDates.map((d) => {
+        const dt = new Date(d);
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      })
+    )
+  ).sort().reverse();
+
+  if (uniqueDays.length === 0) return 0;
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+  // Streak continues if member attended today OR yesterday
+  let currentStreak = 0;
+  let checkDate: Date | null = null;
+
+  if (uniqueDays[0] === todayStr) {
+    checkDate = new Date(today);
+  } else if (uniqueDays[0] === yesterdayStr) {
+    checkDate = new Date(yesterday);
+  } else {
+    // If last attendance was before yesterday, return 0 or 1 if attended this week
+    return 0;
+  }
+
+  for (const dayStr of uniqueDays) {
+    const expectedStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+    if (dayStr === expectedStr) {
+      currentStreak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return currentStreak;
+}
+
+/**
+ * Fetch live calculated leaderboard rankings from real turnstile scans
+ */
+export async function getLiveLeaderboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const currentUserId = req.user?.userId;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Fetch this month's attendance logs
+    const entries = await prisma.attendanceEntry.findMany({
+      where: {
+        scannedAt: { gte: startOfMonth }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            role: true,
+            avatarUrl: true
+          }
+        }
+      },
+      orderBy: {
+        scannedAt: 'desc'
+      }
+    });
+
+    // Group scans by user
+    const userScansMap = new Map<string, { user: any; dates: Date[]; totalDuration: number }>();
+
+    for (const entry of entries) {
+      if (!entry.user) continue;
+      const existing = userScansMap.get(entry.userId);
+      if (!existing) {
+        userScansMap.set(entry.userId, {
+          user: entry.user,
+          dates: [entry.scannedAt],
+          totalDuration: entry.sessionDurationMinutes || 0
+        });
+      } else {
+        existing.dates.push(entry.scannedAt);
+        existing.totalDuration += entry.sessionDurationMinutes || 0;
+      }
+    }
+
+    // Also include active gym members so the leaderboard displays full roster if scans are fresh
+    const allMembers = await prisma.user.findMany({
+      where: { role: 'MEMBER' },
+      select: {
+        id: true,
+        fullName: true,
+        role: true,
+        avatarUrl: true
+      },
+      take: 20
+    });
+
+    for (const member of allMembers) {
+      if (!userScansMap.has(member.id)) {
+        userScansMap.set(member.id, {
+          user: member,
+          dates: [],
+          totalDuration: 0
+        });
+      }
+    }
+
+    // Build ranking list
+    const rankedList: any[] = [];
+
+    for (const [userId, record] of userScansMap.entries()) {
+      const visitsThisMonth = record.dates.length;
+      const streakDays = computeMemberStreak(record.dates);
+
+      rankedList.push({
+        userId,
+        name: record.user.fullName,
+        role: record.user.role,
+        avatarUrl: record.user.avatarUrl,
+        visitsThisMonth,
+        streakDays,
+        totalWorkoutMinutes: record.totalDuration,
+        isCurrentUser: userId === currentUserId
+      });
+    }
+
+    // Sort descending by visitsThisMonth, then by streakDays
+    rankedList.sort((a, b) => {
+      if (b.visitsThisMonth !== a.visitsThisMonth) {
+        return b.visitsThisMonth - a.visitsThisMonth;
+      }
+      return b.streakDays - a.streakDays;
+    });
+
+    // Assign rank positions and awards
+    const finalLeaderboard = rankedList.map((item, index) => {
+      const rank = index + 1;
+      let badge = 'Iron Athlete';
+      if (rank === 1) badge = '🥇 Gold Tier';
+      else if (rank === 2) badge = '🥈 Silver Tier';
+      else if (rank === 3) badge = '🥉 Bronze Tier';
+      else if (item.streakDays >= 5) badge = '🔥 Streak Master';
+      else if (item.visitsThisMonth >= 10) badge = 'Daily Grinder';
+
+      return {
+        ...item,
+        rank,
+        badge
+      };
+    });
+
+    res.json({
+      leaderboard: finalLeaderboard,
+      month: now.toLocaleString('default', { month: 'long', year: 'numeric' }),
+      totalActiveAthletes: finalLeaderboard.length
+    });
+  } catch (error: any) {
+    console.error('getLiveLeaderboard error:', error);
+    res.status(500).json({ error: 'Failed to calculate live leaderboard.' });
+  }
+}
+
 

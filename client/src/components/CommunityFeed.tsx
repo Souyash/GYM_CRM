@@ -56,13 +56,18 @@ interface GroupClass {
   id: string;
   title: string;
   coach: string;
-  time: string;
+  startTime?: string;
+  time?: string;
+  durationMinutes?: number;
   duration: string;
   zone: string;
   maxSeats: number;
   bookedSeats: number;
-  intensity: 'High' | 'Moderate' | 'Recovery';
+  availableSeats?: number;
+  intensity: string;
   isBooked?: boolean;
+  facilityId?: string | null;
+  createdAt?: string;
 }
 
 interface BuddyRequest {
@@ -83,6 +88,7 @@ interface LeaderboardUser {
   streakDays: number;
   badge: string;
   isCurrentUser?: boolean;
+  totalWorkoutMinutes?: number;
 }
 
 function formatTimeAgo(dateInput: string | Date): string {
@@ -97,6 +103,22 @@ function formatTimeAgo(dateInput: string | Date): string {
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function formatClassTime(isoString?: string): string {
+  if (!isoString) return 'Upcoming';
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return 'Upcoming';
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const isTomorrow = d.toDateString() === tomorrow.toDateString();
+
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return `${timeStr} Today`;
+  if (isTomorrow) return `${timeStr} Tomorrow`;
+  return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} @ ${timeStr}`;
 }
 
 export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 'feed' }) => {
@@ -229,12 +251,43 @@ export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 
       );
     };
 
+    const handleClassCreated = (newClass: any) => {
+      setClasses((prev) => [
+        { ...newClass, time: formatClassTime(newClass.startTime) },
+        ...prev.filter((c) => c.id !== newClass.id)
+      ]);
+    };
+
+    const handleClassDeleted = ({ classId }: { classId: string }) => {
+      setClasses((prev) => prev.filter((c) => c.id !== classId));
+    };
+
+    const handleClassBookingUpdated = ({ classId, bookedSeats, maxSeats, userId, isBooked }: any) => {
+      setClasses((prev) =>
+        prev.map((c) => {
+          if (c.id === classId) {
+            return {
+              ...c,
+              bookedSeats,
+              maxSeats,
+              isBooked: user?.id === userId ? isBooked : c.isBooked
+            };
+          }
+          return c;
+        })
+      );
+    };
+
     socket.on('community:post_created', handlePostCreated);
     socket.on('community:post_deleted', handlePostDeleted);
     socket.on('community:post_pinned', handlePostPinned);
     socket.on('community:post_like_updated', handleLikeUpdated);
     socket.on('community:comment_created', handleCommentCreated);
     socket.on('community:comment_deleted', handleCommentDeleted);
+
+    socket.on('community:class_created', handleClassCreated);
+    socket.on('community:class_deleted', handleClassDeleted);
+    socket.on('community:class_booking_updated', handleClassBookingUpdated);
 
     return () => {
       socket.off('community:post_created', handlePostCreated);
@@ -243,6 +296,10 @@ export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 
       socket.off('community:post_like_updated', handleLikeUpdated);
       socket.off('community:comment_created', handleCommentCreated);
       socket.off('community:comment_deleted', handleCommentDeleted);
+
+      socket.off('community:class_created', handleClassCreated);
+      socket.off('community:class_deleted', handleClassDeleted);
+      socket.off('community:class_booking_updated', handleClassBookingUpdated);
     };
   }, [user?.id]);
 
@@ -397,45 +454,135 @@ export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 
     }
   };
 
-  // Group Classes State (Interactive Demo)
-  const [classes, setClasses] = useState<GroupClass[]>([
-    {
-      id: 'gc1',
-      title: 'High-Octane HIIT & Core',
-      coach: 'Coach Elena',
-      time: '05:30 PM Today',
-      duration: '45 min',
-      zone: 'Functional Turf Zone',
-      maxSeats: 16,
-      bookedSeats: 12,
-      intensity: 'High',
-      isBooked: false
-    },
-    {
-      id: 'gc2',
-      title: 'Powerlifting Heavy Squat Clinic',
-      coach: 'Coach Marcus',
-      time: '06:30 PM Today',
-      duration: '60 min',
-      zone: 'Olympic Lifting Platforms',
-      maxSeats: 10,
-      bookedSeats: 8,
-      intensity: 'High',
-      isBooked: false
-    },
-    {
-      id: 'gc3',
-      title: 'Athletic Mobility & Deep Recovery',
-      coach: 'Sarah Jenkins',
-      time: '07:30 AM Tomorrow',
-      duration: '40 min',
-      zone: 'Mind & Body Studio',
-      maxSeats: 20,
-      bookedSeats: 14,
-      intensity: 'Recovery',
-      isBooked: false
+  // Group Classes State (Live from backend)
+  const [classes, setClasses] = useState<GroupClass[]>([]);
+  const [isLoadingClasses, setIsLoadingClasses] = useState<boolean>(false);
+
+  // Live Turnstile-Driven Leaderboard State
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState<boolean>(false);
+  const [leaderboardMonth, setLeaderboardMonth] = useState<string>('');
+
+  // Schedule New Class Modal State (Staff only)
+  const [isCreateClassModalOpen, setIsCreateClassModalOpen] = useState<boolean>(false);
+  const [newClassTitle, setNewClassTitle] = useState<string>('');
+  const [newClassCoach, setNewClassCoach] = useState<string>('');
+  const [newClassDate, setNewClassDate] = useState<string>('');
+  const [newClassTime, setNewClassTime] = useState<string>('');
+  const [newClassDuration, setNewClassDuration] = useState<number>(45);
+  const [newClassZone, setNewClassZone] = useState<string>('Functional Turf Zone');
+  const [newClassMaxSeats, setNewClassMaxSeats] = useState<number>(16);
+  const [newClassIntensity, setNewClassIntensity] = useState<string>('Moderate');
+  const [isSubmittingClass, setIsSubmittingClass] = useState<boolean>(false);
+
+  // Load classes from backend
+  const loadClasses = async () => {
+    try {
+      setIsLoadingClasses(true);
+      const data = await api.getGroupClasses();
+      const formatted = (data.classes || []).map((c: any) => ({
+        ...c,
+        time: formatClassTime(c.startTime)
+      }));
+      setClasses(formatted);
+    } catch (err) {
+      console.error('Failed to load group classes:', err);
+    } finally {
+      setIsLoadingClasses(false);
     }
-  ]);
+  };
+
+  // Load leaderboard from backend
+  const loadLeaderboard = async () => {
+    try {
+      setIsLoadingLeaderboard(true);
+      const data = await api.getLiveLeaderboard();
+      setLeaderboard(data.leaderboard || []);
+      setLeaderboardMonth(data.month || '');
+    } catch (err) {
+      console.error('Failed to load live leaderboard:', err);
+    } finally {
+      setIsLoadingLeaderboard(false);
+    }
+  };
+
+  useEffect(() => {
+    loadClasses();
+    loadLeaderboard();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'classes') loadClasses();
+    if (activeTab === 'leaderboard') loadLeaderboard();
+  }, [activeTab]);
+
+  const handleToggleBookClass = async (classId: string) => {
+    try {
+      const res = await api.toggleBookClass(classId);
+      setClasses((prev) =>
+        prev.map((c) => {
+          if (c.id === classId) {
+            return {
+              ...c,
+              isBooked: res.isBooked,
+              bookedSeats: res.bookedSeats,
+              availableSeats: res.availableSeats
+            };
+          }
+          return c;
+        })
+      );
+    } catch (err: any) {
+      alert(err.message || 'Failed to update class reservation.');
+    }
+  };
+
+  const handleCreateClassSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClassTitle.trim() || !newClassCoach.trim() || !newClassDate || !newClassTime) return;
+
+    try {
+      setIsSubmittingClass(true);
+      const combinedIso = new Date(`${newClassDate}T${newClassTime}`).toISOString();
+      const res = await api.createGroupClass({
+        title: newClassTitle.trim(),
+        coach: newClassCoach.trim(),
+        startTime: combinedIso,
+        durationMinutes: Number(newClassDuration),
+        zone: newClassZone,
+        maxSeats: Number(newClassMaxSeats),
+        intensity: newClassIntensity
+      });
+
+      if (res.class) {
+        setClasses((prev) => [
+          { ...res.class, time: formatClassTime(res.class.startTime) },
+          ...prev.filter((c) => c.id !== res.class.id)
+        ]);
+      }
+
+      setIsCreateClassModalOpen(false);
+      setNewClassTitle('');
+      setNewClassCoach('');
+      setNewClassDate('');
+      setNewClassTime('');
+    } catch (err: any) {
+      alert(err.message || 'Failed to schedule class.');
+    } finally {
+      setIsSubmittingClass(false);
+    }
+  };
+
+  const handleDeleteClass = async (classId: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to cancel the class "${title}"?`)) return;
+
+    try {
+      await api.deleteGroupClass(classId);
+      setClasses((prev) => prev.filter((c) => c.id !== classId));
+    } catch (err: any) {
+      alert(err.message || 'Failed to cancel class.');
+    }
+  };
 
   // Workout Buddies State (Interactive Demo)
   const [buddies, setBuddies] = useState<BuddyRequest[]>([
@@ -465,31 +612,6 @@ export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 
   const [buddyFocus, setBuddyFocus] = useState('');
   const [buddyTime, setBuddyTime] = useState('');
   const [buddyNote, setBuddyNote] = useState('');
-
-  // Leaderboard State
-  const [leaderboard] = useState<LeaderboardUser[]>([
-    { rank: 1, name: 'Jordan Miller', visitsThisMonth: 22, streakDays: 14, badge: '🥇 Gold Tier' },
-    { rank: 2, name: user?.fullName || 'Alex Rivera', visitsThisMonth: 18, streakDays: 7, badge: '🥈 Silver Tier', isCurrentUser: true },
-    { rank: 3, name: 'Taylor Brooks', visitsThisMonth: 16, streakDays: 6, badge: '🥉 Bronze Tier' },
-    { rank: 4, name: 'Sarah Jenkins', visitsThisMonth: 15, streakDays: 5, badge: 'Pro Lifter' },
-    { rank: 5, name: 'Marcus Vance', visitsThisMonth: 14, streakDays: 4, badge: 'Daily Grinder' }
-  ]);
-
-  const handleToggleBookClass = (classId: string) => {
-    setClasses((prev) =>
-      prev.map((c) => {
-        if (c.id === classId) {
-          const booked = c.isBooked;
-          return {
-            ...c,
-            isBooked: !booked,
-            bookedSeats: booked ? c.bookedSeats - 1 : c.bookedSeats + 1
-          };
-        }
-        return c;
-      })
-    );
-  };
 
   const handleToggleJoinBuddy = (buddyId: string) => {
     setBuddies((prev) =>
@@ -978,59 +1100,280 @@ export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 
       {/* TAB 2: GROUP CLASSES */}
       {activeTab === 'classes' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {classes.map((c) => (
-              <div
-                key={c.id}
-                className="app-card p-4 sm:p-5 space-y-3 rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between"
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl app-card border border-slate-200/80 dark:border-zinc-800">
+            <div>
+              <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Coach-Led Group Classes</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                {isStaffOrAdmin
+                  ? 'Manage, publish, and schedule official gym fitness classes and studio workshops.'
+                  : 'Reserve your spot in advance. High-energy coach-led sessions included with your membership.'}
+              </p>
+            </div>
+
+            {isStaffOrAdmin && (
+              <button
+                onClick={() => setIsCreateClassModalOpen(true)}
+                className="py-2 px-4 rounded-xl btn-primary-green text-xs font-black flex items-center gap-1.5 shadow-sm whitespace-nowrap self-start sm:self-auto"
               >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span
-                      className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                        c.intensity === 'High'
-                          ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
-                          : 'bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300'
+                <PlusCircle className="w-4 h-4" />
+                <span>Schedule New Class</span>
+              </button>
+            )}
+          </div>
+
+          {isLoadingClasses ? (
+            <div className="p-8 text-center text-xs text-slate-400 animate-pulse">
+              Loading scheduled group classes...
+            </div>
+          ) : classes.length === 0 ? (
+            <div className="p-8 text-center app-card rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800">
+              <Calendar className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+              <p className="text-xs font-bold text-slate-600 dark:text-zinc-300">No classes scheduled right now.</p>
+              {isStaffOrAdmin && (
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Click "Schedule New Class" above to add the first session!
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {classes.map((c) => (
+                <div
+                  key={c.id}
+                  className="app-card p-4 sm:p-5 space-y-3 rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between relative group"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                          c.intensity === 'High'
+                            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
+                            : c.intensity === 'Recovery'
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                            : 'bg-teal-100 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300'
+                        }`}
+                      >
+                        {c.intensity} Intensity
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">{c.duration}</span>
+                        {isStaffOrAdmin && (
+                          <button
+                            onClick={() => handleDeleteClass(c.id, c.title)}
+                            title="Cancel / Delete Class"
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <h4 className="font-bold text-base text-slate-900 dark:text-white mt-2">{c.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                      Coach: <span className="font-bold text-slate-800 dark:text-zinc-200">{c.coach}</span>
+                    </p>
+
+                    <div className="flex items-center gap-2 mt-3 text-xs text-slate-600 dark:text-zinc-300">
+                      <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>{c.time}</span>
+                      <span className="text-slate-300 dark:text-zinc-700">•</span>
+                      <span>{c.zone}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
+                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                      <span className="font-black text-slate-900 dark:text-white">{c.bookedSeats}</span> /{' '}
+                      {c.maxSeats} Spots Reserved
+                    </span>
+
+                    <button
+                      onClick={() => handleToggleBookClass(c.id)}
+                      disabled={!c.isBooked && c.bookedSeats >= c.maxSeats}
+                      className={`py-1.5 px-4 rounded-xl text-xs font-black transition ${
+                        c.isBooked
+                          ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200'
+                          : c.bookedSeats >= c.maxSeats
+                          ? 'bg-slate-100 dark:bg-zinc-800 text-slate-400 cursor-not-allowed'
+                          : 'btn-primary-green'
                       }`}
                     >
-                      {c.intensity} Intensity
-                    </span>
-                    <span className="text-xs font-bold text-slate-500 dark:text-zinc-400">{c.duration}</span>
-                  </div>
-
-                  <h4 className="font-bold text-base text-slate-900 dark:text-white mt-2">{c.title}</h4>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                    Coach: <span className="font-bold text-slate-800 dark:text-zinc-200">{c.coach}</span>
-                  </p>
-
-                  <div className="flex items-center gap-2 mt-3 text-xs text-slate-600 dark:text-zinc-300">
-                    <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>{c.time}</span>
-                    <span className="text-slate-300 dark:text-zinc-700">•</span>
-                    <span>{c.zone}</span>
+                      {c.isBooked ? 'Cancel Spot' : c.bookedSeats >= c.maxSeats ? 'Class Full' : 'Reserve Spot'}
+                    </button>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
 
-                <div className="pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
-                  <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-                    <span className="font-black text-slate-900 dark:text-white">{c.bookedSeats}</span> /{' '}
-                    {c.maxSeats} Spots Reserved
-                  </span>
-
+          {/* Staff Create Class Modal */}
+          {isCreateClassModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in font-poppins">
+              <div className="app-card w-full max-w-lg p-6 space-y-4 rounded-3xl border border-slate-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 pb-3">
+                  <div>
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white">Schedule New Group Class</h3>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                      Publish coach-led class to member schedules and calendar
+                    </p>
+                  </div>
                   <button
-                    onClick={() => handleToggleBookClass(c.id)}
-                    className={`py-1.5 px-4 rounded-xl text-xs font-black transition ${
-                      c.isBooked
-                        ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200'
-                        : 'btn-primary-green'
-                    }`}
+                    onClick={() => setIsCreateClassModalOpen(false)}
+                    className="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white"
                   >
-                    {c.isBooked ? 'Cancel Spot' : 'Reserve Spot'}
+                    ✕
                   </button>
                 </div>
+
+                <form onSubmit={handleCreateClassSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                      Class Title *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Olympic Lifting & Heavy Squat Clinic"
+                      value={newClassTitle}
+                      onChange={(e) => setNewClassTitle(e.target.value)}
+                      className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Coach / Instructor *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Coach Marcus"
+                        value={newClassCoach}
+                        onChange={(e) => setNewClassCoach(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Studio Zone
+                      </label>
+                      <select
+                        value={newClassZone}
+                        onChange={(e) => setNewClassZone(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      >
+                        <option value="Functional Turf Zone">Functional Turf Zone</option>
+                        <option value="Olympic Lifting Platforms">Olympic Lifting Platforms</option>
+                        <option value="Mind & Body Studio">Mind & Body Studio</option>
+                        <option value="Spin & Cycling Studio">Spin & Cycling Studio</option>
+                        <option value="Main Gym Floor">Main Gym Floor</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={newClassDate}
+                        onChange={(e) => setNewClassDate(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Start Time *
+                      </label>
+                      <input
+                        type="time"
+                        value={newClassTime}
+                        onChange={(e) => setNewClassTime(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Duration (Min)
+                      </label>
+                      <input
+                        type="number"
+                        min={15}
+                        max={180}
+                        step={5}
+                        value={newClassDuration}
+                        onChange={(e) => setNewClassDuration(Number(e.target.value))}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Max Capacity
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={newClassMaxSeats}
+                        onChange={(e) => setNewClassMaxSeats(Number(e.target.value))}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+                        Intensity
+                      </label>
+                      <select
+                        value={newClassIntensity}
+                        onChange={(e) => setNewClassIntensity(e.target.value)}
+                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white"
+                      >
+                        <option value="High">High</option>
+                        <option value="Moderate">Moderate</option>
+                        <option value="Recovery">Recovery</option>
+                        <option value="All Levels">All Levels</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateClassModalOpen(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingClass}
+                      className="px-5 py-2 rounded-xl btn-primary-green text-xs font-black flex items-center gap-1.5"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>{isSubmittingClass ? 'Publishing...' : 'Publish to Schedule'}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1159,89 +1502,124 @@ export const CommunityFeed: React.FC<{ defaultTab?: string }> = ({ defaultTab = 
       {/* TAB 4: LEADERBOARD */}
       {activeTab === 'leaderboard' && (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
-            {/* 2nd Place */}
-            <div className="app-card p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-1 mt-4">
-              <span className="text-xl">🥈</span>
-              <p className="font-bold text-xs text-slate-900 dark:text-white truncate">{leaderboard[1]?.name}</p>
-              <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                {leaderboard[1]?.visitsThisMonth} Visits
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl app-card border border-slate-200/80 dark:border-zinc-800">
+            <div>
+              <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-amber-500" />
+                <span>Live Turnstile Attendance Leaderboard</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                Automatically calculated from verified entrance turnstile check-ins for {leaderboardMonth || 'this month'}.
               </p>
             </div>
-
-            {/* 1st Place */}
-            <div className="app-card p-3 sm:p-4 rounded-2xl border-2 border-amber-500/50 dark:border-amber-400/50 space-y-1 shadow-md bg-amber-50/20 dark:bg-amber-950/20">
-              <span className="text-2xl">🥇</span>
-              <p className="font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate">
-                {leaderboard[0]?.name}
-              </p>
-              <p className="text-xs font-black text-amber-600 dark:text-amber-400">
-                {leaderboard[0]?.visitsThisMonth} Visits
-              </p>
-            </div>
-
-            {/* 3rd Place */}
-            <div className="app-card p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-1 mt-4">
-              <span className="text-xl">🥉</span>
-              <p className="font-bold text-xs text-slate-900 dark:text-white truncate">{leaderboard[2]?.name}</p>
-              <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                {leaderboard[2]?.visitsThisMonth} Visits
-              </p>
-            </div>
+            <span className="badge-active-green text-[10px] uppercase tracking-wider font-extrabold hidden sm:inline-block">
+              Turnstile Live Sync
+            </span>
           </div>
 
-          <div className="app-card rounded-3xl overflow-hidden divide-y divide-slate-100 dark:divide-zinc-800/80 border border-slate-200 dark:border-zinc-800">
-            {leaderboard.map((item) => (
-              <div
-                key={item.rank}
-                className={`p-3.5 sm:p-4 flex items-center justify-between ${
-                  item.isCurrentUser
-                    ? 'bg-emerald-50/70 dark:bg-emerald-950/30 font-bold'
-                    : 'hover:bg-slate-50 dark:hover:bg-zinc-800/50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`w-6 text-center font-black text-xs ${
-                      item.rank === 1
-                        ? 'text-amber-500'
-                        : item.rank === 2
-                        ? 'text-slate-400'
-                        : item.rank === 3
-                        ? 'text-amber-700'
-                        : 'text-slate-400 dark:text-zinc-500'
-                    }`}
-                  >
-                    #{item.rank}
-                  </span>
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center font-bold text-xs">
-                    {item.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                        {item.name}
-                      </span>
-                      {item.isCurrentUser && (
-                        <span className="badge-active-green text-[9px] py-0 px-1.5 font-bold">You</span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 block">{item.badge}</span>
-                  </div>
+          {isLoadingLeaderboard ? (
+            <div className="p-8 text-center text-xs text-slate-400 animate-pulse">
+              Calculating rankings from turnstile logs...
+            </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="p-8 text-center app-card rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800">
+              <Trophy className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+              <p className="text-xs font-bold text-slate-600 dark:text-zinc-300">No attendance logged yet this month.</p>
+              <p className="text-[11px] text-slate-400 mt-1">Scan the turnstile at the gym entrance to claim #1 rank!</p>
+            </div>
+          ) : (
+            <>
+              {/* Podium */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                {/* 2nd Place */}
+                <div className="app-card p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-1 mt-4">
+                  <span className="text-xl">🥈</span>
+                  <p className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                    {leaderboard[1]?.name || '—'}
+                  </p>
+                  <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                    {leaderboard[1]?.visitsThisMonth ?? 0} Visits
+                  </p>
                 </div>
 
-                <div className="text-right">
-                  <span className="font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 block">
-                    {item.visitsThisMonth} Visits
-                  </span>
-                  <span className="text-[10px] text-slate-400 dark:text-zinc-500 flex items-center gap-1 justify-end">
-                    <Flame className="w-2.5 h-2.5 text-amber-500 fill-current" />
-                    {item.streakDays}d Streak
-                  </span>
+                {/* 1st Place */}
+                <div className="app-card p-3 sm:p-4 rounded-2xl border-2 border-amber-500/50 dark:border-amber-400/50 space-y-1 shadow-md bg-amber-50/20 dark:bg-amber-950/20">
+                  <span className="text-2xl">🥇</span>
+                  <p className="font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                    {leaderboard[0]?.name || '—'}
+                  </p>
+                  <p className="text-xs font-black text-amber-600 dark:text-amber-400">
+                    {leaderboard[0]?.visitsThisMonth ?? 0} Visits
+                  </p>
+                </div>
+
+                {/* 3rd Place */}
+                <div className="app-card p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 space-y-1 mt-4">
+                  <span className="text-xl">🥉</span>
+                  <p className="font-bold text-xs text-slate-900 dark:text-white truncate">
+                    {leaderboard[2]?.name || '—'}
+                  </p>
+                  <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                    {leaderboard[2]?.visitsThisMonth ?? 0} Visits
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Roster list */}
+              <div className="app-card rounded-3xl overflow-hidden divide-y divide-slate-100 dark:divide-zinc-800/80 border border-slate-200 dark:border-zinc-800">
+                {leaderboard.map((item) => (
+                  <div
+                    key={item.rank}
+                    className={`p-3.5 sm:p-4 flex items-center justify-between ${
+                      item.isCurrentUser
+                        ? 'bg-emerald-50/70 dark:bg-emerald-950/30 font-bold'
+                        : 'hover:bg-slate-50 dark:hover:bg-zinc-800/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`w-6 text-center font-black text-xs ${
+                          item.rank === 1
+                            ? 'text-amber-500'
+                            : item.rank === 2
+                            ? 'text-slate-400'
+                            : item.rank === 3
+                            ? 'text-amber-700'
+                            : 'text-slate-400 dark:text-zinc-500'
+                        }`}
+                      >
+                        #{item.rank}
+                      </span>
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center font-bold text-xs">
+                        {item.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                            {item.name}
+                          </span>
+                          {item.isCurrentUser && (
+                            <span className="badge-active-green text-[9px] py-0 px-1.5 font-bold">You</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 block">{item.badge}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-black text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 block">
+                        {item.visitsThisMonth} Visits
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-zinc-500 flex items-center gap-1 justify-end">
+                        <Flame className="w-2.5 h-2.5 text-amber-500 fill-current" />
+                        {item.streakDays}d Streak
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

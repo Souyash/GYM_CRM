@@ -176,6 +176,24 @@ export const api = {
   addPostComment: (id: string, text: string) =>
     apiRequest(`/community/posts/${id}/comments`, { method: 'POST', body: JSON.stringify({ text }) }),
   deletePostComment: (postId: string, commentId: string) =>
-    apiRequest(`/community/posts/${postId}/comments/${commentId}`, { method: 'DELETE' })
+    apiRequest(`/community/posts/${postId}/comments/${commentId}`, { method: 'DELETE' }),
+
+  // Group Classes (Front Desk / Admin schedule, Members book)
+  getGroupClasses: () => apiRequest('/community/classes'),
+  createGroupClass: (payload: {
+    title: string;
+    coach: string;
+    startTime: string;
+    durationMinutes?: number;
+    zone?: string;
+    maxSeats?: number;
+    intensity?: string;
+  }) => apiRequest('/community/classes', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteGroupClass: (id: string) => apiRequest(`/community/classes/${id}`, { method: 'DELETE' }),
+  toggleBookClass: (id: string) => apiRequest(`/community/classes/${id}/book`, { method: 'POST' }),
+
+  // Live Turnstile-driven Leaderboard
+  getLiveLeaderboard: () => apiRequest('/community/leaderboard')
 };
+
 

@@ -28,6 +28,7 @@ model Facility {
   attendanceEntries    AttendanceEntry[]
   failedAccessLogs     FailedAccessLog[]
   communityPosts       CommunityPost[]
+  groupClasses         GroupClass[]
 }
 
 // -------------------------------------------------------------
@@ -64,6 +65,8 @@ model User {
   communityPosts         CommunityPost[]
   postLikes              PostLike[]
   postComments           PostComment[]
+  createdGroupClasses    GroupClass[]          @relation("CreatedGroupClasses")
+  classBookings          ClassBooking[]
 }
 
 // -------------------------------------------------------------
@@ -226,5 +229,45 @@ model PostComment {
   @@index([postId, createdAt])
   @@index([authorId])
 }
+
+// -------------------------------------------------------------
+// 8. Group Fitness Classes & Member Reservations
+// Intensity: "High" | "Moderate" | "Recovery" | "All Levels"
+// -------------------------------------------------------------
+model GroupClass {
+  id              String         @id @default(uuid())
+  title           String
+  coach           String
+  startTime       DateTime
+  durationMinutes Int            @default(45)
+  zone            String         @default("Functional Turf Zone")
+  maxSeats        Int            @default(16)
+  intensity       String         @default("Moderate")
+  facilityId      String?
+  facility        Facility?      @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  createdById     String?
+  createdBy       User?          @relation("CreatedGroupClasses", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  bookings        ClassBooking[]
+
+  @@index([startTime])
+  @@index([facilityId])
+}
+
+model ClassBooking {
+  id           String     @id @default(uuid())
+  classId      String
+  groupClass   GroupClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookedAt     DateTime   @default(now())
+
+  @@unique([classId, userId])
+  @@index([classId])
+  @@index([userId])
+}
+
 
 
