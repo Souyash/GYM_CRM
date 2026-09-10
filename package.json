@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "build": "cd client && npm run build",
+    "fix:git": "bash fix-git.sh",
     "client:dev": "npm run dev --prefix client",
     "server:dev": "npm run dev --prefix server",
     "server:build": "npm run build --prefix server"
