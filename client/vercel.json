@@ -4,6 +4,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/send-email",
+      "destination": "/api/send-email"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://gym-crm-ejgf.onrender.com/api/$1"
     },

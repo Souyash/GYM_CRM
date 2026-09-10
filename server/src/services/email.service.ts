@@ -51,6 +51,107 @@ function getTransporter(): any {
 }
 
 /**
+ * Multi-Tier Email Dispatcher:
+ * Tier 1: Resend HTTP API (HTTPS port 443 - zero block on cloud platforms like Render Free)
+ * Tier 2: Vercel Gmail Relay (HTTPS port 443 -> Vercel Serverless Function -> Gmail SMTP port 465)
+ * Tier 3: Direct Gmail SMTP (port 465 - local Mac & unblocked cloud servers)
+ * Tier 4: Dev console fallback
+ */
+async function dispatchEmail(params: {
+  toEmail: string;
+  subject: string;
+  html: string;
+  text: string;
+  devOtpCode?: string;
+  fullName?: string;
+}): Promise<{ success: boolean; deliveredVia: 'GMAIL' | 'DEV_CONSOLE'; error?: string }> {
+  const { toEmail, subject, html, text, devOtpCode, fullName } = params;
+
+  // Tier 1: Try Resend HTTPS API (Fastest: ~400ms over port 443)
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'IronVault Gym <onboarding@resend.dev>',
+          to: [toEmail],
+          subject,
+          html,
+          text
+        })
+      });
+      const data = await res.json() as any;
+      if (res.ok && data.id) {
+        console.log(`[Email Service] ✉️ Successfully dispatched via Resend API to: ${toEmail} (ID: ${data.id})`);
+        return { success: true, deliveredVia: 'GMAIL' };
+      }
+      console.warn(`[Email Service] Resend fallback:`, data?.message || data?.error);
+    } catch (err: any) {
+      console.warn(`[Email Service] Resend error:`, err.message);
+    }
+  }
+
+  // Tier 2: Try Vercel Gmail Relay (HTTPS port 443 -> Vercel Serverless Function -> Gmail SMTP port 465)
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const relayRes = await fetch('https://gym-crm-indol.vercel.app/api/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: toEmail, subject, html, text }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if (relayRes.ok) {
+      const relayData = await relayRes.json() as any;
+      if (relayData.success) {
+        console.log(`[Email Service] ✉️ Successfully dispatched via Vercel Gmail Relay to: ${toEmail}`);
+        return { success: true, deliveredVia: 'GMAIL' };
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[Email Service] Vercel relay warning:`, err.message);
+  }
+
+  // Tier 3: Direct Gmail SMTP (Local Mac & non-restricted cloud instances)
+  const activeTransporter = getTransporter();
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
+    try {
+      await activeTransporter.sendMail({
+        from: `"${fromName}" <${user}>`,
+        to: toEmail,
+        subject,
+        html,
+        text
+      });
+      console.log(`[Email Service] ✉️ Successfully sent via Direct Gmail SMTP to: ${toEmail}`);
+      return { success: true, deliveredVia: 'GMAIL' };
+    } catch (err: any) {
+      console.error(`[Email Service] ❌ Direct SMTP failed for ${toEmail}:`, err.message);
+    }
+  }
+
+  // Tier 4: Dev console fallback
+  if (devOtpCode) {
+    console.log(`\n=============================================================`);
+    console.log(`[Email Service: SIMULATED INBOX]`);
+    console.log(`To: ${toEmail} (${fullName || 'User'})`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Code: >>> ${devOtpCode} <<< (Expires in 10 mins)`);
+    console.log(`=============================================================\n`);
+  }
+  return { success: true, deliveredVia: 'DEV_CONSOLE' };
+}
+
+/**
  * Sends a 6-digit OTP verification code for member registration.
  */
 export async function sendSignupOtpEmail(params: {
@@ -59,7 +160,6 @@ export async function sendSignupOtpEmail(params: {
   otpCode: string;
 }): Promise<{ success: boolean; deliveredVia: 'GMAIL' | 'DEV_CONSOLE'; error?: string }> {
   const { toEmail, fullName, otpCode } = params;
-  const activeTransporter = getTransporter();
 
   const html = `
 <!DOCTYPE html>
@@ -133,39 +233,14 @@ export async function sendSignupOtpEmail(params: {
 </html>
   `;
 
-  const user = getGmailUser();
-  const fromName = getFromName();
-
-  if (activeTransporter && user) {
-    try {
-      await activeTransporter.sendMail({
-        from: `"${fromName}" <${user}>`,
-        to: toEmail,
-        subject: `🔐 ${otpCode} is your IronVault verification code`,
-        html,
-        text: `Welcome to IronVault Fitness, ${fullName}!\n\nYour 6-digit verification code is: ${otpCode}\n\nThis code expires in 10 minutes.\nIf you did not request this, please ignore this email.`
-      });
-
-      console.log(`[Email Service] ✉️ OTP code successfully emailed via Gmail to: ${toEmail}`);
-      return { success: true, deliveredVia: 'GMAIL' };
-    } catch (err: any) {
-      console.error(`[Email Service] ❌ Failed to send email via Gmail to ${toEmail}:`, err.message);
-      // Fallback to dev log output so testing flow isn't blocked
-      console.log(`[Email Service: DEV FALLBACK] 🔑 OTP for ${toEmail} (${fullName}) is: ${otpCode}`);
-      return { success: true, deliveredVia: 'DEV_CONSOLE', error: err.message };
-    }
-  }
-
-  // If Gmail credentials are not yet configured in .env, log clearly to console
-  console.log(`\n=============================================================`);
-  console.log(`[Email Service: SIMULATED INBOX]`);
-  console.log(`To: ${toEmail} (${fullName})`);
-  console.log(`Subject: 🔐 ${otpCode} is your IronVault verification code`);
-  console.log(`Code: >>> ${otpCode} <<< (Expires in 10 mins)`);
-  console.log(`Tip: Add GMAIL_USER and GMAIL_APP_PASSWORD to server/.env to send to real inboxes.`);
-  console.log(`=============================================================\n`);
-
-  return { success: true, deliveredVia: 'DEV_CONSOLE' };
+  return await dispatchEmail({
+    toEmail,
+    subject: `🔐 ${otpCode} is your IronVault verification code`,
+    html,
+    text: `Welcome to IronVault Fitness, ${fullName}!\n\nYour 6-digit verification code is: ${otpCode}\n\nThis code expires in 10 minutes.\nIf you did not request this, please ignore this email.`,
+    devOtpCode: otpCode,
+    fullName
+  });
 }
 
 /**
@@ -244,25 +319,13 @@ export async function sendWelcomeEmail(params: {
 </html>
   `;
 
-  const user = getGmailUser();
-  const fromName = getFromName();
-
-  if (activeTransporter && user) {
-    try {
-      await activeTransporter.sendMail({
-        from: `"${fromName}" <${user}>`,
-        to: toEmail,
-        subject: `🎉 Welcome to IronVault Fitness, ${fullName}! Your pass is active`,
-        html,
-        text: `Welcome to IronVault Fitness, ${fullName}!\n\nYour membership pass (${planName}) is active until ${formattedDate}.\nOpen your app at the gym entrance to scan through the turnstile.`
-      });
-      console.log(`[Email Service] ✉️ Welcome email dispatched to: ${toEmail}`);
-    } catch (err: any) {
-      console.warn(`[Email Service] Could not send welcome email: ${err.message}`);
-    }
-  } else {
-    console.log(`[Email Service] Welcome email queued for ${toEmail} (${fullName})`);
-  }
+  await dispatchEmail({
+    toEmail,
+    subject: `🎉 Welcome to IronVault Fitness, ${fullName}! Your pass is active`,
+    html,
+    text: `Welcome to IronVault Fitness, ${fullName}!\n\nYour membership pass (${planName}) is active until ${formattedDate}.\nOpen your app at the gym entrance to scan through the turnstile.`,
+    fullName
+  });
 }
 
 /**
@@ -443,30 +506,14 @@ export async function sendDeskOnboardOtpEmail(params: {
 </html>
   `;
 
-  const user = getGmailUser();
-  const fromName = getFromName();
-
-  if (activeTransporter && user) {
-    try {
-      await activeTransporter.sendMail({
-        from: `"${fromName}" <${user}>`,
-        to: toEmail,
-        subject: `🔐 ${otpCode} is your IronVault Desk Verification Code`,
-        html,
-        text: `Welcome to IronVault Fitness, ${fullName}!\n\n${staffName} is setting up your membership for: ${planName}.\n\nYour 6-digit verification code is: ${otpCode}\n\nPlease provide this code to the staff member to complete your enrollment.\n\nCode expires in 15 minutes.`
-      });
-
-      console.log(`[Email Service] ✉️ Desk Onboard OTP successfully emailed via Gmail to: ${toEmail}`);
-      return { success: true, deliveredVia: 'GMAIL' };
-    } catch (err: any) {
-      console.error(`[Email Service] ❌ Failed to send desk onboard OTP to ${toEmail}:`, err.message);
-      console.log(`[Email Service: DEV FALLBACK] 🔑 Desk Onboard OTP for ${toEmail} is: ${otpCode}`);
-      return { success: true, deliveredVia: 'DEV_CONSOLE', error: err.message };
-    }
-  }
-
-  console.log(`[Email Service: DEV FALLBACK] 🔑 Desk Onboard OTP for ${toEmail} is: ${otpCode}`);
-  return { success: true, deliveredVia: 'DEV_CONSOLE' };
+  return await dispatchEmail({
+    toEmail,
+    subject: `🔐 ${otpCode} is your IronVault Desk Verification Code`,
+    html,
+    text: `Welcome to IronVault Fitness, ${fullName}!\n\n${staffName} is setting up your membership for: ${planName}.\n\nYour 6-digit verification code is: ${otpCode}\n\nPlease provide this code to the staff member to complete your enrollment.\n\nCode expires in 15 minutes.`,
+    devOtpCode: otpCode,
+    fullName
+  });
 }
 
 /**
@@ -552,30 +599,14 @@ export async function sendMemberLoginOtpEmail(params: {
 </html>
   `;
 
-  const user = getGmailUser();
-  const fromName = getFromName();
-
-  if (activeTransporter && user) {
-    try {
-      await activeTransporter.sendMail({
-        from: `"${fromName}" <${user}>`,
-        to: toEmail,
-        subject: `🔐 ${otpCode} is your IronVault login verification code`,
-        html,
-        text: `Welcome back to IronVault Fitness, ${fullName}!\n\nYour 6-digit login verification code is: ${otpCode}\n\nThis code expires in 10 minutes.\nIf you did not request this, please ignore this email.`
-      });
-
-      console.log(`[Email Service] ✉️ Login OTP code emailed via Gmail to: ${toEmail}`);
-      return { success: true, deliveredVia: 'GMAIL' };
-    } catch (err: any) {
-      console.error(`[Email Service] ❌ Failed to send login OTP to ${toEmail}:`, err.message);
-      console.log(`[Email Service: DEV FALLBACK] 🔑 Login OTP for ${toEmail} is: ${otpCode}`);
-      return { success: true, deliveredVia: 'DEV_CONSOLE', error: err.message };
-    }
-  }
-
-  console.log(`[Email Service: DEV FALLBACK] 🔑 Login OTP for ${toEmail} is: ${otpCode}`);
-  return { success: true, deliveredVia: 'DEV_CONSOLE' };
+  return await dispatchEmail({
+    toEmail,
+    subject: `🔐 ${otpCode} is your IronVault login verification code`,
+    html,
+    text: `Welcome back to IronVault Fitness, ${fullName}!\n\nYour 6-digit login verification code is: ${otpCode}\n\nThis code expires in 10 minutes.\nIf you did not request this, please ignore this email.`,
+    devOtpCode: otpCode,
+    fullName
+  });
 }
 
 

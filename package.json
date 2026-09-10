@@ -10,6 +10,9 @@
     "server:dev": "npm run dev --prefix server",
     "server:build": "npm run build --prefix server"
   },
+  "dependencies": {
+    "nodemailer": "^6.9.16"
+  },
   "keywords": [
     "gym-crm",
     "turnstile",
