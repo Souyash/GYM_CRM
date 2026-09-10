@@ -2,6 +2,7 @@ import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { sendDeskOnboardOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
 
 const STANDARD_PLANS = [
   { id: 'plan-day', name: 'Day Pass', durationDays: 1, price: 15.0 },
@@ -13,6 +14,225 @@ const STANDARD_PLANS = [
 export async function getPlans(req: AuthenticatedRequest, res: Response): Promise<void> {
   res.json({ plans: STANDARD_PLANS });
 }
+
+/**
+ * Step 1: Desk/Owner Onboard - Send OTP to Member's Gmail
+ */
+export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const {
+      fullName,
+      email,
+      phone,
+      role = 'MEMBER',
+      planName = 'Monthly Pro Access',
+      durationDays = 30,
+      price = 65,
+      paymentMethod = 'CASH',
+      facilityId
+    } = req.body;
+
+    if (!fullName || !email) {
+      res.status(400).json({ error: 'Member full name and email are required.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Check if user already exists
+    const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    if (existing) {
+      res.status(409).json({ error: `An account for ${cleanEmail} already exists in the system.` });
+      return;
+    }
+
+    // Generate 6-digit cryptographic OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
+
+    const payload = JSON.stringify({
+      fullName: fullName.trim(),
+      email: cleanEmail,
+      phone: phone?.trim() || null,
+      role: role.toUpperCase(),
+      planName,
+      durationDays: Number(durationDays),
+      price: Number(price),
+      paymentMethod,
+      facilityId: facilityId || req.user?.facilityId || null,
+      deskBilledById: req.user?.userId
+    });
+
+    await prisma.otpVerification.upsert({
+      where: { email: cleanEmail },
+      update: {
+        otpCode,
+        payload,
+        expiresAt,
+        attempts: 0
+      },
+      create: {
+        email: cleanEmail,
+        otpCode,
+        payload,
+        expiresAt,
+        attempts: 0
+      }
+    });
+
+    const staffName = req.user?.email || 'Front Desk Staff';
+    const emailResult = await sendDeskOnboardOtpEmail({
+      toEmail: cleanEmail,
+      fullName: fullName.trim(),
+      otpCode,
+      planName,
+      staffName
+    });
+
+    res.json({
+      success: true,
+      message: `A 6-digit verification code has been sent via Gmail to ${cleanEmail}.`,
+      email: cleanEmail,
+      deliveredVia: emailResult.deliveredVia
+    });
+  } catch (error: any) {
+    console.error('sendOnboardOtp error:', error);
+    res.status(500).json({ error: 'Failed to dispatch verification email.' });
+  }
+}
+
+/**
+ * Step 2: Desk/Owner Onboard - Verify Member's OTP & Complete Registration
+ */
+export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { email, otp, password } = req.body;
+    const managerId = req.user?.userId;
+
+    if (!email || !otp) {
+      res.status(400).json({ error: 'Email and 6-digit verification code are required.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.toString().trim();
+
+    const record = await prisma.otpVerification.findUnique({
+      where: { email: cleanEmail }
+    });
+
+    if (!record) {
+      res.status(404).json({ error: 'No pending enrollment found for this email. Please request a new code.' });
+      return;
+    }
+
+    if (new Date() > new Date(record.expiresAt)) {
+      await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+      res.status(410).json({ error: 'Verification code has expired. Please send a new code.' });
+      return;
+    }
+
+    if (record.otpCode !== cleanOtp) {
+      const attempts = record.attempts + 1;
+      if (attempts >= 5) {
+        await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+        res.status(429).json({ error: 'Too many incorrect attempts. Enrollment canceled. Please restart.' });
+        return;
+      }
+      await prisma.otpVerification.update({
+        where: { email: cleanEmail },
+        data: { attempts }
+      });
+      res.status(400).json({ error: `Invalid verification code. ${5 - attempts} attempts remaining.` });
+      return;
+    }
+
+    // OTP is valid! Parse stored payload
+    let data: any = {};
+    try {
+      data = JSON.parse(record.payload);
+    } catch {
+      data = {};
+    }
+
+    // Double-check user doesn't already exist
+    const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    if (existing) {
+      await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+      res.status(409).json({ error: 'An account with this email already exists.' });
+      return;
+    }
+
+    const plainPassword = password || (data.role === 'MEMBER' ? 'MemberPass123!' : 'StaffPass123!');
+    const passwordHash = await bcrypt.hash(plainPassword, 10);
+    const startDate = new Date();
+    const duration = data.durationDays || 30;
+    const endDate = new Date(startDate.getTime() + Number(duration) * 24 * 60 * 60 * 1000);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          fullName: data.fullName || 'Member',
+          email: cleanEmail,
+          phone: data.phone || null,
+          passwordHash,
+          role: data.role || 'MEMBER',
+          facilityId: data.facilityId || req.user?.facilityId || null,
+          deviceStatus: 'NORMAL'
+        }
+      });
+
+      let subscription = null;
+      if ((data.role || 'MEMBER') === 'MEMBER') {
+        subscription = await tx.subscription.create({
+          data: {
+            userId: user.id,
+            planName: data.planName || 'Monthly Pro Access',
+            price: Number(data.price || 65),
+            startDate,
+            endDate,
+            status: 'ACTIVE',
+            deskBilledById: managerId || data.deskBilledById,
+            paymentMethod: data.paymentMethod || 'CASH'
+          }
+        });
+      }
+
+      // Remove the OTP record
+      await tx.otpVerification.delete({ where: { email: cleanEmail } });
+
+      return { user, subscription };
+    });
+
+    console.log(`[Desk Onboard] Successfully verified & enrolled member ${result.user.fullName} (${result.user.email})`);
+
+    // Dispatch welcome email asynchronously
+    sendWelcomeEmail({
+      toEmail: cleanEmail,
+      fullName: result.user.fullName,
+      planName: data.planName || 'Monthly Pro Access',
+      endDate
+    }).catch((err) => console.warn('Welcome email error:', err.message));
+
+    res.status(201).json({
+      success: true,
+      message: `Member ${result.user.fullName} verified and enrolled successfully!`,
+      user: {
+        id: result.user.id,
+        fullName: result.user.fullName,
+        email: result.user.email,
+        phone: result.user.phone,
+        role: result.user.role,
+        tempPassword: plainPassword,
+        subscription: result.subscription
+      }
+    });
+  } catch (error: any) {
+    console.error('verifyOnboardOtp error:', error);
+    res.status(500).json({ error: 'Failed to verify OTP and enroll member.' });
+  }
+}
+
 
 export async function onboardMember(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {

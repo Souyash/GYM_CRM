@@ -322,3 +322,119 @@ export async function sendClassBookingEmail(params: {
     }
   }
 }
+
+/**
+ * Sends a 6-digit OTP code when Front Desk or Gym Owner registers a new member at the desk.
+ */
+export async function sendDeskOnboardOtpEmail(params: {
+  toEmail: string;
+  fullName: string;
+  otpCode: string;
+  planName: string;
+  staffName?: string;
+}): Promise<{ success: boolean; deliveredVia: 'GMAIL' | 'DEV_CONSOLE'; error?: string }> {
+  const { toEmail, fullName, otpCode, planName, staffName = 'IronVault Front Desk' } = params;
+  const activeTransporter = getTransporter();
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronVault Membership Verification</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0f19; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 540px; background-color: #111827; border: 1px solid #1f2937; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 36px 36px 20px; text-align: center; background: linear-gradient(180deg, rgba(16,185,129,0.1) 0%, rgba(17,24,39,0) 100%);">
+              <div style="display: inline-block; padding: 10px 18px; border-radius: 9999px; background-color: #064e3b; border: 1px solid #059669; color: #34d399; font-weight: 800; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">
+                ⚡ IRONVAULT DESK ENROLLMENT
+              </div>
+              <h1 style="margin: 20px 0 6px; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+                Confirm Your Membership
+              </h1>
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">
+                Welcome, <strong style="color: #ffffff;">${fullName}</strong>! ${staffName} is setting up your gym pass.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Plan Info -->
+          <tr>
+            <td style="padding: 0 36px 16px;">
+              <div style="background-color: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; padding: 14px; text-align: center;">
+                <span style="font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Selected Plan</span>
+                <p style="margin: 4px 0 0; font-size: 17px; font-weight: 800; color: #34d399;">${planName}</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- OTP Box -->
+          <tr>
+            <td style="padding: 10px 36px 24px;">
+              <div style="background-color: #0f172a; border: 2px dashed #10b981; border-radius: 16px; padding: 26px 20px; text-align: center;">
+                <p style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 2px;">
+                  Your Front Desk Verification Code
+                </p>
+                <div style="font-size: 44px; font-weight: 900; letter-spacing: 12px; color: #ffffff; text-shadow: 0 0 20px rgba(16,185,129,0.4); font-family: 'Courier New', Courier, monospace;">
+                  ${otpCode}
+                </div>
+                <p style="margin: 12px 0 0; font-size: 13px; color: #94a3b8;">
+                  ⏱️ Valid for <strong style="color: #f59e0b;">15 minutes</strong>.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Instructions -->
+          <tr>
+            <td style="padding: 0 36px 36px;">
+              <div style="background-color: #1f2937; border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+                <p style="margin: 0 0 8px;"><strong>🏢 Next Step:</strong> Please share this 6-digit code with the front desk staff or manager assisting you.</p>
+                <p style="margin: 0;">Once verified, your account and turnstile digital barcode will be immediately activated.</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 18px 36px; background-color: #0a0e17; border-top: 1px solid #1f2937; text-align: center; font-size: 12px; color: #64748b;">
+              IronVault Fitness • Front Desk Enrollment • 2026
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  if (activeTransporter && GMAIL_USER) {
+    try {
+      await activeTransporter.sendMail({
+        from: `"${FROM_NAME}" <${GMAIL_USER}>`,
+        to: toEmail,
+        subject: `🔐 ${otpCode} is your IronVault Desk Verification Code`,
+        html,
+        text: `Welcome to IronVault Fitness, ${fullName}!\n\n${staffName} is setting up your membership for: ${planName}.\n\nYour 6-digit verification code is: ${otpCode}\n\nPlease provide this code to the staff member to complete your enrollment.\n\nCode expires in 15 minutes.`
+      });
+
+      console.log(`[Email Service] ✉️ Desk Onboard OTP successfully emailed via Gmail to: ${toEmail}`);
+      return { success: true, deliveredVia: 'GMAIL' };
+    } catch (err: any) {
+      console.error(`[Email Service] ❌ Failed to send desk onboard OTP to ${toEmail}:`, err.message);
+      console.log(`[Email Service: DEV FALLBACK] 🔑 Desk Onboard OTP for ${toEmail} is: ${otpCode}`);
+      return { success: true, deliveredVia: 'DEV_CONSOLE', error: err.message };
+    }
+  }
+
+  console.log(`[Email Service: DEV FALLBACK] 🔑 Desk Onboard OTP for ${toEmail} is: ${otpCode}`);
+  return { success: true, deliveredVia: 'DEV_CONSOLE' };
+}
+

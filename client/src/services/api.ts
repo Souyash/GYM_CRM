@@ -149,6 +149,8 @@ export const api = {
   getMembers: (search?: string) => apiRequest(`/memberships${search ? `?search=${encodeURIComponent(search)}` : ''}`),
   getPlans: () => apiRequest('/memberships/plans'),
   onboardMember: (payload: any) => apiRequest('/memberships/onboard', { method: 'POST', body: JSON.stringify(payload) }),
+  sendOnboardOtp: (payload: any) => apiRequest('/memberships/onboard/send-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  verifyOnboardOtp: (payload: any) => apiRequest('/memberships/onboard/verify-otp', { method: 'POST', body: JSON.stringify(payload) }),
   deskBilling: (payload: any) => apiRequest('/memberships/bill', { method: 'POST', body: JSON.stringify(payload) }),
 
   // Threat Monitoring & Failed Logs

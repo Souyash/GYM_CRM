@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   UserPlus,
@@ -30,6 +30,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
   onClose,
   onSuccess
 }) => {
+  const [creationStep, setCreationStep] = useState<'FORM' | 'OTP' | 'SUCCESS'>('FORM');
   const [role, setRole] = useState<RoleType>('MEMBER');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,10 +40,24 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
   const [price, setPrice] = useState(65);
   const [durationDays, setDurationDays] = useState(30);
 
+  // OTP Verification state
+  const [otpCode, setOtpCode] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [sentToEmail, setSentToEmail] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [createdUser, setCreatedUser] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Resend timer countdown
+  useEffect(() => {
+    let timer: any;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   if (!isOpen) return null;
 
@@ -74,6 +89,29 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
     }
   };
 
+  const handleSendOtp = async (targetEmail: string) => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      await api.sendOnboardOtp({
+        fullName: fullName.trim(),
+        email: targetEmail,
+        phone: phone.trim() || undefined,
+        role,
+        planName,
+        price,
+        durationDays
+      });
+      setSentToEmail(targetEmail);
+      setCreationStep('OTP');
+      setResendCooldown(30);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to dispatch verification code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim()) {
@@ -81,13 +119,21 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
+    // If adding a member, require Gmail OTP verification
+    if (role === 'MEMBER') {
+      await handleSendOtp(cleanEmail);
+      return;
+    }
+
+    // If adding staff/trainer, direct creation
     setIsLoading(true);
     setErrorMsg(null);
-
     try {
       const res = await api.onboardMember({
         fullName: fullName.trim(),
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         phone: phone.trim() || undefined,
         role,
         password,
@@ -96,7 +142,8 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
         durationDays
       });
 
-      setCreatedUser(res.user || res.member || { fullName, email, role, tempPassword: password });
+      setCreatedUser(res.user || res.member || { fullName, email: cleanEmail, role, tempPassword: password });
+      setCreationStep('SUCCESS');
       if (onSuccess) onSuccess();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to create account. Please try again.');
@@ -105,11 +152,39 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
     }
   };
 
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpCode.trim().length !== 6) {
+      setErrorMsg('Please enter the full 6-digit verification code.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await api.verifyOnboardOtp({
+        email: sentToEmail,
+        otp: otpCode.trim(),
+        password
+      });
+
+      setCreatedUser(res.user || { fullName, email: sentToEmail, role, tempPassword: password });
+      setCreationStep('SUCCESS');
+      if (onSuccess) onSuccess();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid or expired verification code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setCreatedUser(null);
+    setCreationStep('FORM');
     setFullName('');
     setEmail('');
     setPhone('');
+    setOtpCode('');
     setPassword('MemberPass123!');
     setErrorMsg(null);
     setRole('MEMBER');
@@ -153,7 +228,7 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
 
         {/* Content */}
         <div className="p-6">
-          {createdUser ? (
+          {creationStep === 'SUCCESS' && createdUser ? (
             /* SUCCESS CONFIRMATION STATE */
             <div className="text-center space-y-6 animate-scale-up">
               <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-500/15 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -227,6 +302,94 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
                 </button>
               </div>
             </div>
+          ) : creationStep === 'OTP' ? (
+            /* OTP VERIFICATION STEP */
+            <form onSubmit={handleVerifyOtp} className="space-y-5 animate-fade-in">
+              {errorMsg && (
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-xs font-semibold">
+                  {errorMsg}
+                </div>
+              )}
+
+              <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 text-center space-y-1">
+                <div className="w-10 h-10 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2">
+                  <Mail className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  Member Verification Code Sent
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-300">
+                  A 6-digit OTP code was sent via Gmail to:
+                </p>
+                <p className="text-xs font-mono font-black text-emerald-700 dark:text-emerald-300 bg-emerald-100/50 dark:bg-emerald-900/30 py-1 px-2.5 rounded-lg inline-block">
+                  {sentToEmail}
+                </p>
+              </div>
+
+              <div className="space-y-2 text-center">
+                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider block">
+                  Enter 6-Digit Member OTP
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  required
+                  autoFocus
+                  placeholder="••••••"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full text-center py-4 bg-slate-50 dark:bg-zinc-900 border-2 border-emerald-500/50 rounded-2xl text-3xl font-mono font-black tracking-[0.5em] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  Ask the member for the verification code received on their phone or Gmail.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => setCreationStep('FORM')}
+                  className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition"
+                >
+                  ← Edit Member Details
+                </button>
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || isLoading}
+                  onClick={() => handleSendOtp(sentToEmail)}
+                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-40 disabled:no-underline"
+                >
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend Code'}
+                </button>
+              </div>
+
+              <div className="pt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="py-3 px-5 rounded-xl border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 font-bold text-xs transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || otpCode.length !== 6}
+                  className="flex-1 py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-black text-xs transition shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Verifying OTP...
+                    </>
+                  ) : (
+                    <>
+                      Verify OTP & Enroll Member
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           ) : (
             /* CREATION FORM STATE */
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -391,7 +554,13 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
                   {isLoading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Creating Account...
+                      {role === 'MEMBER' ? 'Sending Gmail OTP...' : 'Creating Account...'}
+                    </>
+                  ) : role === 'MEMBER' ? (
+                    <>
+                      <Mail className="w-4 h-4" />
+                      Send Verification Code via Gmail
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   ) : (
                     <>
