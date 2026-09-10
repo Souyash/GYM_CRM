@@ -8,6 +8,7 @@ import failedLogsRoutes from './routes/failedLogs.routes.js';
 import deviceRoutes from './routes/device.routes.js';
 import attendanceRoutes from './routes/attendance.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
+import communityRoutes from './routes/community.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -30,6 +31,7 @@ export function createApp(): Express {
   app.use('/api/device-management', deviceRoutes);
   app.use('/api/attendance', attendanceRoutes);
   app.use('/api/webhooks', webhookRoutes);
+  app.use('/api/community', communityRoutes);
 
   // Health check route
   app.get('/api/health', (req, res) => {

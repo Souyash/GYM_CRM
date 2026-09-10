@@ -133,3 +133,4 @@ export async function scanImageFile(file: File): Promise<string | null> {
     reader.readAsDataURL(file);
   });
 }
+

@@ -24,9 +24,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <>
             {/* Feed & Community */}
             <button
-              onClick={() => setCurrentTab('member_profile')}
+              onClick={() => setCurrentTab('community_feed')}
               className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'member_profile'
+                currentTab === 'community_feed'
                   ? 'text-emerald-600 dark:text-emerald-400 font-bold'
                   : 'text-slate-500 dark:text-zinc-400'
               }`}
@@ -66,14 +66,33 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             {/* Admin / Manager Navigation */}
             <button
               onClick={() => setCurrentTab(user.role === 'SUPER_ADMIN' ? 'admin_dashboard' : 'manager_dashboard')}
-              className="flex flex-col items-center gap-1 p-1.5 text-emerald-600 dark:text-emerald-400 font-bold"
+              className={`flex flex-col items-center gap-1 p-1.5 transition ${
+                currentTab === 'admin_dashboard' || currentTab === 'manager_dashboard'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-slate-500 dark:text-zinc-400 font-medium'
+              }`}
             >
               <Shield className="w-5 h-5" />
               <span className="text-[10px]">Dashboard</span>
             </button>
             <button
+              onClick={() => setCurrentTab('community_feed')}
+              className={`flex flex-col items-center gap-1 p-1.5 transition ${
+                currentTab === 'community_feed'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-slate-500 dark:text-zinc-400 font-medium'
+              }`}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="text-[10px]">Community</span>
+            </button>
+            <button
               onClick={() => setCurrentTab('desk_billing')}
-              className="flex flex-col items-center gap-1 p-1.5 text-slate-500 dark:text-zinc-400 font-medium"
+              className={`flex flex-col items-center gap-1 p-1.5 transition ${
+                currentTab === 'desk_billing'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-slate-500 dark:text-zinc-400 font-medium'
+              }`}
             >
               <Calendar className="w-5 h-5" />
               <span className="text-[10px]">Billing</span>

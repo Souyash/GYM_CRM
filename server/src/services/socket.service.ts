@@ -87,3 +87,37 @@ export function emitDeviceStatusChanged(userId: string, statusPayload: any) {
   io.to(`user:${userId}`).emit('member:device_status_changed', statusPayload);
 }
 
+/**
+ * Real-time community feed broadcast events
+ */
+export function emitNewCommunityPost(post: any) {
+  if (!io) return;
+  io.emit('community:post_created', post);
+}
+
+export function emitDeleteCommunityPost(postId: string) {
+  if (!io) return;
+  io.emit('community:post_deleted', { postId });
+}
+
+export function emitPostPinnedChanged(data: { postId: string; isPinned: boolean }) {
+  if (!io) return;
+  io.emit('community:post_pinned', data);
+}
+
+export function emitPostLikeUpdated(data: { postId: string; likesCount: number; userId: string; liked: boolean }) {
+  if (!io) return;
+  io.emit('community:post_like_updated', data);
+}
+
+export function emitNewPostComment(data: { postId: string; comment: any }) {
+  if (!io) return;
+  io.emit('community:comment_created', data);
+}
+
+export function emitDeletePostComment(data: { postId: string; commentId: string }) {
+  if (!io) return;
+  io.emit('community:comment_deleted', data);
+}
+
+

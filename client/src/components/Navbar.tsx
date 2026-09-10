@@ -11,7 +11,8 @@ import {
   Sun,
   Moon,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -190,21 +191,45 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
                       <CreditCard className="w-3.5 h-3.5" />
                       Front Desk Billing
                     </button>
+                    <button
+                      onClick={() => setCurrentTab('community_feed')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'community_feed'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Community Feed
+                    </button>
                   </>
                 )}
 
                 {user.role === 'MEMBER' && (
-                  <button
-                    onClick={() => setCurrentTab('member_profile')}
-                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                      currentTab === 'member_profile'
-                        ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
-                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    <UserIcon className="w-3.5 h-3.5" />
-                    My Membership Card
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setCurrentTab('member_profile')}
+                      className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'member_profile'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <UserIcon className="w-3.5 h-3.5" />
+                      My Membership Card
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('community_feed')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'community_feed'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Community Feed
+                    </button>
+                  </>
                 )}
               </nav>
             </div>

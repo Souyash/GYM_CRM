@@ -92,7 +92,84 @@ async function main() {
     }
   });
 
-  console.log('✅ Clean database initialized successfully!');
+  // 7. Seed Initial Community Posts
+  // Post 1: Pinned Official Announcement by Super Admin (Owner)
+  const post1 = await prisma.communityPost.create({
+    data: {
+      authorId: superAdmin.id,
+      facilityId: facility.id,
+      content: '📢 Welcome to the new IronVault Community! Starting this Saturday at 10:00 AM, we are hosting our monthly Olympic Lifting & Strength Technique Workshop. Free for all active members. Let us know below if you are attending!',
+      tag: 'Announcement',
+      isPinned: true,
+      isOfficial: true
+    }
+  });
+
+  // Post 2: Official WOD by Front Desk Staff (Manager)
+  const post2 = await prisma.communityPost.create({
+    data: {
+      authorId: manager.id,
+      facilityId: facility.id,
+      content: '🔥 Today’s Workout of the Day (WOD):\n5 Rounds for time:\n• 10 Deadlifts (bodyweight)\n• 15 Box Jumps (24" / 20")\n• 200m Row sprint\n\nFocus on tight core bracing and explosive hip extension. Drop your finish times in the comments!',
+      tag: 'Workout of the Day',
+      isPinned: false,
+      isOfficial: true
+    }
+  });
+
+  // Post 3: Member PR by Alex Rivera
+  const post3 = await prisma.communityPost.create({
+    data: {
+      authorId: member.id,
+      facilityId: facility.id,
+      content: '🎉 Milestone unlocked! Hit a new 185 lb bench press PR today after 6 months of consistency. Massive thanks to the 6 AM crew for the spot and hype!',
+      tag: 'Member PR',
+      isPinned: false,
+      isOfficial: false
+    }
+  });
+
+  // Seed Likes
+  await prisma.postLike.create({
+    data: { postId: post1.id, userId: member.id }
+  });
+  await prisma.postLike.create({
+    data: { postId: post1.id, userId: manager.id }
+  });
+  await prisma.postLike.create({
+    data: { postId: post2.id, userId: member.id }
+  });
+  await prisma.postLike.create({
+    data: { postId: post3.id, userId: superAdmin.id }
+  });
+  await prisma.postLike.create({
+    data: { postId: post3.id, userId: manager.id }
+  });
+
+  // Seed Comments
+  await prisma.postComment.create({
+    data: {
+      postId: post1.id,
+      authorId: member.id,
+      text: 'Count me in! Really looking forward to cleaning up my snatch technique.'
+    }
+  });
+  await prisma.postComment.create({
+    data: {
+      postId: post2.id,
+      authorId: member.id,
+      text: 'Finished in 14:32! The box jumps were brutal today 💪'
+    }
+  });
+  await prisma.postComment.create({
+    data: {
+      postId: post3.id,
+      authorId: manager.id,
+      text: 'Form looked super solid, Alex! 200 lb is right around the corner 🚀'
+    }
+  });
+
+  console.log('✅ Clean database initialized successfully with Community Feed!');
   console.log('---------------------------------------------------------');
   console.log('👑 Gym Owner:  admin@ironvaultgym.com / Admin@12345');
   console.log('🧑‍💼 Front Desk: manager@ironvaultgym.com / Manager@12345');

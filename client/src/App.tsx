@@ -12,13 +12,15 @@ import { MemberProfile } from './views/MemberProfile';
 import { LoginView } from './views/LoginView';
 import { AccountCreationModal } from './components/AccountCreationModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { CommunityFeed } from './components/CommunityFeed';
 import {
   Users,
   CreditCard,
   QrCode,
   Shield,
   Activity,
-  Plus
+  Plus,
+  MessageSquare
 } from 'lucide-react';
 import { api } from './services/api';
 
@@ -221,6 +223,32 @@ export const AppContent: React.FC = () => {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Community Feed Tab for All Roles */}
+        {currentTab === 'community_feed' && (
+          <div className="space-y-6 max-w-5xl mx-auto">
+            <div className="p-6 rounded-3xl app-card border border-slate-200/80 dark:border-zinc-800 bg-gradient-to-r from-emerald-500/10 via-transparent to-teal-500/5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-wider mb-2">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    IronVault Community & Feed
+                  </div>
+                  <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Official Announcements & Member Buzz
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+                    {user?.role === 'SUPER_ADMIN' || user?.role === 'MANAGER'
+                      ? 'Publish official gym updates, pin announcements to top, celebrate member PRs, and moderate posts.'
+                      : 'Share your PR milestones, ask questions, join fitness challenges, and high-five your gym family.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <CommunityFeed defaultTab="feed" />
           </div>
         )}
 

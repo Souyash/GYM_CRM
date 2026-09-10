@@ -160,6 +160,22 @@ export const api = {
   approveDeviceRequest: (id: string, adminNotes?: string) =>
     apiRequest(`/device-management/requests/${id}/approve`, { method: 'POST', body: JSON.stringify({ adminNotes }) }),
   rejectDeviceRequest: (id: string, adminNotes?: string) =>
-    apiRequest(`/device-management/requests/${id}/reject`, { method: 'POST', body: JSON.stringify({ adminNotes }) })
+    apiRequest(`/device-management/requests/${id}/reject`, { method: 'POST', body: JSON.stringify({ adminNotes }) }),
+
+  // Community Feed & Interactions
+  getCommunityPosts: (tag?: string) =>
+    apiRequest(`/community/posts${tag && tag !== 'All' ? `?tag=${encodeURIComponent(tag)}` : ''}`),
+  createCommunityPost: (payload: { content: string; tag?: string; imageUrl?: string; isPinned?: boolean }) =>
+    apiRequest('/community/posts', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteCommunityPost: (id: string) =>
+    apiRequest(`/community/posts/${id}`, { method: 'DELETE' }),
+  togglePinPost: (id: string) =>
+    apiRequest(`/community/posts/${id}/pin`, { method: 'PATCH' }),
+  toggleLikePost: (id: string) =>
+    apiRequest(`/community/posts/${id}/like`, { method: 'POST' }),
+  addPostComment: (id: string, text: string) =>
+    apiRequest(`/community/posts/${id}/comments`, { method: 'POST', body: JSON.stringify({ text }) }),
+  deletePostComment: (postId: string, commentId: string) =>
+    apiRequest(`/community/posts/${postId}/comments/${commentId}`, { method: 'DELETE' })
 };
 
