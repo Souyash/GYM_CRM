@@ -74,21 +74,12 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   });
 
   if (!facility) {
-    facility = await prisma.facility.findFirst();
-  }
-
-  // If scanning exit QR or action is explicitly EXIT, route to processExitScan
-  if (facility && (action === 'EXIT' || gym_id === facility.exitQrCodeHash)) {
-    return processExitScan(req, res);
-  }
-
-  if (!facility) {
     const failedLog = await prisma.failedAccessLog.create({
       data: {
         userId: userId || null,
         attemptedDeviceId: incomingDeviceId || null,
         attemptType: 'UNVERIFIED_SCAN',
-        failureReason: `No active gym facility found for QR code: '${gym_id}'.`,
+        failureReason: `Unrecognized Turnstile QR Code. Scanned code does not belong to any authorized gate.`,
         payloadDetails: JSON.stringify(req.body)
       }
     });
@@ -101,8 +92,13 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
       timestamp
     });
 
-    res.status(404).json({ error: 'Unrecognized facility QR Code. Access denied.' });
+    res.status(400).json({ error: 'Invalid Gate QR Code. Please scan the official Gym Entrance or Exit Turnstile poster.' });
     return;
+  }
+
+  // If scanning exit QR or action is explicitly EXIT, route to processExitScan
+  if (action === 'EXIT' || gym_id === facility.exitQrCodeHash) {
+    return processExitScan(req, res);
   }
 
   // Determine client coordinates (falls back to facility coordinates on web/laptop testing)

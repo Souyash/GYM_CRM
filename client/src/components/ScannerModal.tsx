@@ -4,14 +4,11 @@ import {
   Camera,
   CheckCircle,
   RefreshCw,
-  Clock,
-  Sparkles,
   Navigation,
   LogOut,
   LogIn,
   AlertOctagon,
-  ExternalLink,
-  QrCode
+  SwitchCamera
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { api } from '../services/api';
@@ -36,105 +33,149 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   const { user, deviceId, refreshProfile, scanAndLogin } = useAuth();
   const [facility, setFacility] = useState<Facility | null>(null);
   const [gateMode, setGateMode] = useState<'ENTER' | 'EXIT'>(initialMode);
-  const [scannerViewMode, setScannerViewMode] = useState<'CAMERA' | 'QR_CODE'>('CAMERA');
+  const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment');
   const [cameraActive, setCameraActive] = useState<boolean>(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-
-  // GPS state
-  const [gpsLocation, setGpsLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [gpsMode, setGpsMode] = useState<'AT_GYM' | 'OUTSIDE_GEOFENCE' | 'HARDWARE'>('AT_GYM');
+  const [isStartingCamera, setIsStartingCamera] = useState<boolean>(false);
 
   // Status & verification state
   const [verificationState, setVerificationState] = useState<'IDLE' | 'VERIFYING' | 'SUCCESS' | 'DENIED'>('IDLE');
   const [resultMessage, setResultMessage] = useState<string>('');
-  const [resultDetails, setResultDetails] = useState<any>(null);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isMountedRef = useRef<boolean>(false);
 
   useEffect(() => {
+    isMountedRef.current = true;
     if (isOpen) {
       setGateMode(initialMode);
+      setVerificationState('IDLE');
+      setResultMessage('');
+      setCameraError(null);
+
       api.getFacilities().then((data) => {
         if (data.facilities && data.facilities.length > 0) {
           setFacility(data.facilities[0]);
         }
       }).catch(console.error);
 
-      // Default mock GPS coordinates near gym (e.g. 10 meters away)
-      setGpsLocation({ lat: 37.774929, lng: -122.419416 });
-      setVerificationState('IDLE');
-      setResultMessage('');
+      // Auto-start back camera when opened
+      const timer = setTimeout(() => {
+        startBackCamera('environment');
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        stopCamera();
+      };
+    } else {
+      stopCamera();
     }
 
     return () => {
-      stopCamera();
+      isMountedRef.current = false;
     };
   }, [isOpen, initialMode]);
 
-  // Handle GPS hardware query
-  const queryHardwareGPS = () => {
-    if (!navigator.geolocation) {
-      setCameraError('GPS Geolocation is not supported by your browser.');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGpsLocation({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude
-        });
-        setGpsMode('HARDWARE');
-      },
-      (err) => {
-        console.warn('GPS Error:', err.message);
-        setCameraError(`GPS Error: ${err.message}. Using gym verified location.`);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  };
-
-  const startCamera = async () => {
+  const startBackCamera = async (facing: 'environment' | 'user' = 'environment') => {
     try {
+      setIsStartingCamera(true);
       setCameraError(null);
+
+      // Stop existing instance
       if (scannerRef.current) {
         try {
           await scannerRef.current.stop();
           scannerRef.current.clear();
         } catch {}
+        scannerRef.current = null;
+      }
+
+      const container = document.getElementById('qr-reader-container');
+      if (!container) {
+        setIsStartingCamera(false);
+        return;
       }
 
       const html5QrCode = new Html5Qrcode('qr-reader-container');
       scannerRef.current = html5QrCode;
 
-      let cameraConfig: any = { facingMode: 'user' };
-      try {
-        const cameras = await Html5Qrcode.getCameras().catch(() => []);
-        if (cameras && cameras.length > 0) {
-          const preferred =
-            cameras.find((c) => c.label.toLowerCase().includes('facetime') || c.label.toLowerCase().includes('front')) ||
-            cameras[0];
-          if (preferred?.id) {
-            cameraConfig = preferred.id;
+      // Query cameras to prioritize rear/back lens on mobile phones
+      const cameras = await Html5Qrcode.getCameras().catch(() => []);
+      let cameraConfig: any = { facingMode: facing };
+
+      if (cameras && cameras.length > 0) {
+        if (facing === 'environment') {
+          // Look for rear, back, environment, or world cameras
+          const rearCam = cameras.find((c) => {
+            const label = c.label.toLowerCase();
+            return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('world');
+          }) || cameras[cameras.length - 1]; // On Android and iOS, the rear camera is usually the last enumerated device
+
+          if (rearCam?.id) {
+            cameraConfig = rearCam.id;
+          }
+        } else {
+          // Front camera
+          const frontCam = cameras.find((c) => {
+            const label = c.label.toLowerCase();
+            return label.includes('front') || label.includes('user') || label.includes('facetime');
+          }) || cameras[0];
+
+          if (frontCam?.id) {
+            cameraConfig = frontCam.id;
           }
         }
-      } catch {
-        cameraConfig = { facingMode: 'user' };
       }
 
       await html5QrCode.start(
         cameraConfig,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        {
+          fps: 15,
+          qrbox: (viewfinderWidth, viewfinderHeight) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const qrEdgeSize = Math.floor(minEdge * 0.72);
+            return { width: qrEdgeSize, height: qrEdgeSize };
+          },
+          aspectRatio: 1.0
+        },
         (decodedText) => {
           handleQrCodeScanned(decodedText);
         },
         () => {}
       );
-      setCameraActive(true);
+
+      if (isMountedRef.current) {
+        setCameraActive(true);
+        setIsStartingCamera(false);
+      }
     } catch (err: any) {
-      console.warn('Camera start error:', err);
-      setCameraError('Camera access unavailable. Please use the 1-Click Fast Check button below.');
-      setCameraActive(false);
+      console.warn('Direct back camera start failed, attempting fallback:', err);
+      // Fallback: try standard environment facingMode
+      try {
+        if (scannerRef.current) {
+          await scannerRef.current.start(
+            { facingMode: 'environment' },
+            { fps: 15, qrbox: { width: 250, height: 250 } },
+            (decodedText) => handleQrCodeScanned(decodedText),
+            () => {}
+          );
+          if (isMountedRef.current) {
+            setCameraActive(true);
+            setIsStartingCamera(false);
+          }
+          return;
+        }
+      } catch (fallbackErr: any) {
+        console.error('Camera fallback error:', fallbackErr);
+        if (isMountedRef.current) {
+          setCameraError(
+            'Back camera could not be accessed. Please ensure camera permissions are allowed in your browser settings.'
+          );
+          setCameraActive(false);
+          setIsStartingCamera(false);
+        }
+      }
     }
   };
 
@@ -149,20 +190,33 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     setCameraActive(false);
   };
 
-  // Process the QR Code
+  const toggleCamera = async () => {
+    const nextFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+    setCameraFacing(nextFacing);
+    await stopCamera();
+    await startBackCamera(nextFacing);
+  };
+
+  // Process and actually verify the scanned QR Code
   const handleQrCodeScanned = async (qrText: string) => {
     try {
       stopCamera();
       setVerificationState('VERIFYING');
-      setResultMessage(gateMode === 'ENTER' ? 'Verifying pass & entrance gate...' : 'Verifying exit & logging workout duration...');
+      setResultMessage(
+        gateMode === 'ENTER'
+          ? 'Verifying gate pass with gym turnstile...'
+          : 'Verifying exit & logging workout duration...'
+      );
 
-      let gymId = qrText;
+      const trimmed = qrText.trim();
+      let gymId = trimmed;
       let scannedAction = gateMode;
 
       try {
-        const parsed = JSON.parse(qrText);
+        const parsed = JSON.parse(trimmed);
         if (parsed.gym_id) gymId = parsed.gym_id;
         else if (parsed.hash) gymId = parsed.hash;
+
         if (
           parsed.type === 'GYM_EXIT_GATE' ||
           parsed.action === 'EXIT' ||
@@ -173,19 +227,35 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           setGateMode('EXIT');
         }
       } catch (e) {
-        if (qrText.includes('EXIT')) {
+        if (trimmed.includes('EXIT')) {
           scannedAction = 'EXIT';
           setGateMode('EXIT');
         }
       }
 
-      let lat = gpsLocation?.lat || 37.774929;
-      let lng = gpsLocation?.lng || -122.419416;
+      // Check if scanned QR is a valid IronVault Gate QR
+      const looksLikeValidGate =
+        gymId.startsWith('FACILITY_') ||
+        (facility && (gymId === facility.id || gymId === facility.staticQrCodeHash || gymId === facility.exitQrCodeHash)) ||
+        trimmed.includes('GYM_');
 
-      if (facility) {
-        lat = facility.latitude;
-        lng = facility.longitude;
+      if (!looksLikeValidGate && !facility) {
+        setVerificationState('DENIED');
+        setResultMessage(
+          'Invalid Gate QR Code. Please point your camera at the official IronVault Gate poster.'
+        );
+        // Resume camera scan after notice
+        setTimeout(() => {
+          if (isOpen) {
+            setVerificationState('IDLE');
+            startBackCamera(cameraFacing);
+          }
+        }, 2500);
+        return;
       }
+
+      const lat = facility?.latitude || 37.774929;
+      const lng = facility?.longitude || -122.419416;
 
       let response: any;
 
@@ -210,7 +280,6 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
         setVerificationState('SUCCESS');
         setResultMessage(response.message || 'Workout complete! Departure logged.');
-        setResultDetails(response.session);
 
         if (onScanSuccess) {
           onScanSuccess(response.session, 'EXIT');
@@ -242,7 +311,6 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
         setVerificationState('SUCCESS');
         setResultMessage(response.message || 'Access Granted! Welcome to IronVault Fitness.');
-        setResultDetails(response.entry);
 
         if (onScanSuccess) {
           onScanSuccess(response.entry, 'ENTER');
@@ -258,28 +326,43 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     } catch (err: any) {
       console.error('Scan error:', err);
       setVerificationState('DENIED');
-      setResultMessage(err.message || 'Access notice: Please check with front desk.');
-      setResultDetails(err.data || null);
+      setResultMessage(
+        err.message || 'Access notice: Scanned QR code was not recognized. Please scan the official gate poster.'
+      );
+
+      // Auto-restart camera after 3 seconds so the member can scan again
+      setTimeout(() => {
+        if (isOpen) {
+          setVerificationState('IDLE');
+          startBackCamera(cameraFacing);
+        }
+      }, 3000);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in font-poppins">
-      <div className="app-card w-full max-w-lg overflow-hidden shadow-2xl flex flex-col relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 dark:bg-black/85 backdrop-blur-md animate-fade-in font-poppins">
+      <div className="app-card w-full max-w-md overflow-hidden shadow-2xl flex flex-col relative border border-slate-200 dark:border-zinc-800">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50/80 dark:bg-zinc-900/80">
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-2xl ${gateMode === 'ENTER' ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'}`}>
+            <div
+              className={`p-2.5 rounded-2xl ${
+                gateMode === 'ENTER'
+                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
+                  : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
+              }`}
+            >
               {gateMode === 'ENTER' ? <LogIn className="w-5 h-5" /> : <LogOut className="w-5 h-5" />}
             </div>
             <div>
               <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">
-                {gateMode === 'ENTER' ? 'Gym Entrance Check-In' : 'Gym Exit & Workout Finish'}
+                {gateMode === 'ENTER' ? 'Scan Entrance Turnstile' : 'Scan Exit Turnstile'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-zinc-400">
-                {gateMode === 'ENTER' ? 'Scan the entrance poster to start session' : 'Scan the exit turnstile to conclude workout'}
+                Point your back camera at the physical gate poster
               </p>
             </div>
           </div>
@@ -295,7 +378,11 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         <div className="px-4 sm:px-6 pt-4">
           <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-zinc-800 rounded-2xl">
             <button
-              onClick={() => { setGateMode('ENTER'); setVerificationState('IDLE'); setResultMessage(''); }}
+              onClick={() => {
+                setGateMode('ENTER');
+                setVerificationState('IDLE');
+                setResultMessage('');
+              }}
               className={`py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
                 gateMode === 'ENTER'
                   ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
@@ -306,7 +393,11 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               <span>🟢 Entrance Gate</span>
             </button>
             <button
-              onClick={() => { setGateMode('EXIT'); setVerificationState('IDLE'); setResultMessage(''); }}
+              onClick={() => {
+                setGateMode('EXIT');
+                setVerificationState('IDLE');
+                setResultMessage('');
+              }}
               className={`py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
                 gateMode === 'EXIT'
                   ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
@@ -319,53 +410,23 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </div>
         </div>
 
-        {/* Method Toggle: Camera vs Show QR Poster */}
-        <div className="px-4 sm:px-6 pt-2 flex items-center justify-center gap-2">
-          <button
-            onClick={() => {
-              setScannerViewMode('CAMERA');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
-              scannerViewMode === 'CAMERA'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-xs'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-            }`}
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Scan with Camera</span>
-          </button>
-          <span className="text-slate-300 dark:text-zinc-700">•</span>
-          <button
-            onClick={() => {
-              stopCamera();
-              setScannerViewMode('QR_CODE');
-            }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${
-              scannerViewMode === 'QR_CODE'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-black shadow-xs'
-                : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
-            }`}
-          >
-            <QrCode className="w-3.5 h-3.5" />
-            <span>Display QR Code on Screen</span>
-          </button>
-        </div>
-
         {/* Content Body */}
         <div className="p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[80vh]">
           {/* Active Status Display */}
           {verificationState === 'VERIFYING' && (
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-3">
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-3 animate-fade-in">
               <RefreshCw className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-spin" />
               <div>
-                <p className="font-bold text-sm text-emerald-800 dark:text-emerald-300">Processing Turnstile</p>
+                <p className="font-bold text-sm text-emerald-800 dark:text-emerald-300">
+                  Verifying Turnstile QR
+                </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400">{resultMessage}</p>
               </div>
             </div>
           )}
 
           {verificationState === 'SUCCESS' && (
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-500/40 flex items-start gap-3">
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-500/40 flex items-start gap-3 animate-fade-in">
               <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="font-black text-base text-emerald-800 dark:text-emerald-300">
@@ -377,128 +438,81 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           )}
 
           {verificationState === 'DENIED' && (
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 flex items-start gap-3">
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 flex items-start gap-3 animate-fade-in">
               <AlertOctagon className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="font-black text-base text-amber-800 dark:text-amber-300">Notice</p>
+                <p className="font-black text-base text-amber-800 dark:text-amber-300">Verification Notice</p>
                 <p className="text-xs text-amber-900 dark:text-amber-100 font-medium">{resultMessage}</p>
               </div>
             </div>
           )}
 
-          {/* EITHER: CAMERA SCANNER OR QR DISPLAY */}
-          {scannerViewMode === 'CAMERA' ? (
-            /* HTML5 QR Camera Container */
-            <div className="relative rounded-2xl overflow-hidden bg-black border-2 border-dashed border-slate-300 dark:border-zinc-700 aspect-square max-h-56 mx-auto flex items-center justify-center">
-              <div id="qr-reader-container" className="w-full h-full"></div>
+          {/* Real-time Back Camera Viewfinder */}
+          <div className="relative rounded-3xl overflow-hidden bg-black border-2 border-emerald-500/40 aspect-square max-h-72 mx-auto flex items-center justify-center shadow-inner">
+            <div id="qr-reader-container" className="w-full h-full"></div>
 
-              {!cameraActive && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 dark:bg-black/95 text-white space-y-3">
-                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-400">
-                    <Camera className="w-8 h-8" />
-                  </div>
-                  <p className="text-xs text-slate-300 max-w-xs">
-                    {cameraError || `Allow camera access to scan physical ${gateMode === 'ENTER' ? 'entrance' : 'exit'} QR poster`}
-                  </p>
-                  <button
-                    onClick={startCamera}
-                    className="px-5 py-2.5 rounded-xl btn-primary-green text-xs font-black"
-                  >
-                    <Camera className="w-4 h-4" />
-                    Open Camera Scanner
-                  </button>
+            {/* Overlaid Animated Scanner Reticle */}
+            {cameraActive && verificationState === 'IDLE' && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
+                <div className="w-48 h-48 border-2 border-dashed border-emerald-400/70 rounded-2xl relative flex items-center justify-center">
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-emerald-400" />
+                  <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-emerald-400" />
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-emerald-400" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-emerald-400" />
+                  <div className="w-full h-0.5 bg-emerald-400/80 shadow-glow-green animate-pulse" />
                 </div>
-              )}
-            </div>
-          ) : (
-            /* QR Code Display on Screen */
-            <div className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border-2 border-emerald-500/30 flex flex-col items-center text-center space-y-3">
-              <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                <img
-                  src={gateMode === 'ENTER' ? '/entrance_qr.png' : '/exit_qr.png'}
-                  alt={`${gateMode} Gate QR Code`}
-                  className="w-44 h-44 object-contain rounded-lg"
-                />
               </div>
+            )}
 
-              <div className="space-y-1">
-                <p className="text-xs font-black text-slate-900 dark:text-white">
-                  Physical {gateMode === 'ENTER' ? 'Entrance' : 'Exit'} Gate QR
-                </p>
-                <p className="text-[11px] text-slate-500 dark:text-zinc-400 max-w-xs">
-                  Scan this code with your phone camera, or open it on another device to test scanning with your webcam.
-                </p>
-              </div>
-
-              <a
-                href={gateMode === 'ENTER' ? '/entrance_qr.png' : '/exit_qr.png'}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+            {/* Camera Switcher Icon (Flip between Back/Front camera) */}
+            {cameraActive && (
+              <button
+                type="button"
+                onClick={toggleCamera}
+                title="Switch Camera (Back/Front)"
+                className="absolute top-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 transition active:scale-95 shadow-lg"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Open QR in New Tab / Phone Browser
-              </a>
-            </div>
-          )}
+                <SwitchCamera className="w-4 h-4" />
+              </button>
+            )}
 
-          {/* Location Confirmation */}
+            {/* Inactive or Error State */}
+            {!cameraActive && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 dark:bg-black/95 text-white space-y-3">
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-400">
+                  <Camera className="w-8 h-8" />
+                </div>
+                <p className="text-xs text-slate-300 max-w-xs">
+                  {cameraError || (isStartingCamera ? 'Opening back camera...' : 'Starting turnstile scanner...')}
+                </p>
+                <button
+                  onClick={() => startBackCamera(cameraFacing)}
+                  disabled={isStartingCamera}
+                  className="px-5 py-2.5 rounded-xl btn-primary-green text-xs font-black flex items-center gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>{isStartingCamera ? 'Opening Camera...' : 'Open Back Camera'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Location Verification & Instruction */}
           <div className="app-card-subtle p-3.5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
                 <Navigation className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                Location Status
+                Turnstile Gate:
               </span>
               <span className="badge-active-green text-[10px]">
-                At {facility?.name ? facility.name.split(' ')[0] : 'Gym'}
+                {gateMode === 'ENTER' ? 'Entrance Gate Turnstile' : 'Exit Gate Turnstile'}
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-zinc-400 pt-1 border-t border-slate-200 dark:border-zinc-800">
-              <span>GPS Gate Geofence:</span>
-              <button
-                onClick={queryHardwareGPS}
-                className="text-emerald-600 dark:text-emerald-400 hover:underline font-bold"
-              >
-                Refresh Coordinates
-              </button>
-            </div>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 text-center pt-1 border-t border-slate-200 dark:border-zinc-800">
+              Aim your camera at the physical {gateMode === 'ENTER' ? 'Entrance' : 'Exit'} poster at the gate.
+            </p>
           </div>
-
-          {/* 1-Click Fast Trigger Action Button for Single-Screen Testing */}
-          {facility && (
-            <div className="space-y-2 pt-1">
-              {memberIdentifier && (
-                <div className="p-2 rounded-xl bg-slate-100 dark:bg-zinc-800 text-xs font-bold text-center text-slate-700 dark:text-zinc-300">
-                  Checking as: <span className="text-emerald-600 dark:text-emerald-400 font-mono">{memberIdentifier}</span>
-                </div>
-              )}
-
-              {gateMode === 'ENTER' ? (
-                <button
-                  onClick={() => handleQrCodeScanned(facility.staticQrCodeHash || facility.id)}
-                  disabled={verificationState === 'VERIFYING'}
-                  className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>⚡ Scan Entrance Turnstile QR (1-Click Test)</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleQrCodeScanned(facility.exitQrCodeHash || 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026')}
-                  disabled={verificationState === 'VERIFYING'}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-black text-sm uppercase tracking-wide flex items-center justify-center gap-2 transition active:scale-98 shadow-md"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>🏁 Scan Exit Turnstile QR (1-Click Test)</span>
-                </button>
-              )}
-
-              <p className="text-[11px] text-center text-slate-500 dark:text-zinc-400">
-                Simulates scanning the {gateMode === 'ENTER' ? 'Entrance' : 'Exit'} Turnstile at {facility.name}
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>

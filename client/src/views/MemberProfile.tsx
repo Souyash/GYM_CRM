@@ -500,32 +500,6 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             </div>
           </button>
         </div>
-
-        {/* Quick QR Poster Direct Links for Physical Testing */}
-        <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
-            Turnstile Gate QR Posters for physical scanning:
-          </span>
-          <div className="flex items-center gap-3 font-bold">
-            <a
-              href="/entrance_qr.png"
-              target="_blank"
-              rel="noreferrer"
-              className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-            >
-              <span>🟢 Open Entrance QR</span>
-            </a>
-            <span className="text-slate-300 dark:text-zinc-700">•</span>
-            <a
-              href="/exit_qr.png"
-              target="_blank"
-              rel="noreferrer"
-              className="text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-            >
-              <span>🏁 Open Exit QR</span>
-            </a>
-          </div>
-        </div>
       </div>
 
       {/* 3. QUICK ACTIONS BAR */}
