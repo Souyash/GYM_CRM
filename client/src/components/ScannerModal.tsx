@@ -44,10 +44,84 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isMountedRef = useRef<boolean>(false);
+  const isProcessingRef = useRef<boolean>(false);
+
+  // Sound effects generator using Web Audio API
+  const playFeedbackAudio = (type: 'success' | 'denied' | 'info') => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      if (type === 'success') {
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+        gain1.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start();
+        osc1.stop(ctx.currentTime + 0.18);
+
+        setTimeout(() => {
+          try {
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, ctx.currentTime);
+            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 0.35);
+          } catch {}
+        }, 100);
+      } else if (type === 'denied') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(240, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(160, ctx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } else {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      }
+    } catch {}
+  };
+
+  const triggerHaptic = (success: boolean) => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        if (success) {
+          navigator.vibrate([60, 40, 60]);
+        } else {
+          navigator.vibrate([150, 70, 150]);
+        }
+      } catch {}
+    }
+  };
 
   useEffect(() => {
     isMountedRef.current = true;
     if (isOpen) {
+      isProcessingRef.current = false;
       setGateMode(initialMode);
       setVerificationState('IDLE');
       setResultMessage('');
@@ -70,6 +144,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       };
     } else {
       stopCamera();
+      isProcessingRef.current = false;
     }
 
     return () => {
@@ -79,6 +154,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   const startBackCamera = async (facing: 'environment' | 'user' = 'environment') => {
     try {
+      isProcessingRef.current = false;
       setIsStartingCamera(true);
       setCameraError(null);
 
@@ -199,8 +275,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   // Process and actually verify the scanned QR Code
   const handleQrCodeScanned = async (qrText: string) => {
+    // 1. Concurrency debounce lock: Prevent Html5Qrcode multiple frame calls
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+
     try {
-      stopCamera();
+      await stopCamera();
       setVerificationState('VERIFYING');
       setResultMessage(
         gateMode === 'ENTER'
@@ -240,13 +320,16 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         trimmed.includes('GYM_');
 
       if (!looksLikeValidGate && !facility) {
+        playFeedbackAudio('denied');
+        triggerHaptic(false);
         setVerificationState('DENIED');
         setResultMessage(
           'Invalid Gate QR Code. Please point your camera at the official IronVault Gate poster.'
         );
         // Resume camera scan after notice
         setTimeout(() => {
-          if (isOpen) {
+          if (isMountedRef.current && isOpen) {
+            isProcessingRef.current = false;
             setVerificationState('IDLE');
             startBackCamera(cameraFacing);
           }
@@ -278,6 +361,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           });
         }
 
+        playFeedbackAudio('success');
+        triggerHaptic(true);
         setVerificationState('SUCCESS');
         setResultMessage(response.message || 'Workout complete! Departure logged.');
 
@@ -287,7 +372,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         refreshProfile();
 
         setTimeout(() => {
-          onClose();
+          if (isMountedRef.current) onClose();
         }, 1500);
       } else {
         // Entrance Flow
@@ -309,34 +394,59 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           });
         }
 
-        setVerificationState('SUCCESS');
-        setResultMessage(response.message || 'Access Granted! Welcome to IronVault Fitness.');
-
-        if (onScanSuccess) {
-          onScanSuccess(response.entry, 'ENTER');
-        }
-        refreshProfile();
-
-        if (response.access === 'GRANTED' || !user) {
+        // Check response access type
+        if (response.access === 'EXIT_CONFIRMED') {
+          playFeedbackAudio('success');
+          triggerHaptic(true);
+          setVerificationState('SUCCESS');
+          setResultMessage(response.message || 'Workout complete! Departure logged.');
+          if (onScanSuccess) onScanSuccess(response.session, 'EXIT');
+          refreshProfile();
           setTimeout(() => {
-            onClose();
+            if (isMountedRef.current) onClose();
+          }, 1500);
+        } else if (response.access === 'ALREADY_INSIDE') {
+          playFeedbackAudio('info');
+          triggerHaptic(true);
+          setVerificationState('SUCCESS');
+          setResultMessage(response.message || 'You are currently checked into the gym.');
+          refreshProfile();
+          setTimeout(() => {
+            if (isMountedRef.current) onClose();
+          }, 2500);
+        } else {
+          playFeedbackAudio('success');
+          triggerHaptic(true);
+          setVerificationState('SUCCESS');
+          setResultMessage(response.message || 'Access Granted! Welcome to IronVault Fitness.');
+
+          if (onScanSuccess) {
+            onScanSuccess(response.entry, 'ENTER');
+          }
+          refreshProfile();
+
+          setTimeout(() => {
+            if (isMountedRef.current) onClose();
           }, 1200);
         }
       }
     } catch (err: any) {
       console.error('Scan error:', err);
+      playFeedbackAudio('denied');
+      triggerHaptic(false);
       setVerificationState('DENIED');
       setResultMessage(
         err.message || 'Access notice: Scanned QR code was not recognized. Please scan the official gate poster.'
       );
 
-      // Auto-restart camera after 3 seconds so the member can scan again
+      // Auto-restart camera after 3.2 seconds so the member can scan again without modal disruption
       setTimeout(() => {
-        if (isOpen) {
+        if (isMountedRef.current && isOpen) {
+          isProcessingRef.current = false;
           setVerificationState('IDLE');
           startBackCamera(cameraFacing);
         }
-      }, 3000);
+      }, 3200);
     }
   };
 

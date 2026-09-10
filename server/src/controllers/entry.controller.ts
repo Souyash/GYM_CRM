@@ -96,8 +96,38 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     return;
   }
 
-  // If scanning exit QR or action is explicitly EXIT, route to processExitScan
-  if (action === 'EXIT' || gym_id === facility.exitQrCodeHash) {
+  // ---------------------------------------------------------------------------------
+  // 0. Gate QR Identification & Direction Verification
+  // ---------------------------------------------------------------------------------
+  const isExitToken = gym_id === facility.exitQrCodeHash || (typeof gym_id === 'string' && gym_id.includes('EXIT'));
+
+  // If scanning exit QR or action is explicitly EXIT:
+  if (action === 'EXIT' || isExitToken) {
+    // Check if user has an active in-gym workout session
+    const activeEntry = user ? await prisma.attendanceEntry.findFirst({
+      where: {
+        userId: user.id,
+        status: 'ACTIVE',
+        exitedAt: null
+      }
+    }) : null;
+
+    if (activeEntry) {
+      // Member is inside the gym and scanned the Exit Gate poster: route to checkout
+      return processExitScan(req, res);
+    }
+
+    // No active workout found: cannot exit
+    if (isExitToken && action !== 'EXIT') {
+      res.status(400).json({
+        error: 'Gate Mismatch: You scanned the Exit Gate poster, but you are not currently checked into the gym. Please scan the Entrance Gate turnstile poster to check in.',
+        gateMismatch: true,
+        expectedGate: 'ENTRANCE',
+        scannedGate: 'EXIT'
+      });
+      return;
+    }
+
     return processExitScan(req, res);
   }
 
@@ -167,20 +197,106 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   }
 
   // ---------------------------------------------------------------------------------
-  // Phase 3 Check 2 & 3: Daily Entry Limit Protocol (Flagging > 1 Entry Per Day)
+  // Phase 1: User Account & Security Verification
   // ---------------------------------------------------------------------------------
   if (!user) {
     res.status(401).json({ error: 'User profile not found.' });
     return;
   }
 
+  if (!user.isActive) {
+    res.status(403).json({ error: 'Account Suspended: Your member profile is inactive. Please speak with the front desk.' });
+    return;
+  }
+
   // Check if user is currently flagged
   if (user.deviceStatus === 'FLAGGED_MULTI_DEVICE') {
     res.status(403).json({
-      error: 'Notice: Daily check-in limit reached. You have already checked in today. Please speak with the front desk for assistance.',
+      error: 'Notice: Your account has a security hold (Daily entry limit or unauthorized device). Please speak with the front desk for clearance.',
       deviceStatus: 'FLAGGED_MULTI_DEVICE'
     });
     return;
+  }
+
+  // ---------------------------------------------------------------------------------
+  // Phase 2: Hardware Device Binding & Anti-Account Sharing Verification
+  // ---------------------------------------------------------------------------------
+  if (user.role === 'MEMBER' && incomingDeviceId && incomingDeviceId !== 'MEMBER_APP') {
+    if (!user.boundDeviceId) {
+      // First scan: Auto-bind hardware device
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          boundDeviceId: incomingDeviceId,
+          boundDeviceName: (req.headers['user-agent'] as string) || 'Authorized Mobile Device'
+        }
+      });
+      user.boundDeviceId = incomingDeviceId;
+      console.log(`[Device Security] Auto-bound primary device for ${user.fullName}: ${incomingDeviceId}`);
+    } else if (user.boundDeviceId !== incomingDeviceId) {
+      // Unauthorized secondary device detected!
+      const deviceMismatchReason = `Multi-Device Security Alert: Attempted check-in from unauthorized device (${incomingDeviceId}). Account is bound to device (${user.boundDeviceId}).`;
+      console.warn(`[Anti-Fraud Security] ${deviceMismatchReason}`);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { deviceStatus: 'FLAGGED_MULTI_DEVICE' }
+      });
+
+      const changeReq = await prisma.deviceChangeRequest.create({
+        data: {
+          userId: user.id,
+          attemptedDeviceId: incomingDeviceId,
+          attemptedDeviceName: (req.headers['user-agent'] as string) || 'Secondary Device',
+          ipAddress: req.ip || '127.0.0.1',
+          userAgent: (req.headers['user-agent'] as string) || 'Client Browser',
+          status: 'PENDING',
+          adminNotes: `Turnstile scan attempted from an unauthorized secondary device.`
+        }
+      });
+
+      const failedLog = await prisma.failedAccessLog.create({
+        data: {
+          userId: user.id,
+          facilityId: facility.id,
+          attemptedDeviceId: incomingDeviceId,
+          attemptType: 'MULTI_DEVICE_BLOCKED',
+          failureReason: deviceMismatchReason,
+          gpsLat: clientLat,
+          gpsLng: clientLng,
+          distanceMeters: geoValidation.distanceMeters,
+          payloadDetails: JSON.stringify({
+            boundDeviceId: user.boundDeviceId,
+            attemptedDeviceId: incomingDeviceId
+          })
+        }
+      });
+
+      emitFailedAccessAlert({
+        id: failedLog.id,
+        attemptType: 'MULTI_DEVICE_BLOCKED',
+        memberName: user.fullName,
+        reason: deviceMismatchReason,
+        timestamp
+      });
+
+      emitMultiDeviceAlert({
+        type: 'MULTI_DEVICE_BLOCKED',
+        requestId: changeReq.id,
+        userId: user.id,
+        userName: user.fullName,
+        userEmail: user.email,
+        attemptedDeviceId: incomingDeviceId,
+        timestamp
+      });
+
+      res.status(403).json({
+        error: 'Device Security Alert: This account is bound to another phone/device. For security and anti-passback prevention, this device is not authorized. A verification request has been sent to the front desk.',
+        deviceStatus: 'FLAGGED_MULTI_DEVICE',
+        requestId: changeReq.id
+      });
+      return;
+    }
   }
 
   // Check if member already checked in today
@@ -618,6 +734,47 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
       orderBy: { scannedAt: 'desc' }
     });
 
+    // Gate Token Verification (if scanned at turnstile)
+    if (gym_id) {
+      const isEntranceGate =
+        (activeEntry?.facility && (gym_id === activeEntry.facility.staticQrCodeHash || gym_id === activeEntry.facility.id)) ||
+        (await prisma.facility.findFirst({
+          where: {
+            OR: [
+              { staticQrCodeHash: gym_id },
+              { id: gym_id }
+            ]
+          }
+        }));
+
+      if (isEntranceGate && !gym_id.includes('EXIT')) {
+        res.status(400).json({
+          error: 'Gate Mismatch: You scanned the Entrance Gate poster. Please scan the Exit Gate turnstile poster to complete your checkout.',
+          gateMismatch: true,
+          expectedGate: 'EXIT',
+          scannedGate: 'ENTRANCE'
+        });
+        return;
+      }
+
+      const validExitGate = await prisma.facility.findFirst({
+        where: {
+          OR: [
+            { id: gym_id },
+            { exitQrCodeHash: gym_id }
+          ]
+        }
+      });
+
+      if (!validExitGate && !gym_id.includes('EXIT')) {
+        res.status(400).json({
+          error: 'Invalid Gate QR Code. Unrecognized turnstile identifier. Please scan the official Exit Gate poster.',
+          invalidGate: true
+        });
+        return;
+      }
+    }
+
     if (!activeEntry) {
       // Check if user already exited earlier today
       const todayStart = new Date(timestamp);
@@ -635,13 +792,15 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
       if (recentExit) {
         const exitTimeStr = new Date(recentExit.exitedAt!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         res.status(400).json({
-          error: `You already checked out today at ${exitTimeStr} (${recentExit.sessionDurationMinutes}m workout). No active workout session in progress.`
+          error: `You already checked out today at ${exitTimeStr} (${recentExit.sessionDurationMinutes}m workout). No active workout session in progress.`,
+          alreadyCheckedOut: true
         });
         return;
       }
 
       res.status(400).json({
-        error: 'No active gym session found. You are not currently checked into the gym.'
+        error: 'Cannot Check Out: No active gym session found. You are not currently checked into the gym. Please scan the Entrance Gate first.',
+        notCheckedIn: true
       });
       return;
     }
