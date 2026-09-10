@@ -12,3 +12,4 @@ else
   SIZE=$(wc -c < "$INDEX_FILE" | tr -d ' ')
   echo "✅ Git index is healthy ($SIZE bytes). Working tree clean."
 fi
+
