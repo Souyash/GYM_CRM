@@ -464,3 +464,113 @@ export async function sendDeskOnboardOtpEmail(params: {
   return { success: true, deliveredVia: 'DEV_CONSOLE' };
 }
 
+/**
+ * Sends a 6-digit OTP code when an existing Member logs into their account via Gmail OTP.
+ */
+export async function sendMemberLoginOtpEmail(params: {
+  toEmail: string;
+  fullName: string;
+  otpCode: string;
+}): Promise<{ success: boolean; deliveredVia: 'GMAIL' | 'DEV_CONSOLE'; error?: string }> {
+  const { toEmail, fullName, otpCode } = params;
+  const activeTransporter = getTransporter();
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronVault Member Login Verification</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0f19; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 540px; background-color: #111827; border: 1px solid #1f2937; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 36px 36px 20px; text-align: center; background: linear-gradient(180deg, rgba(16,185,129,0.1) 0%, rgba(17,24,39,0) 100%);">
+              <div style="display: inline-block; padding: 10px 18px; border-radius: 9999px; background-color: #064e3b; border: 1px solid #059669; color: #34d399; font-weight: 800; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">
+                ⚡ IRONVAULT MEMBER ACCESS
+              </div>
+              <h1 style="margin: 20px 0 6px; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+                Your Sign-In Passcode
+              </h1>
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">
+                Welcome back, <strong style="color: #ffffff;">${fullName}</strong>! Use this code to sign in.
+              </p>
+            </td>
+          </tr>
+
+          <!-- OTP Box -->
+          <tr>
+            <td style="padding: 16px 36px 24px;">
+              <div style="background-color: #0f172a; border: 2px dashed #10b981; border-radius: 16px; padding: 26px 20px; text-align: center;">
+                <p style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 2px;">
+                  Your 6-Digit Login Code
+                </p>
+                <div style="font-size: 44px; font-weight: 900; letter-spacing: 12px; color: #ffffff; text-shadow: 0 0 20px rgba(16,185,129,0.4); font-family: 'Courier New', Courier, monospace;">
+                  ${otpCode}
+                </div>
+                <p style="margin: 12px 0 0; font-size: 13px; color: #94a3b8;">
+                  ⏱️ Valid for <strong style="color: #f59e0b;">10 minutes</strong>.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Instructions -->
+          <tr>
+            <td style="padding: 0 36px 36px;">
+              <div style="background-color: #1f2937; border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+                <p style="margin: 0 0 8px;"><strong>🔒 Security Note:</strong> Never share this code with anyone. IronVault staff will never ask for your login code.</p>
+                <p style="margin: 0;">Enter this code on the login screen to access your digital member pass, turnstile barcode, and class schedule.</p>
+              </div>
+              <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #64748b;">
+                If you did not attempt to sign in, please secure your account immediately.
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 18px 36px; background-color: #0a0e17; border-top: 1px solid #1f2937; text-align: center; font-size: 12px; color: #64748b;">
+              IronVault Fitness • Smart Gym Access Control • 2026
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  const user = getGmailUser();
+  const fromName = getFromName();
+
+  if (activeTransporter && user) {
+    try {
+      await activeTransporter.sendMail({
+        from: `"${fromName}" <${user}>`,
+        to: toEmail,
+        subject: `🔐 ${otpCode} is your IronVault login verification code`,
+        html,
+        text: `Welcome back to IronVault Fitness, ${fullName}!\n\nYour 6-digit login verification code is: ${otpCode}\n\nThis code expires in 10 minutes.\nIf you did not request this, please ignore this email.`
+      });
+
+      console.log(`[Email Service] ✉️ Login OTP code emailed via Gmail to: ${toEmail}`);
+      return { success: true, deliveredVia: 'GMAIL' };
+    } catch (err: any) {
+      console.error(`[Email Service] ❌ Failed to send login OTP to ${toEmail}:`, err.message);
+      console.log(`[Email Service: DEV FALLBACK] 🔑 Login OTP for ${toEmail} is: ${otpCode}`);
+      return { success: true, deliveredVia: 'DEV_CONSOLE', error: err.message };
+    }
+  }
+
+  console.log(`[Email Service: DEV FALLBACK] 🔑 Login OTP for ${toEmail} is: ${otpCode}`);
+  return { success: true, deliveredVia: 'DEV_CONSOLE' };
+}
+
+

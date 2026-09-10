@@ -31,12 +31,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
   preselectedPlan,
   onBackToWebsite
 }) => {
-  const { login, verifyOtpAndLogin } = useAuth();
+  const { login, verifyOtpAndLogin, sendMemberLoginOtp, loginWithOtp } = useAuth();
   const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>(initialTab);
 
   // Member Login Fields
+  const [memberLoginMode, setMemberLoginMode] = useState<'OTP' | 'PASSWORD'>('OTP');
   const [memberEmail, setMemberEmail] = useState('');
   const [memberPassword, setMemberPassword] = useState('');
+  const [memberOtpStep, setMemberOtpStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
+  const [memberOtpCode, setMemberOtpCode] = useState('');
+  const [memberOtpNotice, setMemberOtpNotice] = useState<string | null>(null);
+  const [memberOtpCooldown, setMemberOtpCooldown] = useState<number>(0);
 
   // Staff Login Fields
   const [staffEmail, setStaffEmail] = useState('');
@@ -48,7 +53,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  // OTP Verification State
+  // OTP Verification State (Sign Up)
   const [signupStep, setSignupStep] = useState<'DETAILS' | 'OTP'>('DETAILS');
   const [otpCode, setOtpCode] = useState('');
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
@@ -109,7 +114,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
-  // Resend OTP Cooldown Timer
+  // Resend OTP Cooldown Timers
   useEffect(() => {
     let interval: any;
     if (resendCooldown > 0) {
@@ -119,6 +124,77 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
     return () => clearInterval(interval);
   }, [resendCooldown]);
+
+  useEffect(() => {
+    let interval: any;
+    if (memberOtpCooldown > 0) {
+      interval = setInterval(() => {
+        setMemberOtpCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [memberOtpCooldown]);
+
+  // Member Login via Gmail OTP Handlers
+  const handleSendMemberOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!memberEmail.trim()) {
+      setErrorMsg('Please enter your member email address.');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg(null);
+    setMemberOtpNotice(null);
+
+    try {
+      const res = await sendMemberLoginOtp(memberEmail.trim());
+      setMemberOtpNotice(res.message || `A 6-digit passcode was sent to ${memberEmail.trim()} via Gmail.`);
+      setMemberOtpStep('OTP');
+      setMemberOtpCooldown(45);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to dispatch login passcode. Ensure this email is registered.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyMemberOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanOtp = memberOtpCode.trim();
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      setErrorMsg('Please enter the 6-digit verification code sent to your Gmail.');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      await loginWithOtp({
+        email: memberEmail.trim(),
+        otp: cleanOtp
+      });
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Invalid or expired passcode. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendMemberOtp = async () => {
+    if (memberOtpCooldown > 0 || isLoading) return;
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await sendMemberLoginOtp(memberEmail.trim());
+      setMemberOtpNotice(res.message || `A fresh passcode was sent to ${memberEmail.trim()}.`);
+      setMemberOtpCooldown(45);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to resend passcode.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Step 1: Submit Details & Request Email OTP
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -309,60 +385,228 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
           {/* TAB 1: MEMBER LOGIN */}
           {activeTab === 'MEMBER_LOGIN' && (
-            <form onSubmit={handleMemberSubmit} className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300">
-                <p className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                  <LogIn className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  Member Dashboard Login
-                </p>
-                <p className="text-[11px] text-slate-600 dark:text-zinc-300 mt-1">
-                  Sign into your account first. You will find the <b>Scan Entry</b> and <b>Scan Exit</b> options directly on your dashboard.
-                </p>
+            <div className="space-y-4">
+              {/* Login Method Toggle */}
+              <div className="flex bg-slate-100 dark:bg-zinc-900 p-1 rounded-xl text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemberLoginMode('OTP');
+                    setErrorMsg(null);
+                  }}
+                  className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 ${
+                    memberLoginMode === 'OTP'
+                      ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                      : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Gmail Passcode (OTP)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemberLoginMode('PASSWORD');
+                    setErrorMsg(null);
+                  }}
+                  className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 ${
+                    memberLoginMode === 'PASSWORD'
+                      ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                      : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Password</span>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                  Member Email
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
-                  <input
-                    type="email"
-                    required
-                    placeholder="member@ironvaultgym.com"
-                    value={memberEmail}
-                    onChange={(e) => setMemberEmail(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
-                  />
-                </div>
-              </div>
+              {/* OTP FLOW */}
+              {memberLoginMode === 'OTP' ? (
+                memberOtpStep === 'EMAIL' ? (
+                  <form onSubmit={handleSendMemberOtp} className="space-y-4">
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300">
+                      <p className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                        <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        Direct Gmail OTP Authentication
+                      </p>
+                      <p className="text-[11px] text-slate-600 dark:text-zinc-300 mt-1">
+                        Enter your registered gym email. We will send a 6-digit login passcode straight to your Gmail inbox.
+                      </p>
+                    </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={memberPassword}
-                    onChange={(e) => setMemberPassword(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                        Member Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                        <input
+                          type="email"
+                          required
+                          placeholder="member@ironvaultgym.com"
+                          value={memberEmail}
+                          onChange={(e) => setMemberEmail(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
-              >
-                <span>{isLoading ? 'Signing In...' : 'Log In to Member Dashboard'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>Dispatching Code...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send Code via Gmail</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyMemberOtp} className="space-y-4">
+                    {memberOtpNotice && (
+                      <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                        <span>{memberOtpNotice}</span>
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
+                          6-Digit Passcode
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMemberOtpStep('EMAIL');
+                            setMemberOtpCode('');
+                            setErrorMsg(null);
+                          }}
+                          className="text-[11px] font-bold text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400"
+                        >
+                          Change Email
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <KeyRound className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                        <input
+                          type="text"
+                          maxLength={6}
+                          required
+                          autoFocus
+                          placeholder="••••••"
+                          value={memberOtpCode}
+                          onChange={(e) => setMemberOtpCode(e.target.value.replace(/\D/g, ''))}
+                          className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-center font-mono text-lg tracking-[0.3em] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1.5 text-center">
+                        Sent to <span className="font-semibold text-slate-800 dark:text-zinc-200">{memberEmail}</span>. Check Spam folder if not in primary inbox.
+                      </p>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
+                    >
+                      {isLoading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>Verifying...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Verify & Sign In</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+
+                    <div className="text-center pt-1">
+                      <button
+                        type="button"
+                        disabled={memberOtpCooldown > 0 || isLoading}
+                        onClick={handleResendMemberOtp}
+                        className={`text-xs font-bold ${
+                          memberOtpCooldown > 0
+                            ? 'text-slate-400 dark:text-zinc-600 cursor-not-allowed'
+                            : 'text-emerald-600 dark:text-emerald-400 hover:underline'
+                        }`}
+                      >
+                        {memberOtpCooldown > 0
+                          ? `Resend Code in ${memberOtpCooldown}s`
+                          : 'Did not receive code? Resend via Gmail'}
+                      </button>
+                    </div>
+                  </form>
+                )
+              ) : (
+                /* PASSWORD FLOW */
+                <form onSubmit={handleMemberSubmit} className="space-y-4">
+                  <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300">
+                    <p className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                      <LogIn className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      Member Dashboard Login
+                    </p>
+                    <p className="text-[11px] text-slate-600 dark:text-zinc-300 mt-1">
+                      Sign in with your email and password.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Member Email
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="member@ironvaultgym.com"
+                        value={memberEmail}
+                        onChange={(e) => setMemberEmail(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={memberPassword}
+                        onChange={(e) => setMemberPassword(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
+                  >
+                    <span>{isLoading ? 'Signing In...' : 'Log In to Member Dashboard'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
           {/* TAB 2: STAFF & OWNER LOGIN */}

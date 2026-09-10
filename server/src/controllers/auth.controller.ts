@@ -10,7 +10,7 @@ import {
   emitFailedAccessAlert
 } from '../services/socket.service.js';
 import { dispatchThreatAlerts } from '../services/notification.service.js';
-import { sendSignupOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
+import { sendSignupOtpEmail, sendWelcomeEmail, sendMemberLoginOtpEmail } from '../services/email.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_2026_dev';
 
@@ -484,4 +484,164 @@ export async function resendSignupOtp(req: AuthenticatedRequest, res: Response):
     res.status(500).json({ error: 'Failed to resend verification code.' });
   }
 }
+
+/**
+ * Member Login Step 1: Send 6-digit OTP code to member's Gmail
+ */
+export async function sendMemberLoginOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ error: 'Email address is required.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail }
+    });
+
+    if (!user) {
+      res.status(404).json({ error: `No gym account found for ${cleanEmail}. Please register a membership or ask the front desk.` });
+      return;
+    }
+
+    // Generate 6-digit numeric OTP
+    const otpCode = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins expiry
+
+    const payload = JSON.stringify({
+      userId: user.id,
+      email: cleanEmail,
+      fullName: user.fullName,
+      action: 'MEMBER_LOGIN'
+    });
+
+    await prisma.otpVerification.upsert({
+      where: { email: cleanEmail },
+      update: {
+        otpCode,
+        payload,
+        expiresAt,
+        attempts: 0
+      },
+      create: {
+        email: cleanEmail,
+        otpCode,
+        payload,
+        expiresAt,
+        attempts: 0
+      }
+    });
+
+    const emailResult = await sendMemberLoginOtpEmail({
+      toEmail: cleanEmail,
+      fullName: user.fullName,
+      otpCode
+    });
+
+    res.json({
+      success: true,
+      message: `A 6-digit login verification code was sent via Gmail to ${cleanEmail}.`,
+      email: cleanEmail,
+      deliveredVia: emailResult.deliveredVia
+    });
+  } catch (error: any) {
+    console.error('sendMemberLoginOtp error:', error);
+    res.status(500).json({ error: 'Failed to dispatch login verification code.' });
+  }
+}
+
+/**
+ * Member Login Step 2: Verify OTP and log member into their account
+ */
+export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      res.status(400).json({ error: 'Email and 6-digit login passcode are required.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.toString().trim();
+
+    const record = await prisma.otpVerification.findUnique({
+      where: { email: cleanEmail }
+    });
+
+    if (!record) {
+      res.status(404).json({ error: 'No active login request found. Please request a new code.' });
+      return;
+    }
+
+    if (new Date() > new Date(record.expiresAt)) {
+      await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+      res.status(410).json({ error: 'Sign-in code has expired. Please request a new one.' });
+      return;
+    }
+
+    if (record.otpCode !== cleanOtp) {
+      const attempts = record.attempts + 1;
+      if (attempts >= 5) {
+        await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+        res.status(429).json({ error: 'Too many incorrect attempts. Please request a new code.' });
+        return;
+      }
+      await prisma.otpVerification.update({
+        where: { email: cleanEmail },
+        data: { attempts }
+      });
+      res.status(400).json({ error: `Invalid verification code. ${5 - attempts} attempts remaining.` });
+      return;
+    }
+
+    // Success! Find user and log in
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      include: { facility: true }
+    });
+
+    if (!user) {
+      await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+      res.status(404).json({ error: 'User account not found.' });
+      return;
+    }
+
+    // Delete OTP record
+    await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+
+    const tokenPayload: JwtPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role as UserRole,
+      facilityId: user.facilityId
+    };
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      message: 'Login successful. Welcome back!',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        phone: user.phone,
+        facilityId: user.facilityId,
+        facility: user.facility,
+        deviceStatus: user.deviceStatus,
+        avatarUrl: user.avatarUrl
+      }
+    });
+  } catch (error: any) {
+    console.error('verifyMemberLoginOtp error:', error);
+    res.status(500).json({ error: 'Failed to verify login code.' });
+  }
+}
+
 

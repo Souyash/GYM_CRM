@@ -124,6 +124,10 @@ export const api = {
     apiRequest('/auth/verify-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
   resendSignupOtp: (payload: { email: string }) =>
     apiRequest('/auth/resend-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  sendMemberLoginOtp: (email: string) =>
+    apiRequest('/auth/send-login-otp', { method: 'POST', body: JSON.stringify({ email }) }),
+  verifyMemberLoginOtp: (payload: { email: string; otp: string; device_id?: string }) =>
+    apiRequest('/auth/verify-login-otp', { method: 'POST', body: JSON.stringify(payload) }),
   getMe: () => apiRequest('/auth/me'),
 
   // Facilities
