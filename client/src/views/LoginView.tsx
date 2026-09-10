@@ -21,12 +21,12 @@ export const LoginView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>('MEMBER_LOGIN');
 
   // Member Login Fields
-  const [memberEmail, setMemberEmail] = useState('macbook.member@ironvaultgym.com');
-  const [memberPassword, setMemberPassword] = useState('Member@12345');
+  const [memberEmail, setMemberEmail] = useState('');
+  const [memberPassword, setMemberPassword] = useState('');
 
   // Staff Login Fields
-  const [staffEmail, setStaffEmail] = useState('admin@ironvaultgym.com');
-  const [staffPassword, setStaffPassword] = useState('Admin@12345');
+  const [staffEmail, setStaffEmail] = useState('');
+  const [staffPassword, setStaffPassword] = useState('');
 
   // Sign Up Form Fields
   const [fullName, setFullName] = useState('');
@@ -223,9 +223,10 @@ export const LoginView: React.FC = () => {
                   <input
                     type="email"
                     required
+                    placeholder="member@ironvaultgym.com"
                     value={memberEmail}
                     onChange={(e) => setMemberEmail(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -239,9 +240,10 @@ export const LoginView: React.FC = () => {
                   <input
                     type="password"
                     required
+                    placeholder="••••••••"
                     value={memberPassword}
                     onChange={(e) => setMemberPassword(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -254,23 +256,6 @@ export const LoginView: React.FC = () => {
                 <span>{isLoading ? 'Signing In...' : 'Log In to Member Dashboard'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              {/* 1-Tap Quick Fill Demo Button */}
-              <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 text-center">
-                <p className="text-[11px] text-slate-400 dark:text-zinc-500 mb-1.5">
-                  Real Testing Quick Fill:
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMemberEmail('macbook.member@ironvaultgym.com');
-                    setMemberPassword('Member@12345');
-                  }}
-                  className="py-1.5 px-3 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition"
-                >
-                  ⚡ Fill: Alex Rivera (Member)
-                </button>
-              </div>
             </form>
           )}
 
@@ -293,9 +278,10 @@ export const LoginView: React.FC = () => {
                   <input
                     type="email"
                     required
+                    placeholder="admin@ironvaultgym.com"
                     value={staffEmail}
                     onChange={(e) => setStaffEmail(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -309,9 +295,10 @@ export const LoginView: React.FC = () => {
                   <input
                     type="password"
                     required
+                    placeholder="••••••••"
                     value={staffPassword}
                     onChange={(e) => setStaffPassword(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -324,35 +311,6 @@ export const LoginView: React.FC = () => {
                 <span>{isLoading ? 'Authenticating...' : 'Sign In as Staff / Admin'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              {/* Quick Fill Pills for Testing */}
-              <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 text-center space-y-1.5">
-                <p className="text-[11px] text-slate-400 dark:text-zinc-500">
-                  Quick Fill Test Credentials:
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStaffEmail('admin@ironvaultgym.com');
-                      setStaffPassword('Admin@12345');
-                    }}
-                    className="py-1 px-2.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
-                  >
-                    👑 Owner
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStaffEmail('manager@ironvaultgym.com');
-                      setStaffPassword('Manager@12345');
-                    }}
-                    className="py-1 px-2.5 rounded-full text-[11px] font-bold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
-                  >
-                    🧑‍💼 Front Desk
-                  </button>
-                </div>
-              </div>
             </form>
           )}
 

@@ -23,7 +23,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpenScanner }) => {
-  const { user, logout, quickSwitchUser } = useAuth();
+  const { user, logout } = useAuth();
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gym_theme');
@@ -81,52 +81,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
           {/* Clean Commercial Navigation Tabs */}
           {user && (
             <div className="hidden md:flex items-center gap-2.5">
-              {/* Role Fast Switcher Pill Bar for Seamless Testing */}
-              <div className="flex items-center gap-1 bg-slate-200/70 dark:bg-zinc-800/80 p-1 rounded-xl border border-slate-300/60 dark:border-zinc-700/60 text-xs">
-                <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 px-2 select-none">
-                  Test Role:
-                </span>
-                <button
-                  onClick={async () => {
-                    await quickSwitchUser('admin@ironvaultgym.com');
-                    setCurrentTab('admin_dashboard');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
-                    user.role === 'SUPER_ADMIN'
-                      ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-bold shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  👑 Owner
-                </button>
-                <button
-                  onClick={async () => {
-                    await quickSwitchUser('manager@ironvaultgym.com');
-                    setCurrentTab('manager_dashboard');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
-                    user.role === 'MANAGER'
-                      ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-bold shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  🧑‍💼 Front Desk
-                </button>
-                <button
-                  onClick={async () => {
-                    await quickSwitchUser('macbook.member@ironvaultgym.com');
-                    setCurrentTab('member_profile');
-                  }}
-                  className={`px-2.5 py-1 rounded-lg font-semibold transition ${
-                    user.role === 'MEMBER'
-                      ? 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-black font-bold shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  🏃 Member
-                </button>
-              </div>
-
               {/* Navigation Links */}
               <nav className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-zinc-800">
                 {user.role === 'SUPER_ADMIN' && (
