@@ -12,47 +12,13 @@ import {
   Sparkles,
   AlertCircle,
   QrCode,
-  LogIn,
-  Server,
-  Link2,
-  RefreshCw
+  LogIn
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getCustomBackendUrl, setCustomBackendUrl, testBackendConnection } from '../services/api';
 
 export const LoginView: React.FC = () => {
   const { login, register } = useAuth();
   const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>('MEMBER_LOGIN');
-
-  // Backend Connection for Cloud (Vercel) deployments
-  const [backendUrl, setBackendUrl] = useState(() => getCustomBackendUrl());
-  const [backendStatus, setBackendStatus] = useState<'IDLE' | 'CHECKING' | 'CONNECTED' | 'DISCONNECTED'>('IDLE');
-  const [backendMessage, setBackendMessage] = useState<string>('');
-
-  const checkBackend = async (urlToCheck?: string) => {
-    setBackendStatus('CHECKING');
-    const res = await testBackendConnection(urlToCheck);
-    if (res.success) {
-      setBackendStatus('CONNECTED');
-      setBackendMessage('Connected to Backend!');
-      setErrorMsg(null);
-    } else {
-      setBackendStatus('DISCONNECTED');
-      setBackendMessage(res.message);
-    }
-  };
-
-  useEffect(() => {
-    if (backendUrl) {
-      checkBackend(backendUrl);
-    }
-  }, []);
-
-  const handleSaveBackend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCustomBackendUrl(backendUrl);
-    await checkBackend(backendUrl);
-  };
 
   // Member Login Fields
   const [memberEmail, setMemberEmail] = useState('macbook.member@ironvaultgym.com');
@@ -226,54 +192,6 @@ export const LoginView: React.FC = () => {
               🆕 Join Gym
             </button>
           </div>
-
-          {/* Backend Connection Setup Bar */}
-          {((typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) || errorMsg || backendStatus !== 'CONNECTED') && (
-            <div className="mb-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-900 border-2 border-emerald-500/30 text-xs space-y-2.5 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <span className="font-black flex items-center gap-1.5 text-slate-800 dark:text-zinc-200">
-                  <Server className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  Backend API Server
-                </span>
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
-                  backendStatus === 'CONNECTED'
-                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-700'
-                    : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
-                }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${backendStatus === 'CONNECTED' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                  {backendStatus === 'CONNECTED' ? '🟢 Online' : '⚠️ Connect URL'}
-                </span>
-              </div>
-
-              <form onSubmit={handleSaveBackend} className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Paste Render URL: https://xxx.onrender.com"
-                  value={backendUrl}
-                  onChange={(e) => setBackendUrl(e.target.value)}
-                  className="flex-1 input-gym text-xs py-2 px-3 text-slate-900 dark:text-white"
-                />
-                <button
-                  type="submit"
-                  disabled={backendStatus === 'CHECKING'}
-                  className="btn-primary-green text-xs font-black px-3 py-2 whitespace-nowrap flex items-center gap-1"
-                >
-                  {backendStatus === 'CHECKING' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
-                  <span>Connect</span>
-                </button>
-              </form>
-
-              {backendMessage && (
-                <p className={`text-[10px] font-medium ${backendStatus === 'CONNECTED' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-300'}`}>
-                  {backendMessage}
-                </p>
-              )}
-
-              <p className="text-[10px] text-slate-500 dark:text-zinc-400">
-                Paste your live backend URL from Render so this Vercel frontend can talk to the database.
-              </p>
-            </div>
-          )}
 
           {/* Error Message */}
           {errorMsg && (
