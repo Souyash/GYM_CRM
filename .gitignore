@@ -15,6 +15,8 @@ build/
 .env.*.local
 client/.env
 server/.env
+!.env.production
+!client/.env.production
 
 # SQLite Database files (generated dynamically)
 *.sqlite

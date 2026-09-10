@@ -2,6 +2,8 @@ import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
+export const DEFAULT_RENDER_BACKEND = 'https://gym-crm-ejgf.onrender.com';
+
 export function getSocketUrl(): string {
   const custom = localStorage.getItem('ironvault_backend_url');
   if (custom && custom.trim()) {
@@ -13,6 +15,9 @@ export function getSocketUrl(): string {
   )?.trim();
   if (raw) {
     return raw.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || !window.location.hostname.includes('localhost'))) {
+    return DEFAULT_RENDER_BACKEND;
   }
   return '/';
 }

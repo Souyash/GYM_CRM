@@ -1,5 +1,7 @@
 import { getOrCreateDeviceId } from './device';
 
+export const DEFAULT_RENDER_BACKEND = 'https://gym-crm-ejgf.onrender.com';
+
 export function getApiBase(): string {
   const customUrl = localStorage.getItem('ironvault_backend_url');
   if (customUrl && customUrl.trim()) {
@@ -10,6 +12,9 @@ export function getApiBase(): string {
   if (rawEnv) {
     const clean = rawEnv.replace(/\/+$/, '');
     return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || !window.location.hostname.includes('localhost'))) {
+    return `${DEFAULT_RENDER_BACKEND}/api`;
   }
   return '/api';
 }
@@ -25,7 +30,7 @@ export function setCustomBackendUrl(url: string): void {
 }
 
 export function getCustomBackendUrl(): string {
-  return localStorage.getItem('ironvault_backend_url') || (import.meta.env.VITE_API_URL as string) || '';
+  return localStorage.getItem('ironvault_backend_url') || (import.meta.env.VITE_API_URL as string) || DEFAULT_RENDER_BACKEND;
 }
 
 export async function testBackendConnection(url?: string): Promise<{ success: boolean; message: string }> {
