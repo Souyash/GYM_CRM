@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: any) => Promise<any>;
   register: (payload: any) => Promise<any>;
+  verifyOtpAndLogin: (payload: { email: string; otp: string }) => Promise<any>;
   scanAndLogin: (payload: any) => Promise<any>;
   quickSwitchUser: (email: string, password?: string) => Promise<void>;
   logout: () => void;
@@ -85,6 +86,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return data;
   };
 
+  const verifyOtpAndLogin = async (payload: { email: string; otp: string }) => {
+    const data = await api.verifySignupOtp({
+      ...payload,
+      device_id: deviceId
+    });
+
+    if (data.token && data.user) {
+      localStorage.setItem('ironvault_jwt_token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      joinRoleRoom(data.user.role);
+      joinUserRoom(data.user.id);
+    }
+
+    return data;
+  };
+
   const scanAndLogin = async (payload: any) => {
     const data = await api.scanAndLogin({
       ...payload,
@@ -138,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         register,
+        verifyOtpAndLogin,
         scanAndLogin,
         quickSwitchUser,
         logout,

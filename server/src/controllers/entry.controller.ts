@@ -11,6 +11,7 @@ import {
   emitMultiDeviceAlert
 } from '../services/socket.service.js';
 import { dispatchThreatAlerts } from '../services/notification.service.js';
+import { sendTurnstileScanEmail } from '../services/email.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_2026_dev';
 const ANTI_PASSBACK_COOLDOWN_MINUTES = 3; // 3 to 5 minutes mandatory cooldown
@@ -608,6 +609,17 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
 
   console.log(`[Smart Entry] Verified check-in: ${user.fullName} (${facility.name}) at ${entry.scannedAt.toISOString()}`);
 
+  // Send turnstile check-in email notification
+  setImmediate(() => {
+    sendTurnstileScanEmail({
+      toEmail: user.email,
+      fullName: user.fullName,
+      type: 'ENTRANCE',
+      timestamp: entry.scannedAt,
+      facilityName: facility.name
+    }).catch(e => console.warn('Turnstile check-in email error:', e.message));
+  });
+
   const authToken = (req as any).generatedToken || null;
 
   res.status(200).json({
@@ -852,6 +864,17 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
     emitMemberExited(exitPayload);
 
     console.log(`[Smart Exit] Member checked out: ${user.fullName} after ${durationMinutes} mins.`);
+
+    // Send turnstile check-out email notification
+    setImmediate(() => {
+      sendTurnstileScanEmail({
+        toEmail: user.email,
+        fullName: user.fullName,
+        type: 'EXIT',
+        timestamp: updatedEntry.exitedAt || new Date(),
+        facilityName: updatedEntry.facility.name
+      }).catch(e => console.warn('Turnstile check-out email error:', e.message));
+    });
 
     res.status(200).json({
       access: 'EXIT_CONFIRMED',

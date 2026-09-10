@@ -118,6 +118,12 @@ export const api = {
   // Auth
   login: (credentials: any) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (payload: any) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
+  sendSignupOtp: (payload: { email: string; password: string; fullName: string; phone?: string; role?: string }) =>
+    apiRequest('/auth/send-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  verifySignupOtp: (payload: { email: string; otp: string; device_id?: string }) =>
+    apiRequest('/auth/verify-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  resendSignupOtp: (payload: { email: string }) =>
+    apiRequest('/auth/resend-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
   getMe: () => apiRequest('/auth/me'),
 
   // Facilities

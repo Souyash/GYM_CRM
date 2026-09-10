@@ -12,6 +12,7 @@ import {
   emitClassDeleted,
   emitClassBookingUpdated
 } from '../services/socket.service.js';
+import { sendClassBookingEmail } from '../services/email.service.js';
 
 /**
  * Fetch all community posts with author profiles, like counts, and comments
@@ -642,6 +643,28 @@ export async function toggleBookClass(req: AuthenticatedRequest, res: Response):
         maxSeats: groupClass.maxSeats,
         userId,
         isBooked: true
+      });
+
+      // Send class booking email confirmation asynchronously
+      setImmediate(async () => {
+        try {
+          const bookingUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { fullName: true, email: true }
+          });
+          if (bookingUser) {
+            await sendClassBookingEmail({
+              toEmail: bookingUser.email,
+              fullName: bookingUser.fullName,
+              className: groupClass.title,
+              coach: groupClass.coach,
+              startTime: groupClass.startTime,
+              zone: groupClass.zone
+            });
+          }
+        } catch (e: any) {
+          console.warn('Class booking email error:', e.message);
+        }
       });
 
       res.json({

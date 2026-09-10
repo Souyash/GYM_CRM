@@ -269,5 +269,21 @@ model ClassBooking {
   @@index([userId])
 }
 
+// -------------------------------------------------------------
+// 9. Email Verification & OTP Tokens
+// -------------------------------------------------------------
+model OtpVerification {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  otpCode     String
+  payload     String
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+}
+
 
 
