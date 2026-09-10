@@ -20,9 +20,19 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
-export const LoginView: React.FC = () => {
+export interface LoginViewProps {
+  initialTab?: 'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP';
+  preselectedPlan?: string;
+  onBackToWebsite?: () => void;
+}
+
+export const LoginView: React.FC<LoginViewProps> = ({
+  initialTab = 'MEMBER_LOGIN',
+  preselectedPlan,
+  onBackToWebsite
+}) => {
   const { login, verifyOtpAndLogin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>('MEMBER_LOGIN');
+  const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>(initialTab);
 
   // Member Login Fields
   const [memberEmail, setMemberEmail] = useState('');
@@ -185,6 +195,19 @@ export const LoginView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-poppins">
+      {/* Top Bar Navigation */}
+      <div className="absolute top-6 left-6 z-20">
+        {onBackToWebsite && (
+          <button
+            onClick={onBackToWebsite}
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition flex items-center gap-1.5 shadow-sm active:scale-95"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Gym Website</span>
+          </button>
+        )}
+      </div>
+
       {/* Theme Toggle Button */}
       <div className="absolute top-6 right-6 z-20">
         <button
@@ -213,6 +236,19 @@ export const LoginView: React.FC = () => {
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md space-y-4">
+        {/* Selected Plan Notification if navigated from pricing card */}
+        {preselectedPlan && (
+          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-500" />
+              <span>Selected Plan: <strong>{preselectedPlan}</strong></span>
+            </span>
+            <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2 py-0.5 rounded-full">
+              Ready
+            </span>
+          </div>
+        )}
+
         {/* Main Card */}
         <div className="app-card p-6 sm:p-8">
           {/* Tab Selection */}

@@ -12,7 +12,8 @@ import {
   Moon,
   CheckCircle,
   HelpCircle,
-  MessageSquare
+  MessageSquare,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,9 +21,15 @@ interface NavbarProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
   onOpenScanner?: () => void;
+  onViewPublicSite?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpenScanner }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  currentTab,
+  setCurrentTab,
+  onOpenScanner,
+  onViewPublicSite
+}) => {
   const { user, logout } = useAuth();
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -191,6 +198,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab, onOpe
 
           {/* Right Controls */}
           <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* View Public Website Button */}
+            {onViewPublicSite && (
+              <button
+                onClick={onViewPublicSite}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition active:scale-95"
+                title="View Public Gym Landing Page"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Public Site</span>
+              </button>
+            )}
+
             {/* Interactive Theme Switcher: White & Green vs Black & Green */}
             <button
               onClick={toggleTheme}

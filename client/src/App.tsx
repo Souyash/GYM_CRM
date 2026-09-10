@@ -13,6 +13,7 @@ import { LoginView } from './views/LoginView';
 import { AccountCreationModal } from './components/AccountCreationModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { CommunityFeed } from './components/CommunityFeed';
+import { LandingPageView } from './views/LandingPageView';
 import {
   Users,
   CreditCard,
@@ -32,6 +33,12 @@ export const AppContent: React.FC = () => {
   const [isBillingModalOpen, setIsBillingModalOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [billingMode, setBillingMode] = useState<'ONBOARD' | 'BILL'>('ONBOARD');
+
+  // Public Landing Page & Auth Modal Navigation
+  const [showAuthScreen, setShowAuthScreen] = useState<boolean>(false);
+  const [authInitialTab, setAuthInitialTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>('MEMBER_LOGIN');
+  const [authSelectedPlan, setAuthSelectedPlan] = useState<string | undefined>(undefined);
+  const [viewPublicSiteAsUser, setViewPublicSiteAsUser] = useState<boolean>(false);
 
   // Member table state for Desk Billing tab
   const [membersList, setMembersList] = useState<any[]>([]);
@@ -79,8 +86,41 @@ export const AppContent: React.FC = () => {
     );
   }
 
+  // 1. Unauthenticated Visitors: Public Landing Page or Sign-In Screen
   if (!user) {
-    return <LoginView />;
+    if (showAuthScreen) {
+      return (
+        <LoginView
+          initialTab={authInitialTab}
+          preselectedPlan={authSelectedPlan}
+          onBackToWebsite={() => {
+            setShowAuthScreen(false);
+            setAuthSelectedPlan(undefined);
+          }}
+        />
+      );
+    }
+
+    return (
+      <LandingPageView
+        onOpenAuth={(tab, planName) => {
+          setAuthInitialTab(tab || 'MEMBER_LOGIN');
+          setAuthSelectedPlan(planName);
+          setShowAuthScreen(true);
+        }}
+      />
+    );
+  }
+
+  // 2. Authenticated User voluntarily previewing the Public Landing Page
+  if (viewPublicSiteAsUser) {
+    return (
+      <LandingPageView
+        isLoggedIn={true}
+        onGoToDashboard={() => setViewPublicSiteAsUser(false)}
+        onOpenAuth={() => setViewPublicSiteAsUser(false)}
+      />
+    );
   }
 
   return (
@@ -93,6 +133,7 @@ export const AppContent: React.FC = () => {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         onOpenScanner={() => setIsScannerOpen(true)}
+        onViewPublicSite={() => setViewPublicSiteAsUser(true)}
       />
 
       {/* Main Content Area */}
