@@ -24,3 +24,4 @@ router.post('/posts/:id/comments', authenticateJWT, addPostComment);
 router.delete('/posts/:postId/comments/:commentId', authenticateJWT, deletePostComment);
 
 export default router;
+
