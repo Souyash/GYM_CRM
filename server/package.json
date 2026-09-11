@@ -12,6 +12,8 @@
     "start": "node setup-env.js && node dist/server.js",
     "preseed": "node setup-env.js",
     "seed": "node setup-env.js && tsx prisma/seed.ts",
+    "test": "node scripts/test-superadmin-export.js",
+    "test:superadmin": "node scripts/test-superadmin-export.js",
     "prisma:generate": "node setup-env.js && prisma generate",
     "prisma:push": "node setup-env.js && prisma db push",
     "prisma:seed": "node setup-env.js && tsx prisma/seed.ts"
