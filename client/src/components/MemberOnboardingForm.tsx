@@ -1376,10 +1376,10 @@ export const MemberOnboardingForm: React.FC<MemberOnboardingFormProps> = ({
                   />
                 </div>
 
-                {/* Waist */}
+                {/* Waist Measurement */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                    Waist (CM)
+                    Waist Measurement (CM)
                   </label>
                   <input
                     type="number"
@@ -1391,29 +1391,34 @@ export const MemberOnboardingForm: React.FC<MemberOnboardingFormProps> = ({
                   />
                 </div>
 
-                {/* Chest & Hip */}
+                {/* Chest Measurement */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                    Chest / Hip (CM)
+                    Chest Measurement (CM)
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      step="0.1"
-                      placeholder="Chest"
-                      value={chestCm}
-                      onChange={(e) => setChestCm(e.target.value)}
-                      className="w-full px-2.5 py-3 bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      placeholder="Hip"
-                      value={hipCm}
-                      onChange={(e) => setHipCm(e.target.value)}
-                      className="w-full px-2.5 py-3 bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-2xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 96"
+                    value={chestCm}
+                    onChange={(e) => setChestCm(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Hip Measurement */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    Hip Measurement (CM)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 98"
+                    value={hipCm}
+                    onChange={(e) => setHipCm(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  />
                 </div>
               </div>
             </div>
