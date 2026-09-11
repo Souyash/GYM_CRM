@@ -72,6 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Brand */}
+          {/* Brand & Gym Tenant Badge */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center shadow-md dark:shadow-glow-green text-white dark:text-black">
               <Shield className="w-5 h-5 stroke-[2.5]" />
@@ -84,6 +85,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                 FITNESS & HEALTH CLUB
               </span>
             </div>
+
+            {/* Active Tenant Gym Badge */}
+            {user?.gym && (
+              <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs ml-2">
+                <Building2 className="w-3.5 h-3.5 text-emerald-500" />
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-slate-800 dark:text-zinc-200 max-w-[160px] truncate">
+                    {user.gym.name}
+                  </span>
+                  <span className="font-mono text-[10px] font-black bg-emerald-500 text-black px-1.5 py-0.5 rounded">
+                    {user.gym.inviteCode}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Clean Commercial Navigation Tabs */}
@@ -92,44 +108,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Navigation Links */}
               <nav className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-zinc-800">
                 {user.role === 'SUPER_ADMIN' && (
-                  <>
-                    <button
-                      onClick={() => setCurrentTab('admin_dashboard')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                        currentTab === 'admin_dashboard'
-                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      <Activity className="w-3.5 h-3.5" />
-                      Gym Overview
-                    </button>
-                    <button
-                      onClick={() => setCurrentTab('device_approvals')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                        currentTab === 'device_approvals'
-                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      <Users className="w-3.5 h-3.5" />
-                      Visitor Review
-                    </button>
-                    <button
-                      onClick={() => setCurrentTab('facility_qr')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                        currentTab === 'facility_qr'
-                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      <Building2 className="w-3.5 h-3.5" />
-                      Entrance Poster
-                    </button>
-                  </>
+                  <button
+                    onClick={() => setCurrentTab('admin_dashboard')}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                      currentTab === 'admin_dashboard'
+                        ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    SaaS Tenants
+                  </button>
                 )}
 
-                {(user.role === 'MANAGER' || user.role === 'SUPER_ADMIN') && (
+                {(user.role === 'MANAGER' || user.role === 'GYM_OWNER' || user.role === 'SUPER_ADMIN') && (
                   <>
                     <button
                       onClick={() => setCurrentTab('manager_dashboard')}
@@ -151,7 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }`}
                     >
                       <CreditCard className="w-3.5 h-3.5" />
-                      Front Desk Billing
+                      Desk Billing
                     </button>
                     <button
                       onClick={() => setCurrentTab('health_intelligence')}
@@ -175,8 +167,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <MessageSquare className="w-3.5 h-3.5" />
                       Community Feed
                     </button>
+                    <button
+                      onClick={() => setCurrentTab('facility_qr')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'facility_qr'
+                          ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <Building2 className="w-3.5 h-3.5" />
+                      QR Poster
+                    </button>
                   </>
                 )}
+
 
                 {user.role === 'MEMBER' && (
                   <>
@@ -255,7 +259,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {user.fullName}
                   </p>
                   <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    {user.role === 'SUPER_ADMIN' ? 'Owner' : user.role === 'MANAGER' ? 'Staff' : 'Member'}
+                    {user.role === 'SUPER_ADMIN'
+                      ? 'Super Admin'
+                      : user.role === 'GYM_OWNER'
+                      ? 'Gym Owner'
+                      : user.role === 'MANAGER'
+                      ? 'Desk Staff'
+                      : 'Member'}
                   </span>
                 </div>
                 <button

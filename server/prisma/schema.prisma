@@ -8,17 +8,53 @@ generator client {
 }
 
 // -------------------------------------------------------------
-// 1. Facility / Gym Location
+// 1. Multi-Tenant Gym Workspace / Facility (Tenants Table)
 // -------------------------------------------------------------
-model Facility {
+model Gym {
   id                   String            @id @default(uuid())
   name                 String
+  slug                 String?           @unique
+  inviteCode           String            @unique // Unique 6-digit access code for members (e.g. "100001", "849201")
   address              String
-  latitude             Float             // Physical GPS Latitude
-  longitude            Float             // Physical GPS Longitude
+  city                 String?
+  state                String?
+  latitude             Float             @default(0.0) // Physical GPS Latitude
+  longitude            Float             @default(0.0) // Physical GPS Longitude
   geofenceRadiusMeters Float             @default(50.0) // 50m geofence
   staticQrCodeHash     String            @unique // Unique gym_id token for printed static QR
   exitQrCodeHash       String?           // Unique exit QR token for printed exit gate QR
+  ownerContactEmail    String?
+  ownerContactPhone    String?
+  logoUrl              String?
+  isActive             Boolean           @default(true)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  users                User[]
+  subscriptions        Subscription[]
+  attendanceEntries    AttendanceEntry[]
+  failedAccessLogs     FailedAccessLog[]
+  communityPosts       CommunityPost[]
+  groupClasses         GroupClass[]
+  deviceChangeRequests DeviceChangeRequest[]
+  healthProfiles       MemberHealthProfile[]
+  facilities           Facility[]
+}
+
+// -------------------------------------------------------------
+// Legacy Facility Model (Maintained for Backward Compatibility)
+// -------------------------------------------------------------
+model Facility {
+  id                   String            @id @default(uuid())
+  gymId                String?
+  gym                  Gym?              @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  name                 String
+  address              String
+  latitude             Float             @default(0.0)
+  longitude            Float             @default(0.0)
+  geofenceRadiusMeters Float             @default(50.0)
+  staticQrCodeHash     String            @unique
+  exitQrCodeHash       String?
   ownerContactEmail    String
   ownerContactPhone    String
   createdAt            DateTime          @default(now())
@@ -33,7 +69,7 @@ model Facility {
 
 // -------------------------------------------------------------
 // 2. User Roles & Profiles
-// Roles: "SUPER_ADMIN" | "MANAGER" | "MEMBER"
+// Roles: "SUPER_ADMIN" | "GYM_OWNER" | "MANAGER" | "MEMBER"
 // DeviceStatus: "NORMAL" | "FLAGGED_MULTI_DEVICE"
 // -------------------------------------------------------------
 model User {
@@ -42,7 +78,11 @@ model User {
   passwordHash           String
   fullName               String
   phone                  String?
-  role                   String                @default("MEMBER") // SUPER_ADMIN, MANAGER, MEMBER
+  role                   String                @default("MEMBER") // SUPER_ADMIN, GYM_OWNER, MANAGER, MEMBER
+  
+  // Multi-Tenant Isolation
+  gymId                  String?
+  gym                    Gym?                  @relation(fields: [gymId], references: [id], onDelete: SetNull)
   facilityId             String?
   facility               Facility?             @relation(fields: [facilityId], references: [id], onDelete: SetNull)
   
@@ -68,6 +108,9 @@ model User {
   createdGroupClasses    GroupClass[]          @relation("CreatedGroupClasses")
   classBookings          ClassBooking[]
   healthProfile          MemberHealthProfile?
+
+  @@index([gymId])
+  @@index([role])
 }
 
 // -------------------------------------------------------------
@@ -76,6 +119,8 @@ model User {
 // -------------------------------------------------------------
 model Subscription {
   id             String      @id @default(uuid())
+  gymId          String?
+  gym            Gym?        @relation(fields: [gymId], references: [id], onDelete: Cascade)
   userId         String
   user           User        @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
   planName       String      // e.g., "Monthly Pro", "Annual VIP", "Quarterly Standard"
@@ -90,6 +135,7 @@ model Subscription {
   updatedAt      DateTime    @updatedAt
 
   @@index([userId, status])
+  @@index([gymId])
 }
 
 // -------------------------------------------------------------
@@ -97,6 +143,8 @@ model Subscription {
 // -------------------------------------------------------------
 model AttendanceEntry {
   id                   String    @id @default(uuid())
+  gymId                String?
+  gym                  Gym?      @relation(fields: [gymId], references: [id], onDelete: Cascade)
   userId               String
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   facilityId           String
@@ -114,6 +162,7 @@ model AttendanceEntry {
 
   @@index([userId, scannedAt])
   @@index([facilityId, status])
+  @@index([gymId])
 }
 
 // -------------------------------------------------------------
@@ -122,6 +171,8 @@ model AttendanceEntry {
 // -------------------------------------------------------------
 model FailedAccessLog {
   id                String            @id @default(uuid())
+  gymId             String?
+  gym               Gym?              @relation(fields: [gymId], references: [id], onDelete: SetNull)
   timestamp         DateTime          @default(now())
   userId            String?           // Nullable if unrecognized
   user              User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -138,6 +189,7 @@ model FailedAccessLog {
   notificationLogs  NotificationLog[]
 
   @@index([timestamp, attemptType])
+  @@index([gymId])
 }
 
 // -------------------------------------------------------------
@@ -146,6 +198,8 @@ model FailedAccessLog {
 // -------------------------------------------------------------
 model DeviceChangeRequest {
   id                  String    @id @default(uuid())
+  gymId               String?
+  gym                 Gym?      @relation(fields: [gymId], references: [id], onDelete: Cascade)
   userId              String
   user                User      @relation("UserDeviceRequests", fields: [userId], references: [id], onDelete: Cascade)
   currentDeviceId     String?
@@ -162,6 +216,7 @@ model DeviceChangeRequest {
   updatedAt           DateTime  @updatedAt
 
   @@index([status, userId])
+  @@index([gymId])
 }
 
 // -------------------------------------------------------------
@@ -185,6 +240,8 @@ model NotificationLog {
 // -------------------------------------------------------------
 model CommunityPost {
   id           String        @id @default(uuid())
+  gymId        String?
+  gym          Gym?          @relation(fields: [gymId], references: [id], onDelete: Cascade)
   authorId     String
   author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   facilityId   String?
@@ -202,6 +259,7 @@ model CommunityPost {
 
   @@index([isPinned, createdAt])
   @@index([authorId])
+  @@index([gymId])
 }
 
 model PostLike {
@@ -237,6 +295,8 @@ model PostComment {
 // -------------------------------------------------------------
 model GroupClass {
   id              String         @id @default(uuid())
+  gymId           String?
+  gym             Gym?           @relation(fields: [gymId], references: [id], onDelete: Cascade)
   title           String
   coach           String
   startTime       DateTime
@@ -255,6 +315,7 @@ model GroupClass {
 
   @@index([startTime])
   @@index([facilityId])
+  @@index([gymId])
 }
 
 model ClassBooking {
@@ -291,6 +352,8 @@ model OtpVerification {
 // -------------------------------------------------------------
 model MemberHealthProfile {
   id                        String    @id @default(uuid())
+  gymId                     String?
+  gym                       Gym?      @relation(fields: [gymId], references: [id], onDelete: Cascade)
   userId                    String    @unique
   user                      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -343,10 +406,8 @@ model MemberHealthProfile {
   createdAt                 DateTime  @default(now())
   updatedAt                 DateTime  @updatedAt
 
+  @@index([gymId])
   @@index([primaryGoal])
   @@index([referralSource])
   @@index([city])
 }
-
-
-

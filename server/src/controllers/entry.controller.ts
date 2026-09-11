@@ -561,6 +561,7 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   const entry = await prisma.attendanceEntry.create({
     data: {
       userId: user.id,
+      gymId: user.gymId || facility.id,
       facilityId: facility.id,
       scannedAt: timestamp,
       status: 'ACTIVE',
@@ -578,6 +579,12 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
           email: true,
           phone: true,
           avatarUrl: true
+        }
+      },
+      gym: {
+        select: {
+          id: true,
+          name: true
         }
       },
       facility: {

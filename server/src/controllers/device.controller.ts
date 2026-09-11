@@ -1,14 +1,23 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 import { emitDeviceStatusChanged } from '../services/socket.service.js';
 
 export async function getDeviceRequests(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { status = 'PENDING' } = req.query;
+    const callerGymId = resolveTenantGymId(req);
+
+    const whereClause: any = status ? { status: String(status) } : {};
+    if (callerGymId) {
+      whereClause.OR = [
+        { gymId: callerGymId },
+        { user: { OR: [{ gymId: callerGymId }, { facilityId: callerGymId }] } }
+      ];
+    }
 
     const requests = await prisma.deviceChangeRequest.findMany({
-      where: status ? { status: String(status) } : undefined,
+      where: whereClause,
       include: {
         user: {
           select: {
@@ -17,7 +26,8 @@ export async function getDeviceRequests(req: AuthenticatedRequest, res: Response
             email: true,
             phone: true,
             boundDeviceId: true,
-            deviceStatus: true
+            deviceStatus: true,
+            gymId: true
           }
         },
         reviewedBy: {
@@ -43,6 +53,7 @@ export async function approveDeviceRequest(req: AuthenticatedRequest, res: Respo
     const { id } = req.params;
     const { adminNotes } = req.body;
     const adminId = req.user?.userId;
+    const callerGymId = resolveTenantGymId(req);
 
     const request = await prisma.deviceChangeRequest.findUnique({
       where: { id },
@@ -51,6 +62,11 @@ export async function approveDeviceRequest(req: AuthenticatedRequest, res: Respo
 
     if (!request) {
       res.status(404).json({ error: 'Device change request not found.' });
+      return;
+    }
+
+    if (callerGymId && request.user.gymId && request.user.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Access denied to device request from another gym.' });
       return;
     }
 
@@ -70,28 +86,24 @@ export async function approveDeviceRequest(req: AuthenticatedRequest, res: Respo
           status: 'APPROVED',
           reviewedById: adminId,
           reviewedAt: new Date(),
-          adminNotes: adminNotes || 'Approved by Super Admin'
+          adminNotes
         }
       })
     ]);
 
-    // Push instant notification to member
     emitDeviceStatusChanged(request.userId, {
-      status: 'APPROVED',
-      newDeviceId: request.attemptedDeviceId,
-      message: 'Your new device has been approved by the Super Admin! You may now access the gym.'
+      userId: request.userId,
+      deviceStatus: 'NORMAL',
+      message: 'Your account clearance has been restored by Front Desk. Enjoy your workout!'
     });
 
-    console.log(`[Device Security] Super Admin approved device change for user: ${request.user.email}`);
-
     res.json({
-      message: 'Device change request approved successfully. User device binding updated.',
-      userId: request.userId,
-      newDeviceId: request.attemptedDeviceId
+      message: 'Account visit limit cleared. Daily access granted.',
+      requestId: id
     });
   } catch (error: any) {
     console.error('approveDeviceRequest error:', error);
-    res.status(500).json({ error: 'Failed to approve device request.' });
+    res.status(500).json({ error: 'Failed to approve request.' });
   }
 }
 
@@ -100,13 +112,20 @@ export async function rejectDeviceRequest(req: AuthenticatedRequest, res: Respon
     const { id } = req.params;
     const { adminNotes } = req.body;
     const adminId = req.user?.userId;
+    const callerGymId = resolveTenantGymId(req);
 
     const request = await prisma.deviceChangeRequest.findUnique({
-      where: { id }
+      where: { id },
+      include: { user: true }
     });
 
     if (!request) {
       res.status(404).json({ error: 'Device change request not found.' });
+      return;
+    }
+
+    if (callerGymId && request.user.gymId && request.user.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Access denied to device request from another gym.' });
       return;
     }
 
@@ -116,22 +135,16 @@ export async function rejectDeviceRequest(req: AuthenticatedRequest, res: Respon
         status: 'REJECTED',
         reviewedById: adminId,
         reviewedAt: new Date(),
-        adminNotes: adminNotes || 'Rejected by Super Admin'
+        adminNotes
       }
     });
 
-    emitDeviceStatusChanged(request.userId, {
-      status: 'REJECTED',
-      message: 'Your device change request was rejected. Access remains locked.'
-    });
-
     res.json({
-      message: 'Device change request rejected.',
+      message: 'Clearance request rejected.',
       request: updated
     });
   } catch (error: any) {
     console.error('rejectDeviceRequest error:', error);
-    res.status(500).json({ error: 'Failed to reject device request.' });
+    res.status(500).json({ error: 'Failed to reject request.' });
   }
 }
-

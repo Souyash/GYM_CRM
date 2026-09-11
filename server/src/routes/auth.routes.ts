@@ -7,12 +7,16 @@ import {
   verifySignupOtp,
   resendSignupOtp,
   sendMemberLoginOtp,
-  verifyMemberLoginOtp
+  verifyMemberLoginOtp,
+  registerBusiness
 } from '../controllers/auth.controller.js';
 import { authenticateJWT } from '../middleware/auth.middleware.js';
 import { extractDeviceId } from '../middleware/device.middleware.js';
 
 const router = Router();
+
+// Business Onboarding (Khatabook SaaS style)
+router.post('/register-business', registerBusiness);
 
 // Registration & OTP Email Verification
 router.post('/send-signup-otp', sendSignupOtp);

@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 import { sendDeskOnboardOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
 
 /**
@@ -32,8 +32,21 @@ function computeAge(dob?: string | Date | null): number | null {
  */
 export async function getHealthIntelligenceSummary(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const totalMembers = await prisma.user.count({ where: { role: 'MEMBER' } });
+    const callerGymId = resolveTenantGymId(req);
+    const userWhere: any = { role: 'MEMBER' };
+    const profileWhere: any = {};
+
+    if (callerGymId) {
+      userWhere.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+      profileWhere.OR = [
+        { gymId: callerGymId },
+        { user: { OR: [{ gymId: callerGymId }, { facilityId: callerGymId }] } }
+      ];
+    }
+
+    const totalMembers = await prisma.user.count({ where: userWhere });
     const profiles = await prisma.memberHealthProfile.findMany({
+      where: profileWhere,
       include: {
         user: {
           select: {
@@ -163,15 +176,29 @@ export async function getHealthIntelligenceSummary(req: AuthenticatedRequest, re
 export async function getMembersWithHealthData(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { search, goal, referralSource, city, condition } = req.query;
+    const callerGymId = resolveTenantGymId(req);
 
     const whereUser: any = { role: 'MEMBER' };
+    if (callerGymId) {
+      whereUser.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
+
     if (search) {
       const q = String(search).trim();
-      whereUser.OR = [
+      const searchFilter = [
         { fullName: { contains: q } },
         { email: { contains: q } },
         { phone: { contains: q } }
       ];
+      if (whereUser.OR) {
+        whereUser.AND = [
+          { OR: whereUser.OR },
+          { OR: searchFilter }
+        ];
+        delete whereUser.OR;
+      } else {
+        whereUser.OR = searchFilter;
+      }
     }
 
     const members = await prisma.user.findMany({
@@ -181,7 +208,9 @@ export async function getMembersWithHealthData(req: AuthenticatedRequest, res: R
         subscriptions: {
           orderBy: { createdAt: 'desc' },
           take: 1
-        }
+        },
+        gym: true,
+        facility: true
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -307,12 +336,8 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
     const parsedHeight = heightCm ? parseFloat(String(heightCm)) : null;
     const calculatedBmi = computeBmi(parsedWeight, parsedHeight);
 
-    // Get facility
-    let facilityId = requestedFacilityId || req.user?.facilityId;
-    if (!facilityId) {
-      const defaultFacility = await prisma.facility.findFirst();
-      facilityId = defaultFacility?.id;
-    }
+    // Resolve tenant gym
+    const targetGymId = resolveTenantGymId(req) || req.body.gymId || requestedFacilityId || null;
 
     // 1. Create or update user
     if (!user) {
@@ -324,7 +349,8 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
           phone: phone ? phone.trim() : null,
           passwordHash,
           role: 'MEMBER',
-          facilityId,
+          gymId: targetGymId,
+          facilityId: targetGymId,
           avatarUrl: profilePhoto || null,
           deviceStatus: 'NORMAL'
         }
@@ -337,6 +363,7 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
     const subscription = await prisma.subscription.create({
       data: {
         userId: user.id,
+        gymId: targetGymId,
         planName: planName || 'Monthly Pro Access',
         price: parseFloat(String(price || 65)),
         startDate: now,
@@ -353,6 +380,7 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
     const healthProfile = await prisma.memberHealthProfile.upsert({
       where: { userId: user.id },
       update: {
+        gymId: targetGymId || undefined,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         age: calculatedAge,
         gender: gender || null,
@@ -391,6 +419,7 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
       },
       create: {
         userId: user.id,
+        gymId: targetGymId,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         age: calculatedAge,
         gender: gender || null,
@@ -462,8 +491,14 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
  */
 export async function exportHealthDataCsv(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    const callerGymId = resolveTenantGymId(req);
+    const whereUser: any = { role: 'MEMBER' };
+    if (callerGymId) {
+      whereUser.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
+
     const members = await prisma.user.findMany({
-      where: { role: 'MEMBER' },
+      where: whereUser,
       include: {
         healthProfile: true,
         subscriptions: {
@@ -617,6 +652,12 @@ export async function getMemberHealthProfile(req: AuthenticatedRequest, res: Res
       return;
     }
 
+    const callerGymId = resolveTenantGymId(req);
+    if (callerGymId && profile.gymId && profile.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Access denied to member health profile from another gym.' });
+      return;
+    }
+
     res.json({ profile });
   } catch (error: any) {
     console.error('getMemberHealthProfile error:', error);
@@ -728,10 +769,14 @@ export async function updateMyHealthProfile(req: AuthenticatedRequest, res: Resp
       ? (Array.isArray(healthConditions) ? JSON.stringify(healthConditions) : (typeof healthConditions === 'string' ? healthConditions : null))
       : undefined;
 
-    // 3. Upsert MemberHealthProfile
+    // 3. Upsert MemberHealthProfile tied to user's gymId
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const userGymId = user?.gymId || req.user?.gymId || null;
+
     const profile = await prisma.memberHealthProfile.upsert({
       where: { userId },
       update: {
+        ...(userGymId ? { gymId: userGymId } : {}),
         ...(dateOfBirth !== undefined ? { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null } : {}),
         ...(calculatedAge !== null ? { age: calculatedAge } : {}),
         ...(gender !== undefined ? { gender } : {}),
@@ -774,6 +819,7 @@ export async function updateMyHealthProfile(req: AuthenticatedRequest, res: Resp
       },
       create: {
         userId,
+        gymId: userGymId,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         age: calculatedAge,
         gender: gender || null,

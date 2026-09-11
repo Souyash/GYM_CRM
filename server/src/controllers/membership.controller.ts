@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 import { sendDeskOnboardOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
 
 const STANDARD_PLANS = [
@@ -29,6 +29,7 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       durationDays = 30,
       price = 65,
       paymentMethod = 'CASH',
+      gymId,
       facilityId
     } = req.body;
 
@@ -46,6 +47,8 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       return;
     }
 
+    const targetGymId = resolveTenantGymId(req) || gymId || facilityId || null;
+
     // Generate 6-digit cryptographic OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiry
@@ -59,7 +62,8 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       durationDays: Number(durationDays),
       price: Number(price),
       paymentMethod,
-      facilityId: facilityId || req.user?.facilityId || null,
+      gymId: targetGymId,
+      facilityId: targetGymId,
       deskBilledById: req.user?.userId
     });
 
@@ -168,6 +172,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
     const startDate = new Date();
     const duration = data.durationDays || 30;
     const endDate = new Date(startDate.getTime() + Number(duration) * 24 * 60 * 60 * 1000);
+    const targetGymId = resolveTenantGymId(req) || data.gymId || data.facilityId || null;
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -177,7 +182,8 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
           phone: data.phone || null,
           passwordHash,
           role: data.role || 'MEMBER',
-          facilityId: data.facilityId || req.user?.facilityId || null,
+          gymId: targetGymId,
+          facilityId: targetGymId,
           deviceStatus: 'NORMAL'
         }
       });
@@ -187,6 +193,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
         subscription = await tx.subscription.create({
           data: {
             userId: user.id,
+            gymId: targetGymId,
             planName: data.planName || 'Monthly Pro Access',
             price: Number(data.price || 65),
             startDate,
@@ -204,7 +211,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
       return { user, subscription };
     });
 
-    console.log(`[Desk Onboard] Successfully verified & enrolled member ${result.user.fullName} (${result.user.email})`);
+    console.log(`[Desk Onboard] Successfully verified & enrolled member ${result.user.fullName} (${result.user.email}) in gym ${targetGymId}`);
 
     // Dispatch welcome email asynchronously
     sendWelcomeEmail({
@@ -223,6 +230,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
         email: result.user.email,
         phone: result.user.phone,
         role: result.user.role,
+        gymId: result.user.gymId,
         tempPassword: plainPassword,
         subscription: result.subscription
       }
@@ -232,7 +240,6 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
     res.status(500).json({ error: 'Failed to verify OTP and enroll member.' });
   }
 }
-
 
 export async function onboardMember(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
@@ -246,6 +253,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
       durationDays = 30,
       price = 65,
       paymentMethod = 'CASH',
+      gymId,
       facilityId
     } = req.body;
     const managerId = req.user?.userId;
@@ -255,13 +263,15 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const cleanEmail = email.toLowerCase().trim();
+    const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existing) {
       res.status(409).json({ error: 'An account with this email address already exists.' });
       return;
     }
 
-    // Default password or custom password
+    const targetGymId = resolveTenantGymId(req) || gymId || facilityId || null;
+
     const plainPassword = password || (role === 'MEMBER' ? 'MemberPass123!' : 'StaffPass123!');
     const passwordHash = await bcrypt.hash(plainPassword, 10);
     const startDate = new Date();
@@ -270,12 +280,13 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          fullName,
-          email: email.toLowerCase(),
-          phone,
+          fullName: fullName.trim(),
+          email: cleanEmail,
+          phone: phone?.trim() || null,
           passwordHash,
           role: role.toUpperCase(),
-          facilityId: facilityId || req.user?.facilityId || null,
+          gymId: targetGymId,
+          facilityId: targetGymId,
           deviceStatus: 'NORMAL'
         }
       });
@@ -285,6 +296,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
         subscription = await tx.subscription.create({
           data: {
             userId: user.id,
+            gymId: targetGymId,
             planName: planName || 'Monthly Pro Access',
             price: Number(price),
             startDate,
@@ -299,7 +311,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
       return { user, subscription };
     });
 
-    console.log(`[Account Creation] Created ${result.user.role} account for ${result.user.fullName} (${result.user.email})`);
+    console.log(`[Account Creation] Created ${result.user.role} account for ${result.user.fullName} in gym ${targetGymId}`);
 
     res.status(201).json({
       message: `${result.user.role} account created successfully.`,
@@ -309,6 +321,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
         email: result.user.email,
         phone: result.user.phone,
         role: result.user.role,
+        gymId: result.user.gymId,
         tempPassword: plainPassword,
         subscription: result.subscription
       }
@@ -323,6 +336,7 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
   try {
     const { userId, planName, durationDays = 30, price = 65, paymentMethod = 'CASH' } = req.body;
     const managerId = req.user?.userId;
+    const callerGymId = resolveTenantGymId(req);
 
     if (!userId || !planName) {
       res.status(400).json({ error: 'User ID and plan name are required.' });
@@ -335,12 +349,20 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
+    // Ensure Gym Owner can only bill members belonging to their own gym
+    if (callerGymId && user.gymId && user.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Forbidden: You can only bill members of your own gym.' });
+      return;
+    }
+
+    const targetGymId = callerGymId || user.gymId || null;
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + Number(durationDays) * 24 * 60 * 60 * 1000);
 
     const subscription = await prisma.subscription.create({
       data: {
         userId,
+        gymId: targetGymId,
         planName,
         price: Number(price),
         startDate,
@@ -351,7 +373,7 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
       }
     });
 
-    console.log(`[Desk Billing] Renewed plan '${planName}' for ${user.fullName}`);
+    console.log(`[Desk Billing] Renewed plan '${planName}' for ${user.fullName} in gym ${targetGymId}`);
 
     res.status(201).json({
       message: 'Subscription successfully billed at desk.',
@@ -366,14 +388,35 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
 export async function getMembers(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { search, status } = req.query;
+    const callerGymId = resolveTenantGymId(req);
 
     const where: any = { role: 'MEMBER' };
-    if (search) {
+
+    // STRICT MULTI-TENANT ISOLATION:
+    // If not super admin without gym filter, only show members in caller's gym!
+    if (callerGymId) {
       where.OR = [
+        { gymId: callerGymId },
+        { facilityId: callerGymId }
+      ];
+    }
+
+    if (search) {
+      const searchClauses = [
         { fullName: { contains: String(search) } },
         { email: { contains: String(search) } },
         { phone: { contains: String(search) } }
       ];
+
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR },
+          { OR: searchClauses }
+        ];
+        delete where.OR;
+      } else {
+        where.OR = searchClauses;
+      }
     }
 
     const members = await prisma.user.findMany({
@@ -383,6 +426,7 @@ export async function getMembers(req: AuthenticatedRequest, res: Response): Prom
           orderBy: { endDate: 'desc' },
           take: 1
         },
+        gym: true,
         facility: true
       },
       orderBy: { createdAt: 'desc' }
@@ -396,9 +440,11 @@ export async function getMembers(req: AuthenticatedRequest, res: Response): Prom
         fullName: m.fullName,
         email: m.email,
         phone: m.phone,
+        gymId: m.gymId,
         boundDeviceId: m.boundDeviceId,
         deviceStatus: m.deviceStatus,
-        facility: m.facility?.name,
+        gymName: m.gym?.name || m.facility?.name,
+        facility: m.gym?.name || m.facility?.name,
         latestSubscription: activeSub || null,
         isAccessGranted: isSubActive && m.deviceStatus === 'NORMAL'
       };
@@ -410,4 +456,3 @@ export async function getMembers(req: AuthenticatedRequest, res: Response): Prom
     res.status(500).json({ error: 'Failed to retrieve members.' });
   }
 }
-

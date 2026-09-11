@@ -10,6 +10,7 @@ import attendanceRoutes from './routes/attendance.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import communityRoutes from './routes/community.routes.js';
 import healthIntelligenceRoutes from './routes/healthIntelligence.routes.js';
+import gymRoutes from './routes/gym.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -25,6 +26,7 @@ export function createApp(): Express {
 
   // API Routes
   app.use('/api/auth', authRoutes);
+  app.use('/api/gyms', gymRoutes);
   app.use('/api/entry', entryRoutes);
   app.use('/api/facilities', facilityRoutes);
   app.use('/api/memberships', membershipRoutes);

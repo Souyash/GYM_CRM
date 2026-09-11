@@ -12,16 +12,18 @@ import {
   CheckCircle2,
   Sparkles,
   AlertCircle,
-  QrCode,
-  LogIn,
+  Building2,
   KeyRound,
-  RefreshCw
+  RefreshCw,
+  Copy,
+  Check,
+  MapPin
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
 export interface LoginViewProps {
-  initialTab?: 'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP';
+  initialTab?: 'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS';
   preselectedPlan?: string;
   onBackToWebsite?: () => void;
 }
@@ -31,8 +33,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
   preselectedPlan,
   onBackToWebsite
 }) => {
-  const { login, verifyOtpAndLogin, sendMemberLoginOtp, loginWithOtp } = useAuth();
-  const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>(initialTab);
+  const { login, verifyOtpAndLogin, registerBusiness, sendMemberLoginOtp, loginWithOtp } = useAuth();
+  const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS'>(initialTab);
 
   // Member Login Fields
   const [memberLoginMode, setMemberLoginMode] = useState<'OTP' | 'PASSWORD'>('OTP');
@@ -47,7 +49,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [staffEmail, setStaffEmail] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
 
-  // Sign Up Form Fields
+  // Sign Up Form Fields (Join Gym)
+  const [gymCode, setGymCode] = useState('');
+  const [verifiedGym, setVerifiedGym] = useState<any>(null);
+  const [isVerifyingGym, setIsVerifyingGym] = useState(false);
+  const [gymLookupError, setGymLookupError] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -59,8 +65,58 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState<number>(0);
 
+  // Register Business Fields (Gym Owner Onboarding)
+  const [bizGymName, setBizGymName] = useState('');
+  const [bizOwnerName, setBizOwnerName] = useState('');
+  const [bizEmail, setBizEmail] = useState('');
+  const [bizPhone, setBizPhone] = useState('');
+  const [bizPassword, setBizPassword] = useState('');
+  const [bizAddress, setBizAddress] = useState('');
+  const [bizCity, setBizCity] = useState('');
+  const [bizState, setBizState] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [copiedDemo, setCopiedDemo] = useState<string | null>(null);
+
+  // Auto-detect invite code in URL (e.g. ?invite=100001 or ?gym=100001)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const invite = params.get('invite') || params.get('gym');
+      if (invite && invite.trim()) {
+        const clean = invite.trim();
+        setGymCode(clean);
+        setActiveTab('SIGNUP');
+        checkGymCode(clean);
+      }
+    }
+  }, []);
+
+  const checkGymCode = async (code: string) => {
+    if (!code || code.length < 4) {
+      setVerifiedGym(null);
+      setGymLookupError(null);
+      return;
+    }
+    setIsVerifyingGym(true);
+    setGymLookupError(null);
+    try {
+      const res = await api.lookupGymCode(code.trim());
+      if (res.gym) {
+        setVerifiedGym(res.gym);
+        setGymLookupError(null);
+      } else {
+        setVerifiedGym(null);
+        setGymLookupError('Gym code not found. Please verify with your gym owner.');
+      }
+    } catch (err: any) {
+      setVerifiedGym(null);
+      setGymLookupError(err.message || 'Invalid gym code. Please check and try again.');
+    } finally {
+      setIsVerifyingGym(false);
+    }
+  };
 
   // Theme support
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -114,7 +170,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
-  // Resend OTP Cooldown Timers
+  // Cooldown timer
   useEffect(() => {
     let interval: any;
     if (resendCooldown > 0) {
@@ -196,7 +252,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
-  // Step 1: Submit Details & Request Email OTP
+  // Join Gym: Request Email OTP
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -210,13 +266,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
       if (newPassword.length < 6) {
         throw new Error('Password must be at least 6 characters long.');
       }
+      if (!gymCode.trim()) {
+        throw new Error('Please enter the 6-digit Gym Access Code provided by your gym.');
+      }
 
       const res = await api.sendSignupOtp({
         fullName: fullName.trim(),
         email: newEmail.trim(),
         phone: newPhone.trim() || undefined,
         password: newPassword,
-        role: 'MEMBER'
+        role: 'MEMBER',
+        gymCode: gymCode.trim()
       });
 
       setOtpNotice(res.message || `A 6-digit verification code was sent to ${newEmail.trim()}.`);
@@ -229,7 +289,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
-  // Step 2: Verify OTP & Complete Member Registration
+  // Join Gym: Verify OTP & Complete Member Registration
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -243,7 +303,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
       await verifyOtpAndLogin({
         email: newEmail.trim(),
-        otp: cleanOtp
+        otp: cleanOtp,
+        gymCode: gymCode.trim()
       });
     } catch (err: any) {
       setErrorMsg(err.message || 'Invalid or expired verification code. Please check and try again.');
@@ -269,6 +330,54 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
+  // Register Business Flow (Gym Owner)
+  const handleRegisterBusiness = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg(null);
+
+    try {
+      if (!bizGymName.trim() || !bizOwnerName.trim() || !bizEmail.trim() || !bizPassword.trim() || !bizAddress.trim()) {
+        throw new Error('Please fill in all required fields (Gym Name, Owner Name, Email, Password, Address).');
+      }
+      if (bizPassword.length < 6) {
+        throw new Error('Password must be at least 6 characters.');
+      }
+
+      await registerBusiness({
+        gymName: bizGymName.trim(),
+        ownerName: bizOwnerName.trim(),
+        email: bizEmail.trim(),
+        password: bizPassword,
+        phone: bizPhone.trim() || undefined,
+        address: bizAddress.trim(),
+        city: bizCity.trim() || undefined,
+        state: bizState.trim() || undefined
+      });
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to register gym business. Please verify details.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fillDemoLogin = (email: string, pass = 'Admin@12345') => {
+    if (email.includes('admin')) {
+      setActiveTab('STAFF_LOGIN');
+      setStaffEmail(email);
+      setStaffPassword(pass);
+    } else if (email.includes('manager') || email.includes('owner')) {
+      setActiveTab('STAFF_LOGIN');
+      setStaffEmail(email);
+      setStaffPassword(pass);
+    } else {
+      setActiveTab('MEMBER_LOGIN');
+      setMemberLoginMode('PASSWORD');
+      setMemberEmail(email);
+      setMemberPassword(pass);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-poppins">
       {/* Top Bar Navigation */}
@@ -279,7 +388,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             className="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition flex items-center gap-1.5 shadow-sm active:scale-95"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Gym Website</span>
+            <span>Back to Website</span>
           </button>
         )}
       </div>
@@ -289,13 +398,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
         <button
           onClick={toggleTheme}
           className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-slate-200 shadow-sm transition active:scale-95"
-          title={isDark ? 'Switch to White & Green Light Mode' : 'Switch to Black & Green Dark Mode'}
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
-          {isDark ? (
-            <Sun className="w-5 h-5 text-emerald-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-emerald-600" />
-          )}
+          {isDark ? <Sun className="w-5 h-5 text-emerald-400" /> : <Moon className="w-5 h-5 text-emerald-600" />}
         </button>
       </div>
 
@@ -307,12 +412,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
           IRON<span className="text-emerald-600 dark:text-emerald-400">VAULT</span>
         </h1>
         <p className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-          FITNESS & HEALTH CLUB
+          MULTI-TENANT FITNESS CRM & SAAS
         </p>
       </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md space-y-4">
-        {/* Selected Plan Notification if navigated from pricing card */}
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-lg space-y-4">
+        {/* Selected Plan Notification */}
         {preselectedPlan && (
           <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-between">
             <span className="flex items-center gap-1.5">
@@ -327,21 +432,22 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
         {/* Main Card */}
         <div className="app-card p-6 sm:p-8">
-          {/* Tab Selection */}
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-zinc-900 p-1 rounded-2xl mb-6">
+          {/* 4-Tab Multi-Tenant Navigation */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl mb-6">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('MEMBER_LOGIN');
                 setErrorMsg(null);
               }}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black transition ${
+              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
                 activeTab === 'MEMBER_LOGIN'
                   ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              🏃 Member Sign In
+              <span>🏃</span>
+              <span>Member</span>
             </button>
 
             <button
@@ -350,13 +456,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 setActiveTab('STAFF_LOGIN');
                 setErrorMsg(null);
               }}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black transition ${
+              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
                 activeTab === 'STAFF_LOGIN'
                   ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              👑 Staff & Admin
+              <span>👑</span>
+              <span>Staff / Owner</span>
             </button>
 
             <button
@@ -365,13 +472,30 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 setActiveTab('SIGNUP');
                 setErrorMsg(null);
               }}
-              className={`py-2.5 px-2 rounded-xl text-xs font-black transition ${
+              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
                 activeTab === 'SIGNUP'
                   ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
                   : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              🆕 Join Gym
+              <span>🤝</span>
+              <span>Join Gym</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('REGISTER_BUSINESS');
+                setErrorMsg(null);
+              }}
+              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                activeTab === 'REGISTER_BUSINESS'
+                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span>🏢</span>
+              <span>Register Gym</span>
             </button>
           </div>
 
@@ -430,7 +554,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                         Direct Gmail OTP Authentication
                       </p>
                       <p className="text-[11px] text-slate-600 dark:text-zinc-300 mt-1">
-                        Enter your registered gym email. We will send a 6-digit login passcode straight to your Gmail inbox.
+                        Enter your registered email address to receive a 6-digit login passcode.
                       </p>
                     </div>
 
@@ -552,16 +676,6 @@ export const LoginView: React.FC<LoginViewProps> = ({
               ) : (
                 /* PASSWORD FLOW */
                 <form onSubmit={handleMemberSubmit} className="space-y-4">
-                  <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300">
-                    <p className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                      <LogIn className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      Member Dashboard Login
-                    </p>
-                    <p className="text-[11px] text-slate-600 dark:text-zinc-300 mt-1">
-                      Sign in with your email and password.
-                    </p>
-                  </div>
-
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
                       Member Email
@@ -609,26 +723,26 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </div>
           )}
 
-          {/* TAB 2: STAFF & OWNER LOGIN */}
+          {/* TAB 2: STAFF & GYM OWNER LOGIN */}
           {activeTab === 'STAFF_LOGIN' && (
             <form onSubmit={handleStaffSubmit} className="space-y-4">
               <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-zinc-900 text-xs text-slate-600 dark:text-zinc-300">
-                <p className="font-bold text-slate-900 dark:text-white">Admin & Staff Portal</p>
+                <p className="font-bold text-slate-900 dark:text-white">Gym Owner & Staff Portal</p>
                 <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                  Sign in from any device to manage floor occupancy, memberships, and billing.
+                  Sign in to manage your gym workspace, live turnstile attendance, and billing.
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                  Staff Email
+                  Staff / Owner Email
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
                   <input
                     type="email"
                     required
-                    placeholder="admin@ironvaultgym.com"
+                    placeholder="manager@ironvaultgym.com"
                     value={staffEmail}
                     onChange={(e) => setStaffEmail(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
@@ -658,20 +772,83 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 disabled={isLoading}
                 className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
               >
-                <span>{isLoading ? 'Authenticating...' : 'Sign In as Staff / Admin'}</span>
+                <span>{isLoading ? 'Authenticating...' : 'Sign In as Owner / Staff'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           )}
 
-          {/* TAB 3: SIGN UP */}
+          {/* TAB 3: JOIN GYM (MEMBER ONBOARDING WITH 6-DIGIT GYM CODE) */}
           {activeTab === 'SIGNUP' && signupStep === 'DETAILS' && (
             <form onSubmit={handleRequestOtp} className="space-y-4">
               <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-zinc-900 text-xs text-slate-600 dark:text-zinc-300">
-                <p className="font-bold text-slate-900 dark:text-white">New Member Registration</p>
+                <p className="font-bold text-slate-900 dark:text-white">Join Your Gym Workspace</p>
                 <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                  Enter your real email address to receive your 6-digit OTP verification code.
+                  Enter your gym's 6-digit access code (e.g. <strong>100001</strong>) to connect to your gym.
                 </p>
+              </div>
+
+              {/* Gym 6-Digit Code Input & Live Lookup */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                  Gym Access Code (6-Digit Code)
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Building2 className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      placeholder="e.g. 100001"
+                      value={gymCode}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                        setGymCode(val);
+                        if (val.length === 6) {
+                          checkGymCode(val);
+                        } else {
+                          setVerifiedGym(null);
+                        }
+                      }}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-mono tracking-wider font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => checkGymCode(gymCode)}
+                    disabled={isVerifyingGym || gymCode.length < 4}
+                    className="px-3 py-2 rounded-xl bg-slate-200 dark:bg-zinc-800 text-xs font-bold text-slate-800 dark:text-zinc-200 hover:bg-emerald-500 hover:text-black transition"
+                  >
+                    {isVerifyingGym ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Lookup'}
+                  </button>
+                </div>
+
+                {/* Verified Gym Feedback Card */}
+                {verifiedGym && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs flex items-center justify-between text-emerald-800 dark:text-emerald-300">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <div>
+                        <span className="font-bold">{verifiedGym.name}</span>
+                        {verifiedGym.city && (
+                          <span className="text-[10px] text-slate-500 dark:text-zinc-400 block">
+                            📍 {verifiedGym.city}, {verifiedGym.state || ''}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-mono text-[10px] font-black bg-emerald-500 text-black px-2 py-0.5 rounded-md">
+                      {verifiedGym.inviteCode}
+                    </span>
+                  </div>
+                )}
+
+                {gymLookupError && (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 mt-1">
+                    {gymLookupError}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -839,6 +1016,237 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </button>
             </form>
           )}
+
+          {/* TAB 4: REGISTER BUSINESS (GYM OWNER ONBOARDING) */}
+          {activeTab === 'REGISTER_BUSINESS' && (
+            <form onSubmit={handleRegisterBusiness} className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300">
+                <p className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                  <Building2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  Register Your Gym Business (SaaS Workspace)
+                </p>
+                <p className="text-[11px] text-slate-600 dark:text-zinc-300 mt-1">
+                  Create your own isolated gym workspace, automatic 6-digit member invite code, and QR poster.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                  Gym / Facility Name *
+                </label>
+                <div className="relative">
+                  <Building2 className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. IronVault Apex Downtown"
+                    value={bizGymName}
+                    onChange={(e) => setBizGymName(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    Owner Full Name *
+                  </label>
+                  <div className="relative">
+                    <UserIcon className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="Sarah Jenkins"
+                      value={bizOwnerName}
+                      onChange={(e) => setBizOwnerName(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    Owner Phone
+                  </label>
+                  <div className="relative">
+                    <Phone className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                    <input
+                      type="tel"
+                      placeholder="+1 555-019-4422"
+                      value={bizPhone}
+                      onChange={(e) => setBizPhone(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                  Owner Email Address (Login ID) *
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="owner@yourgym.com"
+                    value={bizEmail}
+                    onChange={(e) => setBizEmail(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                  Password (Min 6 Characters) *
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    placeholder="••••••••"
+                    value={bizPassword}
+                    onChange={(e) => setBizPassword(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                  Street Address *
+                </label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="500 Market Street, Suite 100"
+                    value={bizAddress}
+                    onChange={(e) => setBizAddress(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="San Francisco"
+                    value={bizCity}
+                    onChange={(e) => setBizCity(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    State / Region
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="CA"
+                    value={bizState}
+                    onChange={(e) => setBizState(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
+              >
+                <span>{isLoading ? 'Creating Gym Workspace...' : 'Create Gym Workspace & Get Code'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+          )}
+        </div>
+
+        {/* Quick Demo Switcher Across Multi-Tenant Gyms */}
+        <div className="p-4 rounded-3xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Multi-Tenant Test Accounts</span>
+            </span>
+            <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 font-mono px-2 py-0.5 rounded-full">
+              Click to autofill
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {/* Tenant 1 */}
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/60 dark:border-zinc-800/80">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1">
+                  <span>🏢</span>
+                  <span>IronVault Apex (Code: 100001)</span>
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Tenant 1</span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillDemoLogin('admin@ironvaultgym.com', 'Admin@12345')}
+                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-500 transition text-center"
+                >
+                  Super Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoLogin('manager@ironvaultgym.com', 'Manager@12345')}
+                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-500 transition text-center"
+                >
+                  Gym Owner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoLogin('macbook.member@ironvaultgym.com', 'Member@12345')}
+                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-500 transition text-center"
+                >
+                  Member
+                </button>
+              </div>
+            </div>
+
+            {/* Tenant 2 */}
+            <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/60 dark:border-zinc-800/80">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1">
+                  <span>🏢</span>
+                  <span>Spartan Heavy Iron (Code: 200002)</span>
+                </span>
+                <span className="text-[10px] text-amber-500 font-bold">Tenant 2</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => fillDemoLogin('owner@spartaniron.com', 'Spartan@12345')}
+                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-amber-500 hover:text-amber-500 transition text-center"
+                >
+                  Spartan Owner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoLogin('marcus@spartaniron.com', 'SpartanMember@12345')}
+                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-amber-500 hover:text-amber-500 transition text-center"
+                >
+                  Spartan Member
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

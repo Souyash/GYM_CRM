@@ -1,14 +1,18 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 
 export async function getFailedLogs(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { attemptType, facilityId, page = 1, limit = 20 } = req.query;
+    const { attemptType, facilityId, gymId, page = 1, limit = 20 } = req.query;
+    const callerGymId = resolveTenantGymId(req) || (gymId ? String(gymId) : null);
 
     const whereClause: any = {};
+    if (callerGymId) {
+      whereClause.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
     if (attemptType) whereClause.attemptType = String(attemptType);
-    if (facilityId) whereClause.facilityId = String(facilityId);
+    if (facilityId && !callerGymId) whereClause.facilityId = String(facilityId);
 
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -24,6 +28,13 @@ export async function getFailedLogs(req: AuthenticatedRequest, res: Response): P
               email: true,
               phone: true,
               boundDeviceId: true
+            }
+          },
+          gym: {
+            select: {
+              id: true,
+              name: true,
+              address: true
             }
           },
           facility: {
@@ -55,7 +66,14 @@ export async function getFailedLogs(req: AuthenticatedRequest, res: Response): P
 
 export async function getThreatStats(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    const callerGymId = resolveTenantGymId(req);
+    const whereClause: any = {};
+    if (callerGymId) {
+      whereClause.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
+
     const logs = await prisma.failedAccessLog.findMany({
+      where: whereClause,
       select: {
         attemptType: true,
         isAlertDismissed: true,
@@ -78,22 +96,37 @@ export async function getThreatStats(req: AuthenticatedRequest, res: Response): 
     res.json({ stats });
   } catch (error: any) {
     console.error('getThreatStats error:', error);
-    res.status(500).json({ error: 'Failed to fetch threat stats.' });
+    res.status(500).json({ error: 'Failed to compute threat statistics.' });
   }
 }
 
 export async function dismissAlert(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+    const callerGymId = resolveTenantGymId(req);
+
+    const log = await prisma.failedAccessLog.findUnique({ where: { id } });
+    if (!log) {
+      res.status(404).json({ error: 'Log entry not found.' });
+      return;
+    }
+
+    if (callerGymId && log.gymId && log.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Access denied.' });
+      return;
+    }
+
     const updated = await prisma.failedAccessLog.update({
       where: { id },
       data: { isAlertDismissed: true }
     });
 
-    res.json({ message: 'Alert dismissed.', log: updated });
+    res.json({
+      message: 'Security alert dismissed successfully.',
+      log: updated
+    });
   } catch (error: any) {
     console.error('dismissAlert error:', error);
-    res.status(500).json({ error: 'Failed to dismiss alert.' });
+    res.status(500).json({ error: 'Failed to dismiss security alert.' });
   }
 }
-

@@ -59,7 +59,7 @@ export const AppContent: React.FC = () => {
     if (user) {
       if (user.role === 'SUPER_ADMIN') {
         setCurrentTab('admin_dashboard');
-      } else if (user.role === 'MANAGER') {
+      } else if (user.role === 'MANAGER' || user.role === 'GYM_OWNER') {
         setCurrentTab('manager_dashboard');
       } else {
         setCurrentTab('member_profile');

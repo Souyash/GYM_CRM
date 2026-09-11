@@ -11,11 +11,15 @@ import {
   RefreshCw,
   LogOut,
   Timer,
-  CheckCircle2
+  CheckCircle2,
+  Building2,
+  Copy,
+  Check
 } from 'lucide-react';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
 import { LiveAttendanceEntry } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface ManagerDashboardProps {
   onOpenOnboarding: () => void;
@@ -26,6 +30,9 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
   onOpenOnboarding,
   onOpenBilling
 }) => {
+  const { user } = useAuth();
+  const [gymDetails, setGymDetails] = useState<any>(user?.gym || null);
+  const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [activeOnFloor, setActiveOnFloor] = useState<any[]>([]);
   const [departedToday, setDepartedToday] = useState<any[]>([]);
   const [todayCount, setTodayCount] = useState<number>(0);
@@ -100,6 +107,28 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (user?.gym) {
+      setGymDetails(user.gym);
+    } else {
+      api.getMyGym().then((res) => {
+        if (res.gym) setGymDetails(res.gym);
+      }).catch(() => {});
+    }
+  }, [user]);
+
+  const copyInviteLink = () => {
+    const code = gymDetails?.inviteCode || '100001';
+    const link = `${window.location.origin}/?invite=${code}`;
+    navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    setActionNotice(`Client Invite Link copied to clipboard! (${link})`);
+    setTimeout(() => {
+      setCopiedLink(false);
+      setActionNotice(null);
+    }, 4000);
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto font-poppins">
       {/* Action Notification Banner */}
@@ -111,6 +140,56 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </button>
         </div>
       )}
+
+      {/* Multi-Tenant Gym Workspace & Invite Code Widget */}
+      <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-slate-100 dark:to-zinc-900 border border-emerald-500/20 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-md dark:shadow-glow-green shrink-0">
+            <Building2 className="w-6 h-6 stroke-[2.5]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                {gymDetails?.name || 'Your Gym Workspace'}
+              </h2>
+              <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2 py-0.5 rounded-full">
+                Tenant Active
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 flex flex-wrap items-center gap-1.5">
+              <span>Member Onboarding Code:</span>
+              <span className="font-mono font-black text-slate-900 dark:text-emerald-400 text-sm bg-white dark:bg-zinc-800 px-2.5 py-0.5 rounded-md border border-slate-200 dark:border-zinc-700">
+                {gymDetails?.inviteCode || '100001'}
+              </span>
+              {gymDetails?.city && (
+                <span className="text-[11px] text-slate-400 dark:text-zinc-500">
+                  • 📍 {gymDetails.city}, {gymDetails.state || ''}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={copyInviteLink}
+            className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
+            title="Copy member signup invite URL with pre-filled gym access code"
+          >
+            {copiedLink ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-500" />
+                <span className="text-emerald-600 dark:text-emerald-400 font-black">Invite Link Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 text-emerald-500" />
+                <span>Copy Client Invite Link</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* Quick Action Header */}
       <div className="p-5 sm:p-6 rounded-3xl app-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">

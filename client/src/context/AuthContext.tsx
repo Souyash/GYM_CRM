@@ -11,7 +11,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: any) => Promise<any>;
   register: (payload: any) => Promise<any>;
-  verifyOtpAndLogin: (payload: { email: string; otp: string }) => Promise<any>;
+  registerBusiness: (payload: any) => Promise<any>;
+  verifyOtpAndLogin: (payload: { email: string; otp: string; gymCode?: string; gymId?: string }) => Promise<any>;
   sendMemberLoginOtp: (email: string) => Promise<any>;
   loginWithOtp: (payload: { email: string; otp: string }) => Promise<any>;
   scanAndLogin: (payload: any) => Promise<any>;
@@ -88,7 +89,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return data;
   };
 
-  const verifyOtpAndLogin = async (payload: { email: string; otp: string }) => {
+  const registerBusiness = async (payload: any) => {
+    const data = await api.registerBusiness({
+      ...payload,
+      device_id: deviceId
+    });
+
+    if (data.token && data.user) {
+      localStorage.setItem('ironvault_jwt_token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      joinRoleRoom(data.user.role);
+      joinUserRoom(data.user.id);
+    }
+
+    return data;
+  };
+
+  const verifyOtpAndLogin = async (payload: { email: string; otp: string; gymCode?: string; gymId?: string }) => {
     const data = await api.verifySignupOtp({
       ...payload,
       device_id: deviceId
@@ -179,6 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         register,
+        registerBusiness,
         verifyOtpAndLogin,
         sendMemberLoginOtp,
         loginWithOtp,

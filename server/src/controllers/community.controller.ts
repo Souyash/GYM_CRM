@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 import {
   emitNewCommunityPost,
   emitDeleteCommunityPost,
@@ -21,9 +21,16 @@ export async function getCommunityPosts(req: AuthenticatedRequest, res: Response
   try {
     const currentUserId = req.user?.userId;
     const { tag } = req.query;
+    const callerGymId = resolveTenantGymId(req);
+
+    const where: any = {};
+    if (tag && tag !== 'All') where.tag = String(tag);
+    if (callerGymId) {
+      where.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
 
     const posts = await prisma.communityPost.findMany({
-      where: tag && tag !== 'All' ? { tag: String(tag) } : undefined,
+      where: Object.keys(where).length > 0 ? where : undefined,
       include: {
         author: {
           select: {
@@ -94,6 +101,7 @@ export async function createCommunityPost(req: AuthenticatedRequest, res: Respon
     const userId = req.user?.userId;
     const userRole = req.user?.role;
     const { content, tag, imageUrl, isPinned } = req.body;
+    const callerGymId = resolveTenantGymId(req);
 
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized.' });
@@ -105,11 +113,13 @@ export async function createCommunityPost(req: AuthenticatedRequest, res: Respon
       return;
     }
 
-    const isStaffOrAdmin = userRole === 'SUPER_ADMIN' || userRole === 'MANAGER';
+    const isStaffOrAdmin = userRole === 'SUPER_ADMIN' || userRole === 'GYM_OWNER' || userRole === 'MANAGER';
 
     const post = await prisma.communityPost.create({
       data: {
         authorId: userId,
+        gymId: callerGymId,
+        facilityId: callerGymId,
         content: content.trim(),
         tag: tag || (isStaffOrAdmin ? 'Announcement' : 'General'),
         imageUrl: imageUrl || null,
@@ -401,8 +411,15 @@ export async function deletePostComment(req: AuthenticatedRequest, res: Response
 export async function getGroupClasses(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const currentUserId = req.user?.userId;
+    const callerGymId = resolveTenantGymId(req);
+
+    const where: any = {};
+    if (callerGymId) {
+      where.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
 
     const classes = await prisma.groupClass.findMany({
+      where: Object.keys(where).length > 0 ? where : undefined,
       include: {
         bookings: {
           select: {
@@ -438,6 +455,7 @@ export async function getGroupClasses(req: AuthenticatedRequest, res: Response):
         availableSeats: Math.max(0, c.maxSeats - bookedCount),
         intensity: c.intensity,
         isBooked,
+        gymId: c.gymId,
         facilityId: c.facilityId,
         createdAt: c.createdAt.toISOString()
       };
@@ -451,15 +469,16 @@ export async function getGroupClasses(req: AuthenticatedRequest, res: Response):
 }
 
 /**
- * Create a new group class (Restricted to SUPER_ADMIN and MANAGER)
+ * Create a new group class (Restricted to SUPER_ADMIN, GYM_OWNER and MANAGER)
  */
 export async function createGroupClass(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const userId = req.user?.userId;
     const userRole = req.user?.role;
+    const callerGymId = resolveTenantGymId(req);
 
-    // Strict role enforcement: Only Front Desk staff and Admin can schedule classes
-    if (userRole !== 'SUPER_ADMIN' && userRole !== 'MANAGER') {
+    // Strict role enforcement: Only Gym Owners, Front Desk staff and Super Admin can schedule classes
+    if (userRole !== 'SUPER_ADMIN' && userRole !== 'GYM_OWNER' && userRole !== 'MANAGER') {
       res.status(403).json({
         error: 'Permission denied. Only gym administrators and front desk staff can schedule official group classes.'
       });
@@ -474,6 +493,7 @@ export async function createGroupClass(req: AuthenticatedRequest, res: Response)
       zone,
       maxSeats,
       intensity,
+      gymId,
       facilityId
     } = req.body;
 
@@ -488,6 +508,8 @@ export async function createGroupClass(req: AuthenticatedRequest, res: Response)
       return;
     }
 
+    const targetGymId = callerGymId || gymId || facilityId || req.user?.facilityId || null;
+
     const newClass = await prisma.groupClass.create({
       data: {
         title: title.trim(),
@@ -497,7 +519,8 @@ export async function createGroupClass(req: AuthenticatedRequest, res: Response)
         zone: zone ? zone.trim() : 'Functional Turf Zone',
         maxSeats: maxSeats ? Math.max(1, Number(maxSeats)) : 16,
         intensity: intensity ? intensity.trim() : 'Moderate',
-        facilityId: facilityId || req.user?.facilityId || null,
+        gymId: targetGymId,
+        facilityId: targetGymId,
         createdById: userId
       },
       include: {
@@ -742,14 +765,20 @@ function computeMemberStreak(scannedDates: Date[]): number {
 export async function getLiveLeaderboard(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const currentUserId = req.user?.userId;
+    const callerGymId = resolveTenantGymId(req);
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    const whereClause: any = {
+      scannedAt: { gte: startOfMonth }
+    };
+    if (callerGymId) {
+      whereClause.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
+
     // Fetch this month's attendance logs
     const entries = await prisma.attendanceEntry.findMany({
-      where: {
-        scannedAt: { gte: startOfMonth }
-      },
+      where: whereClause,
       include: {
         user: {
           select: {

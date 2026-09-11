@@ -7,6 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_20
 export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
   deviceId?: string;
+  targetGymId?: string;
 }
 
 export function authenticateJWT(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
@@ -42,14 +43,22 @@ export function optionalAuthenticateJWT(req: AuthenticatedRequest, res: Response
   next();
 }
 
+/**
+ * Role checking with compatibility aliases:
+ * GYM_OWNER and MANAGER are treated interchangeably.
+ */
 export function requireRole(...allowedRoles: UserRole[]) {
+  const expandedRoles = new Set<UserRole>(allowedRoles);
+  if (expandedRoles.has('GYM_OWNER')) expandedRoles.add('MANAGER');
+  if (expandedRoles.has('MANAGER')) expandedRoles.add('GYM_OWNER');
+
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!expandedRoles.has(req.user.role)) {
       res.status(403).json({
         error: `Forbidden. Role '${req.user.role}' is not authorized for this operation.`
       });
@@ -60,3 +69,41 @@ export function requireRole(...allowedRoles: UserRole[]) {
   };
 }
 
+/**
+ * Resolves the tenant gymId for the request:
+ * - Super Admin can query a specific gym via query parameter or header, or view all (returns null for all).
+ * - Gym Owner / Manager / Member is strictly constrained to their own gymId.
+ */
+export function resolveTenantGymId(req: AuthenticatedRequest): string | null {
+  if (!req.user) return null;
+
+  if (req.user.role === 'SUPER_ADMIN') {
+    const override = (req.query.gymId as string) || (req.headers['x-gym-id'] as string);
+    return override ? override.trim() : null;
+  }
+
+  return req.user.gymId || req.user.facilityId || null;
+}
+
+/**
+ * Enforces that the non-super-admin user has an active gymId.
+ */
+export function requireTenantGym(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.status(401).json({ error: 'Authentication required.' });
+    return;
+  }
+
+  if (req.user.role === 'SUPER_ADMIN') {
+    return next();
+  }
+
+  const gymId = req.user.gymId || req.user.facilityId;
+  if (!gymId) {
+    res.status(403).json({ error: 'Tenant gym not found for this user account. Please contact support.' });
+    return;
+  }
+
+  req.targetGymId = gymId;
+  next();
+}

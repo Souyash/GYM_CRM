@@ -1,24 +1,33 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 import { emitMemberExited } from '../services/socket.service.js';
 
 export async function getLiveAttendance(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
+    const callerGymId = resolveTenantGymId(req);
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
+    const whereToday: any = {
+      scannedAt: {
+        gte: todayStart,
+        lte: todayEnd
+      }
+    };
+    const countWhere: any = {};
+
+    if (callerGymId) {
+      whereToday.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+      countWhere.OR = [{ gymId: callerGymId }, { facilityId: callerGymId }];
+    }
+
     const [entriesToday, totalAllTime] = await Promise.all([
       prisma.attendanceEntry.findMany({
-        where: {
-          scannedAt: {
-            gte: todayStart,
-            lte: todayEnd
-          }
-        },
+        where: whereToday,
         include: {
           user: {
             select: {
@@ -27,10 +36,17 @@ export async function getLiveAttendance(req: AuthenticatedRequest, res: Response
               email: true,
               phone: true,
               avatarUrl: true,
+              gymId: true,
               subscriptions: {
                 orderBy: { endDate: 'desc' },
                 take: 1
               }
+            }
+          },
+          gym: {
+            select: {
+              id: true,
+              name: true
             }
           },
           facility: {
@@ -42,7 +58,7 @@ export async function getLiveAttendance(req: AuthenticatedRequest, res: Response
         },
         orderBy: { scannedAt: 'desc' }
       }),
-      prisma.attendanceEntry.count()
+      prisma.attendanceEntry.count({ where: countWhere })
     ]);
 
     const now = Date.now();
@@ -103,17 +119,25 @@ export async function manualDeskCheckout(req: AuthenticatedRequest, res: Respons
   try {
     const { id } = req.params;
     const deskStaffName = req.user?.email || 'Front Desk Staff';
+    const callerGymId = resolveTenantGymId(req);
 
     const entry = await prisma.attendanceEntry.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+        user: { select: { id: true, fullName: true, email: true, avatarUrl: true, gymId: true } },
+        gym: { select: { id: true, name: true } },
         facility: { select: { id: true, name: true } }
       }
     });
 
     if (!entry) {
       res.status(404).json({ error: 'Attendance record not found.' });
+      return;
+    }
+
+    // Strict multi-tenant check
+    if (callerGymId && entry.gymId && entry.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Access denied. You can only checkout members of your own gym.' });
       return;
     }
 
@@ -135,9 +159,12 @@ export async function manualDeskCheckout(req: AuthenticatedRequest, res: Respons
       },
       include: {
         user: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+        gym: { select: { id: true, name: true } },
         facility: { select: { id: true, name: true } }
       }
     });
+
+    const gymName = updated.gym?.name || updated.facility?.name || 'IronVault';
 
     const exitPayload = {
       entryId: updated.id,
@@ -145,7 +172,7 @@ export async function manualDeskCheckout(req: AuthenticatedRequest, res: Respons
       memberName: updated.user.fullName,
       email: updated.user.email,
       avatarUrl: updated.user.avatarUrl,
-      facilityName: updated.facility.name,
+      facilityName: gymName,
       scannedAt: updated.scannedAt,
       exitedAt: updated.exitedAt,
       durationMinutes,
@@ -179,6 +206,12 @@ export async function getMyAttendanceHistory(req: AuthenticatedRequest, res: Res
     const history = await prisma.attendanceEntry.findMany({
       where: { userId },
       include: {
+        gym: {
+          select: {
+            name: true,
+            address: true
+          }
+        },
         facility: {
           select: {
             name: true,
@@ -196,4 +229,3 @@ export async function getMyAttendanceHistory(req: AuthenticatedRequest, res: Res
     res.status(500).json({ error: 'Failed to fetch personal attendance history.' });
   }
 }
-

@@ -14,16 +14,133 @@ import { sendSignupOtpEmail, sendWelcomeEmail, sendMemberLoginOtpEmail } from '.
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_2026_dev';
 
+/**
+ * Helper to generate a unique 6-digit numeric invite access code for a gym
+ */
+async function generateUniqueGymInviteCode(): Promise<string> {
+  for (let i = 0; i < 10; i++) {
+    const code = crypto.randomInt(100000, 999999).toString();
+    const existing = await prisma.gym.findUnique({ where: { inviteCode: code } });
+    if (!existing) return code;
+  }
+  return String(Date.now()).slice(-6);
+}
+
+/**
+ * 0. Register Your Business: Onboarding flow for Gym Owners (Khatabook for Gyms)
+ */
+export async function registerBusiness(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const {
+      businessName,
+      ownerName,
+      email,
+      password,
+      phone,
+      address,
+      city,
+      state
+    } = req.body;
+
+    if (!businessName || !ownerName || !email || !password) {
+      res.status(400).json({ error: 'Business name, owner name, email, and password are required.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
+    if (existingUser) {
+      res.status(409).json({ error: 'An account with this email address already exists. Please log in.' });
+      return;
+    }
+
+    if (password.length < 6) {
+      res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+      return;
+    }
+
+    const inviteCode = await generateUniqueGymInviteCode();
+    const cleanBizName = businessName.trim();
+    const slugBase = cleanBizName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug = `${slugBase || 'gym'}-${crypto.randomInt(100, 999)}`;
+    const staticQrCodeHash = `GYM_${cleanBizName.replace(/\s+/g, '_').toUpperCase()}_STATIC_${Date.now()}`;
+    const exitQrCodeHash = `GYM_${cleanBizName.replace(/\s+/g, '_').toUpperCase()}_EXIT_${Date.now()}`;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const gym = await tx.gym.create({
+        data: {
+          name: cleanBizName,
+          slug,
+          inviteCode,
+          address: (address || 'Main Gym Facility').trim(),
+          city: city?.trim() || null,
+          state: state?.trim() || null,
+          staticQrCodeHash,
+          exitQrCodeHash,
+          ownerContactEmail: cleanEmail,
+          ownerContactPhone: phone?.trim() || null,
+          geofenceRadiusMeters: 50.0
+        }
+      });
+
+      const user = await tx.user.create({
+        data: {
+          email: cleanEmail,
+          passwordHash,
+          fullName: ownerName.trim(),
+          phone: phone?.trim() || null,
+          role: 'GYM_OWNER',
+          gymId: gym.id
+        }
+      });
+
+      return { gym, user };
+    });
+
+    const tokenPayload: JwtPayload = {
+      userId: result.user.id,
+      email: result.user.email,
+      role: 'GYM_OWNER',
+      gymId: result.gym.id,
+      facilityId: result.gym.id
+    };
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({
+      success: true,
+      message: `Gym workspace '${result.gym.name}' created! Access code: ${result.gym.inviteCode}`,
+      token,
+      gym: result.gym,
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        fullName: result.user.fullName,
+        role: result.user.role,
+        phone: result.user.phone,
+        gymId: result.gym.id,
+        gym: result.gym
+      }
+    });
+  } catch (error: any) {
+    console.error('registerBusiness error:', error);
+    res.status(500).json({ error: 'Failed to register gym business. Please try again.' });
+  }
+}
+
 export async function register(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { email, password, fullName, phone, role, facilityId } = req.body;
+    const { email, password, fullName, phone, role, gymCode, gymId, facilityId } = req.body;
 
     if (!email || !password || !fullName) {
       res.status(400).json({ error: 'Email, password, and full name are required.' });
       return;
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const cleanEmail = email.toLowerCase().trim();
+    const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existingUser) {
       res.status(409).json({ error: 'A user with this email address already exists.' });
       return;
@@ -32,30 +149,45 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
     const passwordHash = await bcrypt.hash(password, 10);
     const assignedRole: UserRole = role || 'MEMBER';
 
-    // Find default facility if not passed
-    let targetFacilityId = facilityId;
-    if (!targetFacilityId) {
-      const defaultFac = await prisma.facility.findFirst();
-      if (defaultFac) targetFacilityId = defaultFac.id;
+    // Resolve tenant gym
+    let targetGymId = gymId;
+    if (gymCode) {
+      const cleanCode = gymCode.toString().trim().toUpperCase();
+      const matchedGym = await prisma.gym.findFirst({
+        where: {
+          OR: [
+            { inviteCode: cleanCode },
+            { slug: cleanCode.toLowerCase() },
+            { id: cleanCode }
+          ]
+        }
+      });
+      if (matchedGym) {
+        targetGymId = matchedGym.id;
+      } else {
+        res.status(400).json({ error: `Invalid gym access code '${cleanCode}'. Please verify with your gym.` });
+        return;
+      }
+    }
+
+    if (!targetGymId) {
+      const defaultGym = await prisma.gym.findFirst();
+      if (defaultGym) targetGymId = defaultGym.id;
     }
 
     const user = await prisma.user.create({
       data: {
-        email: email.toLowerCase(),
+        email: cleanEmail,
         passwordHash,
-        fullName,
+        fullName: fullName.trim(),
         phone: phone || null,
         role: assignedRole,
-        facilityId: targetFacilityId || null
+        gymId: targetGymId || null,
+        facilityId: facilityId || targetGymId || null
       },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        phone: true,
-        facilityId: true,
-        createdAt: true
+      include: {
+        gym: true,
+        facility: true
       }
     });
 
@@ -66,6 +198,7 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
       await prisma.subscription.create({
         data: {
           userId: user.id,
+          gymId: targetGymId || null,
           planName: 'Monthly Unlimited Pro Pass',
           startDate,
           endDate,
@@ -80,6 +213,7 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
       userId: user.id,
       email: user.email,
       role: user.role as UserRole,
+      gymId: user.gymId,
       facilityId: user.facilityId
     };
 
@@ -87,7 +221,17 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
 
     res.status(201).json({
       message: 'Account created successfully. Welcome to IronVault!',
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        phone: user.phone,
+        gymId: user.gymId,
+        gym: user.gym,
+        facilityId: user.facilityId,
+        createdAt: user.createdAt
+      },
       token
     });
   } catch (error: any) {
@@ -100,7 +244,6 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
   try {
     const { email, password, device_id } = req.body;
     const incomingDeviceId = (req.deviceId || device_id || req.headers['x-device-id'] || '').toString().trim();
-    const userAgent = req.headers['user-agent'] || 'Unknown Client';
 
     if (!email || !password) {
       res.status(400).json({ error: 'Email and password are required.' });
@@ -109,7 +252,7 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
 
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      include: { facility: true }
+      include: { gym: true, facility: true }
     });
 
     if (!user) {
@@ -132,10 +275,13 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
       return;
     }
 
+    const effectiveGymId = user.gymId || user.facilityId;
+
     const tokenPayload: JwtPayload = {
       userId: user.id,
       email: user.email,
       role: user.role as UserRole,
+      gymId: effectiveGymId,
       facilityId: user.facilityId
     };
 
@@ -150,6 +296,8 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
         fullName: user.fullName,
         role: user.role,
         phone: user.phone,
+        gymId: user.gymId,
+        gym: user.gym,
         facilityId: user.facilityId,
         facility: user.facility,
         deviceStatus: user.deviceStatus,
@@ -172,6 +320,7 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
       include: {
+        gym: true,
         facility: true,
         subscriptions: {
           orderBy: { createdAt: 'desc' },
@@ -193,6 +342,8 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
         fullName: user.fullName,
         role: user.role,
         phone: user.phone,
+        gymId: user.gymId,
+        gym: user.gym,
         facilityId: user.facilityId,
         facility: user.facility,
         boundDeviceId: user.boundDeviceId,
@@ -214,7 +365,7 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
  */
 export async function sendSignupOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { email, password, fullName, phone, role, facilityId } = req.body;
+    const { email, password, fullName, phone, role, gymCode, gymId, facilityId } = req.body;
 
     if (!email || !password || !fullName) {
       res.status(400).json({ error: 'Email, password, and full name are required.' });
@@ -240,23 +391,44 @@ export async function sendSignupOtp(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
+    // Resolve tenant gym
+    let targetGymId = gymId;
+    if (gymCode) {
+      const cleanCode = gymCode.toString().trim().toUpperCase();
+      const matchedGym = await prisma.gym.findFirst({
+        where: {
+          OR: [
+            { inviteCode: cleanCode },
+            { slug: cleanCode.toLowerCase() },
+            { id: cleanCode }
+          ]
+        }
+      });
+      if (matchedGym) {
+        targetGymId = matchedGym.id;
+      } else {
+        res.status(400).json({ error: `Invalid gym access code '${cleanCode}'. Please verify with your gym.` });
+        return;
+      }
+    }
+
+    if (!targetGymId) {
+      const defaultGym = await prisma.gym.findFirst();
+      if (defaultGym) targetGymId = defaultGym.id;
+    }
+
     // Generate 6-digit numeric OTP
     const otpCode = crypto.randomInt(100000, 999999).toString();
     const passwordHash = await bcrypt.hash(password, 10);
     const assignedRole: UserRole = role || 'MEMBER';
-
-    let targetFacilityId = facilityId;
-    if (!targetFacilityId) {
-      const defaultFac = await prisma.facility.findFirst();
-      if (defaultFac) targetFacilityId = defaultFac.id;
-    }
 
     const payload = JSON.stringify({
       fullName: fullName.trim(),
       passwordHash,
       phone: phone?.trim() || null,
       role: assignedRole,
-      facilityId: targetFacilityId || null
+      gymId: targetGymId || null,
+      facilityId: facilityId || targetGymId || null
     });
 
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
@@ -354,6 +526,8 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
       return;
     }
 
+    const targetGymId = parsed.gymId || parsed.facilityId || null;
+
     const user = await prisma.user.create({
       data: {
         email: cleanEmail,
@@ -361,16 +535,12 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
         fullName: parsed.fullName,
         phone: parsed.phone,
         role: parsed.role,
-        facilityId: parsed.facilityId
+        gymId: targetGymId,
+        facilityId: parsed.facilityId || targetGymId
       },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        phone: true,
-        facilityId: true,
-        createdAt: true
+      include: {
+        gym: true,
+        facility: true
       }
     });
 
@@ -383,6 +553,7 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
       await prisma.subscription.create({
         data: {
           userId: user.id,
+          gymId: targetGymId,
           planName: passName,
           startDate,
           endDate,
@@ -414,6 +585,7 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
       userId: user.id,
       email: user.email,
       role: user.role as UserRole,
+      gymId: user.gymId,
       facilityId: user.facilityId
     };
 
@@ -421,7 +593,17 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
 
     res.status(201).json({
       message: 'Email verified successfully! Welcome to IronVault.',
-      user,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        phone: user.phone,
+        gymId: user.gymId,
+        gym: user.gym,
+        facilityId: user.facilityId,
+        createdAt: user.createdAt
+      },
       token
     });
   } catch (error: any) {
@@ -604,7 +786,7 @@ export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Respo
     // Success! Find user and log in
     const user = await prisma.user.findUnique({
       where: { email: cleanEmail },
-      include: { facility: true }
+      include: { gym: true, facility: true }
     });
 
     if (!user) {
@@ -616,10 +798,13 @@ export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Respo
     // Delete OTP record
     await prisma.otpVerification.delete({ where: { email: cleanEmail } });
 
+    const effectiveGymId = user.gymId || user.facilityId;
+
     const tokenPayload: JwtPayload = {
       userId: user.id,
       email: user.email,
       role: user.role as UserRole,
+      gymId: effectiveGymId,
       facilityId: user.facilityId
     };
 
@@ -634,6 +819,8 @@ export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Respo
         fullName: user.fullName,
         role: user.role,
         phone: user.phone,
+        gymId: user.gymId,
+        gym: user.gym,
         facilityId: user.facilityId,
         facility: user.facility,
         deviceStatus: user.deviceStatus,
@@ -645,5 +832,3 @@ export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Respo
     res.status(500).json({ error: 'Failed to verify login code.' });
   }
 }
-
-

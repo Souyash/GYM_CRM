@@ -120,12 +120,23 @@ export async function apiRequest<T = any>(
 
 // API methods
 export const api = {
-  // Auth
+  // Auth & Tenants
   login: (credentials: any) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (payload: any) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
-  sendSignupOtp: (payload: { email: string; password: string; fullName: string; phone?: string; role?: string }) =>
+  registerBusiness: (payload: {
+    gymName: string;
+    ownerName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    address: string;
+    city?: string;
+    state?: string;
+    geofenceRadiusMeters?: number;
+  }) => apiRequest('/auth/register-business', { method: 'POST', body: JSON.stringify(payload) }),
+  sendSignupOtp: (payload: { email: string; password: string; fullName: string; phone?: string; role?: string; gymCode?: string; gymId?: string }) =>
     apiRequest('/auth/send-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
-  verifySignupOtp: (payload: { email: string; otp: string; device_id?: string }) =>
+  verifySignupOtp: (payload: { email: string; otp: string; device_id?: string; gymCode?: string; gymId?: string }) =>
     apiRequest('/auth/verify-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
   resendSignupOtp: (payload: { email: string }) =>
     apiRequest('/auth/resend-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
@@ -134,6 +145,13 @@ export const api = {
   verifyMemberLoginOtp: (payload: { email: string; otp: string; device_id?: string }) =>
     apiRequest('/auth/verify-login-otp', { method: 'POST', body: JSON.stringify(payload) }),
   getMe: () => apiRequest('/auth/me'),
+
+  // Multi-Tenant Gym Management
+  lookupGymCode: (code: string) => apiRequest(`/gyms/lookup/${code}`),
+  getMyGym: () => apiRequest('/gyms/me'),
+  getAllGyms: () => apiRequest('/gyms'),
+  getGymById: (id: string) => apiRequest(`/gyms/${id}`),
+  updateGym: (id: string, payload: any) => apiRequest(`/gyms/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
 
   // Facilities
   getFacilities: () => apiRequest('/facilities'),

@@ -1,4 +1,4 @@
-export type UserRole = 'SUPER_ADMIN' | 'MANAGER' | 'MEMBER';
+export type UserRole = 'SUPER_ADMIN' | 'GYM_OWNER' | 'MANAGER' | 'MEMBER';
 export type DeviceStatus = 'NORMAL' | 'FLAGGED_MULTI_DEVICE';
 export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT';
 export type AttemptType =
@@ -8,8 +8,36 @@ export type AttemptType =
   | 'MULTI_DEVICE_BLOCKED'
   | 'ANTI_PASSBACK_LOCKED';
 
+export interface Gym {
+  id: string;
+  name: string;
+  slug?: string;
+  inviteCode: string;
+  address: string;
+  city?: string;
+  state?: string;
+  latitude: number;
+  longitude: number;
+  geofenceRadiusMeters: number;
+  staticQrCodeHash: string;
+  exitQrCodeHash?: string;
+  ownerContactEmail?: string;
+  ownerContactPhone?: string;
+  logoUrl?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: {
+    users?: number;
+    subscriptions?: number;
+    attendanceEntries?: number;
+    failedAccessLogs?: number;
+  };
+}
+
 export interface Facility {
   id: string;
+  gymId?: string;
   name: string;
   address: string;
   latitude: number;
@@ -23,6 +51,7 @@ export interface Facility {
 
 export interface Subscription {
   id: string;
+  gymId?: string;
   userId: string;
   planName: string;
   price: number;
@@ -39,6 +68,8 @@ export interface User {
   fullName: string;
   role: UserRole;
   phone?: string;
+  gymId?: string;
+  gym?: Gym;
   facilityId?: string;
   facility?: Facility;
   boundDeviceId?: string;
@@ -66,6 +97,7 @@ export interface LiveAttendanceEntry {
 
 export interface FailedAccessLog {
   id: string;
+  gymId?: string;
   timestamp: string;
   userId?: string;
   user?: {
@@ -88,6 +120,7 @@ export interface FailedAccessLog {
 
 export interface DeviceChangeRequest {
   id: string;
+  gymId?: string;
   userId: string;
   user: {
     id: string;
@@ -124,6 +157,7 @@ export interface ThreatStats {
 
 export interface MemberHealthProfile {
   id: string;
+  gymId?: string;
   userId: string;
   dateOfBirth?: string;
   age?: number;
@@ -147,7 +181,7 @@ export interface MemberHealthProfile {
   chestCm?: number;
   hipCm?: number;
   hasHealthCondition: boolean;
-  healthConditions?: string; // JSON string or comma-separated
+  healthConditions?: string;
   otherConditionText?: string;
   isTakingMedication: boolean;
   medicationDetails?: string;
@@ -201,5 +235,3 @@ export interface HealthMemberRecord {
   subscription?: Subscription;
   healthProfile?: MemberHealthProfile;
 }
-
-
