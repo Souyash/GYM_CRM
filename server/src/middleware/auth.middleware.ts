@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import prisma from '../utils/prisma.js';
 import { JwtPayload, UserRole } from '../types/index.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_2026_dev';
@@ -106,4 +107,47 @@ export function requireTenantGym(req: AuthenticatedRequest, res: Response, next:
 
   req.targetGymId = gymId;
   next();
+}
+
+/**
+ * Safely resolves a valid Facility ID to prevent Foreign Key constraint violations.
+ * If gymId is provided, looks up if a facility exists with that ID, or associated with that gymId.
+ * If no facility exists, returns null (since facilityId is optional in the schema).
+ */
+export async function resolveFacilityId(gymIdOrFacilityId?: string | null): Promise<string | null> {
+  if (!gymIdOrFacilityId) return null;
+  const cleanId = gymIdOrFacilityId.trim();
+  if (!cleanId) return null;
+
+  try {
+    const directFacility = await prisma.facility.findUnique({
+      where: { id: cleanId },
+      select: { id: true }
+    });
+    if (directFacility) return directFacility.id;
+
+    const gymFacility = await prisma.facility.findFirst({
+      where: { gymId: cleanId },
+      select: { id: true }
+    });
+    return gymFacility ? gymFacility.id : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * Safely validates deskBilledById to ensure foreign key constraint is satisfied.
+ */
+export async function resolveValidBilledById(userId?: string | null): Promise<string | null> {
+  if (!userId) return null;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId.trim() },
+      select: { id: true }
+    });
+    return user ? user.id : null;
+  } catch {
+    return null;
+  }
 }

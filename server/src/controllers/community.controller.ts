@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId, resolveFacilityId } from '../middleware/auth.middleware.js';
 import {
   emitNewCommunityPost,
   emitDeleteCommunityPost,
@@ -114,12 +114,13 @@ export async function createCommunityPost(req: AuthenticatedRequest, res: Respon
     }
 
     const isStaffOrAdmin = userRole === 'SUPER_ADMIN' || userRole === 'GYM_OWNER' || userRole === 'MANAGER';
+    const resolvedFacilityId = await resolveFacilityId(callerGymId);
 
     const post = await prisma.communityPost.create({
       data: {
         authorId: userId,
         gymId: callerGymId,
-        facilityId: callerGymId,
+        facilityId: resolvedFacilityId,
         content: content.trim(),
         tag: tag || (isStaffOrAdmin ? 'Announcement' : 'General'),
         imageUrl: imageUrl || null,
@@ -508,7 +509,8 @@ export async function createGroupClass(req: AuthenticatedRequest, res: Response)
       return;
     }
 
-    const targetGymId = callerGymId || gymId || facilityId || req.user?.facilityId || null;
+    const targetGymId = callerGymId || gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(facilityId || req.user?.facilityId || targetGymId);
 
     const newClass = await prisma.groupClass.create({
       data: {
@@ -520,7 +522,7 @@ export async function createGroupClass(req: AuthenticatedRequest, res: Response)
         maxSeats: maxSeats ? Math.max(1, Number(maxSeats)) : 16,
         intensity: intensity ? intensity.trim() : 'Moderate',
         gymId: targetGymId,
-        facilityId: targetGymId,
+        facilityId: resolvedFacilityId,
         createdById: userId
       },
       include: {

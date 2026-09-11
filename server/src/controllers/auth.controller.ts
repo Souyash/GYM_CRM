@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveFacilityId } from '../middleware/auth.middleware.js';
 import { JwtPayload, UserRole } from '../types/index.js';
 import {
   emitMultiDeviceAlert,
@@ -195,6 +195,8 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
       if (defaultGym) targetGymId = defaultGym.id;
     }
 
+    const resolvedFacilityId = await resolveFacilityId(facilityId || targetGymId);
+
     const user = await prisma.user.create({
       data: {
         email: cleanEmail,
@@ -203,7 +205,7 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
         phone: phone || null,
         role: assignedRole,
         gymId: targetGymId || null,
-        facilityId: facilityId || targetGymId || null
+        facilityId: resolvedFacilityId
       },
       include: {
         gym: true,
@@ -441,6 +443,7 @@ export async function sendSignupOtp(req: AuthenticatedRequest, res: Response): P
     const otpCode = crypto.randomInt(100000, 999999).toString();
     const passwordHash = await bcrypt.hash(password, 10);
     const assignedRole: UserRole = role || 'MEMBER';
+    const resolvedFacilityId = await resolveFacilityId(facilityId || targetGymId);
 
     const payload = JSON.stringify({
       fullName: fullName.trim(),
@@ -448,7 +451,7 @@ export async function sendSignupOtp(req: AuthenticatedRequest, res: Response): P
       phone: phone?.trim() || null,
       role: assignedRole,
       gymId: targetGymId || null,
-      facilityId: facilityId || targetGymId || null
+      facilityId: resolvedFacilityId
     });
 
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
@@ -546,7 +549,8 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    const targetGymId = parsed.gymId || parsed.facilityId || null;
+    const targetGymId = parsed.gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(parsed.facilityId || targetGymId);
 
     const user = await prisma.user.create({
       data: {
@@ -556,7 +560,7 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
         phone: parsed.phone,
         role: parsed.role,
         gymId: targetGymId,
-        facilityId: parsed.facilityId || targetGymId
+        facilityId: resolvedFacilityId
       },
       include: {
         gym: true,

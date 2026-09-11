@@ -1,7 +1,12 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
+import {
+  AuthenticatedRequest,
+  resolveTenantGymId,
+  resolveFacilityId,
+  resolveValidBilledById
+} from '../middleware/auth.middleware.js';
 import { sendDeskOnboardOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
 
 const STANDARD_PLANS = [
@@ -47,7 +52,8 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       return;
     }
 
-    const targetGymId = resolveTenantGymId(req) || gymId || facilityId || null;
+    const targetGymId = resolveTenantGymId(req) || gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(facilityId || targetGymId);
 
     // Generate 6-digit cryptographic OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -63,7 +69,7 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       price: Number(price),
       paymentMethod,
       gymId: targetGymId,
-      facilityId: targetGymId,
+      facilityId: resolvedFacilityId,
       deskBilledById: req.user?.userId
     });
 
@@ -172,7 +178,9 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
     const startDate = new Date();
     const duration = data.durationDays || 30;
     const endDate = new Date(startDate.getTime() + Number(duration) * 24 * 60 * 60 * 1000);
-    const targetGymId = resolveTenantGymId(req) || data.gymId || data.facilityId || null;
+    const targetGymId = resolveTenantGymId(req) || data.gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(data.facilityId || targetGymId);
+    const validBilledById = await resolveValidBilledById(managerId || data.deskBilledById);
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -183,7 +191,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
           passwordHash,
           role: data.role || 'MEMBER',
           gymId: targetGymId,
-          facilityId: targetGymId,
+          facilityId: resolvedFacilityId,
           deviceStatus: 'NORMAL'
         }
       });
@@ -199,7 +207,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
             startDate,
             endDate,
             status: 'ACTIVE',
-            deskBilledById: managerId || data.deskBilledById,
+            deskBilledById: validBilledById,
             paymentMethod: data.paymentMethod || 'CASH'
           }
         });
@@ -237,7 +245,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
     });
   } catch (error: any) {
     console.error('verifyOnboardOtp error:', error);
-    res.status(500).json({ error: 'Failed to verify OTP and enroll member.' });
+    res.status(500).json({ error: error?.message || 'Failed to verify OTP and enroll member.' });
   }
 }
 
@@ -270,7 +278,9 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const targetGymId = resolveTenantGymId(req) || gymId || facilityId || null;
+    const targetGymId = resolveTenantGymId(req) || gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(facilityId || targetGymId);
+    const validBilledById = await resolveValidBilledById(managerId);
 
     const plainPassword = password || (role === 'MEMBER' ? 'MemberPass123!' : 'StaffPass123!');
     const passwordHash = await bcrypt.hash(plainPassword, 10);
@@ -286,7 +296,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
           passwordHash,
           role: role.toUpperCase(),
           gymId: targetGymId,
-          facilityId: targetGymId,
+          facilityId: resolvedFacilityId,
           deviceStatus: 'NORMAL'
         }
       });
@@ -302,7 +312,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
             startDate,
             endDate,
             status: 'ACTIVE',
-            deskBilledById: managerId,
+            deskBilledById: validBilledById,
             paymentMethod
           }
         });
@@ -328,7 +338,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
     });
   } catch (error: any) {
     console.error('onboardMember error:', error);
-    res.status(500).json({ error: 'Failed to onboard member.' });
+    res.status(500).json({ error: error?.message || 'Failed to onboard member.' });
   }
 }
 
@@ -356,6 +366,8 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
     }
 
     const targetGymId = callerGymId || user.gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(user.facilityId || targetGymId);
+    const validBilledById = await resolveValidBilledById(managerId);
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + Number(durationDays) * 24 * 60 * 60 * 1000);
 
@@ -368,7 +380,7 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
         startDate,
         endDate,
         status: 'ACTIVE',
-        deskBilledById: managerId,
+        deskBilledById: validBilledById,
         paymentMethod
       }
     });
@@ -381,7 +393,7 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
     });
   } catch (error: any) {
     console.error('deskBilling error:', error);
-    res.status(500).json({ error: 'Failed to process desk billing.' });
+    res.status(500).json({ error: error?.message || 'Failed to process desk billing.' });
   }
 }
 

@@ -1,7 +1,12 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
+import {
+  AuthenticatedRequest,
+  resolveTenantGymId,
+  resolveFacilityId,
+  resolveValidBilledById
+} from '../middleware/auth.middleware.js';
 import { sendDeskOnboardOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
 
 /**
@@ -337,7 +342,9 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
     const calculatedBmi = computeBmi(parsedWeight, parsedHeight);
 
     // Resolve tenant gym
-    const targetGymId = resolveTenantGymId(req) || req.body.gymId || requestedFacilityId || null;
+    const targetGymId = resolveTenantGymId(req) || req.body.gymId || null;
+    const resolvedFacilityId = await resolveFacilityId(requestedFacilityId || targetGymId);
+    const validBilledById = await resolveValidBilledById(req.user?.userId);
 
     // 1. Create or update user
     if (!user) {
@@ -350,7 +357,7 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
           passwordHash,
           role: 'MEMBER',
           gymId: targetGymId,
-          facilityId: targetGymId,
+          facilityId: resolvedFacilityId,
           avatarUrl: profilePhoto || null,
           deviceStatus: 'NORMAL'
         }
@@ -370,7 +377,7 @@ export async function onboardMemberWithHealth(req: AuthenticatedRequest, res: Re
         endDate,
         status: 'ACTIVE',
         paymentMethod: paymentMethod || 'CASH',
-        deskBilledById: req.user?.userId || null
+        deskBilledById: validBilledById
       }
     });
 
