@@ -13,7 +13,8 @@ import {
   CheckCircle,
   HelpCircle,
   MessageSquare,
-  Globe
+  Globe,
+  HeartPulse
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -151,6 +152,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       Front Desk Billing
+                    </button>
+                    <button
+                      onClick={() => setCurrentTab('health_intelligence')}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                        currentTab === 'health_intelligence'
+                          ? 'bg-amber-500 text-black font-black shadow-sm'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      <HeartPulse className="w-3.5 h-3.5 text-amber-500" />
+                      Health & Leads
                     </button>
                     <button
                       onClick={() => setCurrentTab('community_feed')}

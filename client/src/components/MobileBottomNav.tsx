@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, QrCode, Calendar, User, Shield } from 'lucide-react';
+import { MessageSquare, QrCode, Calendar, User, Shield, HeartPulse } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface MobileBottomNavProps {
@@ -96,6 +96,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             >
               <Calendar className="w-5 h-5" />
               <span className="text-[10px]">Billing</span>
+            </button>
+            <button
+              onClick={() => setCurrentTab('health_intelligence')}
+              className={`flex flex-col items-center gap-1 p-1.5 transition ${
+                currentTab === 'health_intelligence'
+                  ? 'text-amber-500 font-bold'
+                  : 'text-slate-500 dark:text-zinc-400 font-medium'
+              }`}
+            >
+              <HeartPulse className="w-5 h-5" />
+              <span className="text-[10px]">Health</span>
             </button>
           </>
         )}

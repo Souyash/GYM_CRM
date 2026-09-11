@@ -67,6 +67,7 @@ model User {
   postComments           PostComment[]
   createdGroupClasses    GroupClass[]          @relation("CreatedGroupClasses")
   classBookings          ClassBooking[]
+  healthProfile          MemberHealthProfile?
 }
 
 // -------------------------------------------------------------
@@ -283,6 +284,67 @@ model OtpVerification {
   updatedAt   DateTime @updatedAt
 
   @@index([email])
+}
+
+// -------------------------------------------------------------
+// 10. Member Health Profile & Admission Assessment
+// -------------------------------------------------------------
+model MemberHealthProfile {
+  id                        String    @id @default(uuid())
+  userId                    String    @unique
+  user                      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Form 1: Contact, Identity & Address
+  dateOfBirth               DateTime?
+  age                       Int?
+  gender                    String?   // Male, Female, Other
+  profilePhoto              String?   // Base64 or URL
+  houseFlatStreet           String?
+  localityArea              String?
+  city                      String?
+  state                     String?
+  pinCode                   String?
+  isPermanentSame           Boolean   @default(true)
+
+  // Marketing & Referral Tracking
+  referralSource            String?   // Social Media, Walk-in, Friend / Referral, Google, Flyer, Other
+  referralDetails           String?   // Referring member name or mobile
+
+  // Form 2: A. Current Body Data
+  currentWeightKg           Float?
+  heightCm                  Float?
+  bmi                       Float?
+  bodyFatPercentage         Float?
+  muscleMassKg              Float?
+  waistCm                   Float?
+  chestCm                   Float?
+  hipCm                     Float?
+
+  // Form 2: B. Health Condition Selector & Medical History
+  hasHealthCondition        Boolean   @default(false)
+  healthConditions          String?   // JSON string array e.g. ["Thyroid", "Diabetes"]
+  otherConditionText        String?
+  isTakingMedication        Boolean   @default(false)
+  medicationDetails         String?
+  advisedAvoidExercise      Boolean   @default(false)
+  avoidExerciseDetails      String?
+  hasMajorSurgery           Boolean   @default(false)
+  surgeryDetails            String?
+  hasGymInjury              Boolean   @default(false)
+  injuryDetails             String?
+
+  // Form 2: C. Fitness Goals & Target Timeline
+  primaryGoal               String?   // Weight Loss, Body Transformation, Fat Loss, Improve Stamina, Muscle Gain, Sports Performance, Strength Building, Medical / Lifestyle Fitness, General Fitness, Stress Management, Other
+  specificGoal              String?   // "e.g. I want to lose 5 KG"
+  targetWeightKg            Float?
+  targetTimeline            String?   // "1 Month", "2 Months", "3 Months", "6 Months", "1 Year"
+
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  @@index([primaryGoal])
+  @@index([referralSource])
+  @@index([city])
 }
 
 

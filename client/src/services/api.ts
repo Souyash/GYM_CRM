@@ -205,7 +205,44 @@ export const api = {
   toggleBookClass: (id: string) => apiRequest(`/community/classes/${id}/book`, { method: 'POST' }),
 
   // Live Turnstile-driven Leaderboard
-  getLiveLeaderboard: () => apiRequest('/community/leaderboard')
+  getLiveLeaderboard: () => apiRequest('/community/leaderboard'),
+
+  // Health Intelligence & Marketing Leads Hub
+  getHealthSummary: () => apiRequest('/health-intelligence/summary'),
+  getHealthMembers: (params?: { search?: string; goal?: string; referralSource?: string; city?: string; condition?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.append('search', params.search);
+    if (params?.goal) query.append('goal', params.goal);
+    if (params?.referralSource) query.append('referralSource', params.referralSource);
+    if (params?.city) query.append('city', params.city);
+    if (params?.condition) query.append('condition', params.condition);
+    const queryString = query.toString();
+    return apiRequest(`/health-intelligence/members${queryString ? `?${queryString}` : ''}`);
+  },
+  onboardWithHealth: (payload: any) =>
+    apiRequest('/health-intelligence/onboard', { method: 'POST', body: JSON.stringify(payload) }),
+  getMemberHealth: (userId: string) => apiRequest(`/health-intelligence/profile/${userId}`),
+  getMyHealthProfile: () => apiRequest('/health-intelligence/me'),
+  updateMyHealthProfile: (payload: any) =>
+    apiRequest('/health-intelligence/me', { method: 'PUT', body: JSON.stringify(payload) }),
+  downloadHealthCsv: async () => {
+    const token = localStorage.getItem('ironvault_jwt_token');
+    const apiBase = getApiBase();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${apiBase}/health-intelligence/export-csv`, { headers });
+    if (!res.ok) throw new Error('Failed to export marketing CSV data');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `IronVault_Member_Marketing_Data_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
 };
+
 
 

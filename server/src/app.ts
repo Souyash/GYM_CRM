@@ -9,6 +9,7 @@ import deviceRoutes from './routes/device.routes.js';
 import attendanceRoutes from './routes/attendance.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import communityRoutes from './routes/community.routes.js';
+import healthIntelligenceRoutes from './routes/healthIntelligence.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -32,6 +33,7 @@ export function createApp(): Express {
   app.use('/api/attendance', attendanceRoutes);
   app.use('/api/webhooks', webhookRoutes);
   app.use('/api/community', communityRoutes);
+  app.use('/api/health-intelligence', healthIntelligenceRoutes);
 
   // Health check route
   app.get('/api/health', (req, res) => {

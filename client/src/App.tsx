@@ -14,6 +14,8 @@ import { AccountCreationModal } from './components/AccountCreationModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { CommunityFeed } from './components/CommunityFeed';
 import { LandingPageView } from './views/LandingPageView';
+import { HealthIntelligenceView } from './views/HealthIntelligenceView';
+import { MemberOnboardingModal } from './components/MemberOnboardingModal';
 import {
   Users,
   CreditCard,
@@ -21,7 +23,8 @@ import {
   Shield,
   Activity,
   Plus,
-  MessageSquare
+  MessageSquare,
+  HeartPulse
 } from 'lucide-react';
 import { api } from './services/api';
 
@@ -32,6 +35,7 @@ export const AppContent: React.FC = () => {
   const [scannerInitialMode, setScannerInitialMode] = useState<'ENTER' | 'EXIT'>('ENTER');
   const [isBillingModalOpen, setIsBillingModalOpen] = useState<boolean>(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
+  const [isOnboardHealthModalOpen, setIsOnboardHealthModalOpen] = useState<boolean>(false);
   const [billingMode, setBillingMode] = useState<'ONBOARD' | 'BILL'>('ONBOARD');
 
   // Public Landing Page & Auth Modal Navigation
@@ -179,6 +183,15 @@ export const AppContent: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
+                    setIsOnboardHealthModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-black text-xs flex items-center gap-1.5 shadow transition active:scale-95"
+                >
+                  <HeartPulse className="w-4 h-4" />
+                  Onboard with Health Sheet
+                </button>
+                <button
+                  onClick={() => {
                     setBillingMode('BILL');
                     setIsBillingModalOpen(true);
                   }}
@@ -293,6 +306,13 @@ export const AppContent: React.FC = () => {
           </div>
         )}
 
+        {/* Health Intelligence & Leads Marketing Hub */}
+        {currentTab === 'health_intelligence' && (
+          <div className="max-w-6xl mx-auto">
+            <HealthIntelligenceView />
+          </div>
+        )}
+
         {/* Member Profile */}
         {currentTab === 'member_profile' && (
           <MemberProfile
@@ -327,6 +347,14 @@ export const AppContent: React.FC = () => {
       <AccountCreationModal
         isOpen={isAccountModalOpen}
         onClose={() => setIsAccountModalOpen(false)}
+        onSuccess={() => {
+          loadMembers();
+        }}
+      />
+
+      <MemberOnboardingModal
+        isOpen={isOnboardHealthModalOpen}
+        onClose={() => setIsOnboardHealthModalOpen(false)}
         onSuccess={() => {
           loadMembers();
         }}
