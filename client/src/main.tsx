@@ -4,6 +4,16 @@ import { AuthProvider } from './context/AuthContext';
 import { AppContent } from './App';
 import './index.css';
 
+// Detect iOS (iPhone/iPad/Xcode Simulator/Capacitor) for notch & Dynamic Island padding
+if (typeof window !== 'undefined') {
+  const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (window.location.protocol === 'capacitor:') ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isApple) {
+    document.documentElement.classList.add('is-ios');
+  }
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AuthProvider>

@@ -111,3 +111,66 @@
     color: black !important;
   }
 }
+
+/* ==========================================================================
+   iPhone Notch & Dynamic Island Safe Area Optimization
+   Accommodates 44px (Notch) & 54px-59px (Dynamic Island) Status Bars
+   ========================================================================== */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Safe Padding Utilities */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+}
+
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+}
+
+.pl-safe {
+  padding-left: max(env(safe-area-inset-left, 0px), 0px);
+}
+
+.pr-safe {
+  padding-right: max(env(safe-area-inset-right, 0px), 0px);
+}
+
+/* Dedicated Notch-Proof Navbar Styling */
+.navbar-notch-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Automatic enforcement for Native iOS & Safari Simulator */
+.is-ios .navbar-notch-safe {
+  padding-top: max(env(safe-area-inset-top, 44px), 44px);
+}
+
+.is-ios .pt-safe {
+  padding-top: max(env(safe-area-inset-top, 44px), 44px);
+}
+
+.is-ios .pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 24px), 24px);
+}
+
+.bottom-notch-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.is-ios .bottom-notch-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 24px), 24px);
+}
+
+.top-notch-safe {
+  top: max(env(safe-area-inset-top, 1.5rem), 1.5rem);
+}
+
+.is-ios .top-notch-safe {
+  top: max(env(safe-area-inset-top, 50px), 50px);
+}
+

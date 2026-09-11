@@ -551,7 +551,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 dark:bg-black/85 backdrop-blur-md animate-fade-in font-poppins">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 dark:bg-black/85 backdrop-blur-md animate-fade-in font-poppins pt-safe pb-safe">
       <div className="app-card w-full max-w-md overflow-hidden shadow-2xl flex flex-col relative border border-slate-200 dark:border-zinc-800">
         {/* Hidden Canvas and File Input for scanning */}
         <canvas ref={canvasRef} className="hidden" />

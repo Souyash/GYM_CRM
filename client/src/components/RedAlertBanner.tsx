@@ -85,7 +85,7 @@ export const RedAlertBanner: React.FC = () => {
   const badge = getBadge(current.attemptType);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 p-4 transition-all duration-300 font-poppins">
+    <div className="fixed top-0 left-0 right-0 z-50 p-4 transition-all duration-300 font-poppins navbar-notch-safe">
       <div className="max-w-4xl mx-auto app-card shadow-2xl rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-2 border-emerald-500/40 relative overflow-hidden">
         <div className="flex items-start gap-3.5 relative z-10">
           <div className="p-2.5 bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/30 mt-0.5 md:mt-0">

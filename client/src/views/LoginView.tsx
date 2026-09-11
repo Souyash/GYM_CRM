@@ -484,9 +484,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-poppins">
+    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-poppins pt-safe pb-safe">
       {/* Top Bar Navigation */}
-      <div className="absolute top-6 left-6 z-20">
+      <div className="absolute top-notch-safe left-4 sm:left-6 z-20">
         {onBackToWebsite && (
           <button
             onClick={onBackToWebsite}
@@ -499,7 +499,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
       </div>
 
       {/* Theme Toggle Button */}
-      <div className="absolute top-6 right-6 z-20">
+      <div className="absolute top-notch-safe right-4 sm:right-6 z-20">
         <button
           onClick={toggleTheme}
           className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-slate-200 shadow-sm transition active:scale-95"

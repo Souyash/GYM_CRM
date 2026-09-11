@@ -18,7 +18,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   if (!user) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-zinc-800 px-3 py-2 pb-safe">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-zinc-800 px-3 py-2 bottom-notch-safe">
       <div className="flex items-center justify-around max-w-md mx-auto">
         {user.role === 'MEMBER' ? (
           <>

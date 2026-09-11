@@ -137,7 +137,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* ========================================================================= */}
       {/* 1. PUBLIC BRAND NAVIGATION BAR                                            */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-[#070709]/80 border-b border-slate-200/80 dark:border-zinc-800/80 transition-colors">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-[#070709]/80 border-b border-slate-200/80 dark:border-zinc-800/80 transition-colors navbar-notch-safe">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
           <div
@@ -1093,7 +1093,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* ========================================================================= */}
       {/* 9. MOBILE STICKY FLOATING BOTTOM BAR (For Mobile Screens)                 */}
       {/* ========================================================================= */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-black/95 backdrop-blur-lg border-t border-zinc-800 flex items-center gap-2">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bottom-notch-safe bg-black/95 backdrop-blur-lg border-t border-zinc-800 flex items-center gap-2">
         <button
           type="button"
           onClick={handleInstallClick}
