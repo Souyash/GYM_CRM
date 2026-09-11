@@ -104,8 +104,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
       const adminParam = params.get('admin') || params.get('role');
       if (adminParam === 'super' || adminParam === 'true' || adminParam === 'admin') {
         setActiveTab('STAFF_LOGIN');
-        setStaffEmail('admin@ironvaultgym.com');
-        setStaffPassword('Admin@12345');
+        setStaffEmail('superadmin@ironvault.com');
+        setStaffPassword('superadmin123');
       }
     }
   }, []);
@@ -465,7 +465,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
   };
 
-  const fillDemoLogin = (email: string, pass = 'Admin@12345') => {
+  const fillDemoLogin = (email: string, pass = 'superadmin123') => {
     if (email.includes('admin')) {
       setActiveTab('STAFF_LOGIN');
       setStaffEmail(email);
@@ -1460,79 +1460,38 @@ export const LoginView: React.FC<LoginViewProps> = ({
       )}
     </div>
 
-        {/* Quick Demo Switcher Across Multi-Tenant Gyms */}
+        {/* Single Super Admin Master Credentials */}
         <div className="p-4 rounded-3xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2.5">
             <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Multi-Tenant Test Accounts</span>
+              <Shield className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Platform Super Admin</span>
             </span>
-            <span className="text-[10px] bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 font-mono px-2 py-0.5 rounded-full">
-              Click to autofill
+            <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold px-2 py-0.5 rounded-full">
+              Root Level
             </span>
           </div>
 
-          <div className="space-y-2">
-            {/* Tenant 1 */}
-            <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/60 dark:border-zinc-800/80">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1">
-                  <span>🏢</span>
-                  <span>IronVault Apex (Code: 100001)</span>
-                </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Tenant 1</span>
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/60 dark:border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-500 dark:text-zinc-400">ID / Username:</span>
+                <code className="font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">superadmin@ironvault.com</code>
               </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => fillDemoLogin('admin@ironvaultgym.com', 'Admin@12345')}
-                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-500 transition text-center"
-                >
-                  Super Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemoLogin('manager@ironvaultgym.com', 'Manager@12345')}
-                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-500 transition text-center"
-                >
-                  Gym Owner
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemoLogin('macbook.member@ironvaultgym.com', 'Member@12345')}
-                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-emerald-500 hover:text-emerald-500 transition text-center"
-                >
-                  Member
-                </button>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-500 dark:text-zinc-400">Password:</span>
+                <code className="font-mono font-bold text-slate-800 dark:text-zinc-200 bg-slate-200/60 dark:bg-zinc-900 px-1.5 py-0.5 rounded">superadmin123</code>
               </div>
             </div>
 
-            {/* Tenant 2 */}
-            <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/60 dark:border-zinc-800/80">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1">
-                  <span>🏢</span>
-                  <span>Spartan Heavy Iron (Code: 200002)</span>
-                </span>
-                <span className="text-[10px] text-amber-500 font-bold">Tenant 2</span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => fillDemoLogin('owner@spartaniron.com', 'Spartan@12345')}
-                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-amber-500 hover:text-amber-500 transition text-center"
-                >
-                  Spartan Owner
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemoLogin('marcus@spartaniron.com', 'SpartanMember@12345')}
-                  className="py-1.5 px-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-[10px] font-bold text-slate-700 dark:text-zinc-300 hover:border-amber-500 hover:text-amber-500 transition text-center"
-                >
-                  Spartan Member
-                </button>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => fillDemoLogin('superadmin@ironvault.com', 'superadmin123')}
+              className="py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition shadow-sm flex items-center justify-center gap-1.5 active:scale-95 flex-shrink-0"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>Autofill Super Admin</span>
+            </button>
           </div>
         </div>
       </div>

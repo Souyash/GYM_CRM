@@ -272,8 +272,16 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+    const cleanIdentifier = email.toLowerCase().trim();
+    const queryEmails = [cleanIdentifier];
+    if (cleanIdentifier === 'superadmin') {
+      queryEmails.push('superadmin@ironvault.com', 'admin@ironvaultgym.com');
+    } else if (cleanIdentifier === 'superadmin@ironvault.com') {
+      queryEmails.push('admin@ironvaultgym.com');
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { email: { in: queryEmails } },
       include: { gym: true, facility: true }
     });
 

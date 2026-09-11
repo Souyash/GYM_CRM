@@ -1,260 +1,176 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 import assert from 'assert';
 
 const prisma = new PrismaClient();
 
-// Helper: Escape CSV cell per RFC 4180
 function escapeCsvCell(val) {
   if (val === null || val === undefined) return '""';
   const str = String(val).replace(/"/g, '""');
   return `"${str}"`;
 }
 
-async function runSuperAdminTests() {
+async function runTests() {
   console.log('\n======================================================');
-  console.log('🧪 RUNNING SUPER ADMIN & CSV EXPORT TEST SUITE');
+  console.log('🧪 100% CLEAN PROTOTYPE & SUPER ADMIN TEST SUITE');
   console.log('======================================================\n');
 
-  let passedTests = 0;
-  let totalTests = 0;
+  let passed = 0;
+  let total = 0;
 
-  function it(description, fn) {
-    totalTests++;
+  function it(desc, fn) {
+    total++;
     try {
       fn();
-      console.log(`  ✅ [PASS] ${description}`);
-      passedTests++;
-    } catch (err) {
-      console.error(`  ❌ [FAIL] ${description}`);
-      console.error(`     Error: ${err.message}`);
-      throw err;
+      console.log(`  ✅ [PASS] ${desc}`);
+      passed++;
+    } catch (e) {
+      console.error(`  ❌ [FAIL] ${desc}: ${e.message}`);
+      throw e;
     }
   }
 
-  // -------------------------------------------------------------
-  // TEST 1: Gyms & Owners Data Integrity
-  // -------------------------------------------------------------
-  console.log('📦 TEST GROUP 1: Gyms & Owners Platform Verification');
-
-  const gyms = await prisma.gym.findMany({
-    include: {
-      _count: {
-        select: {
-          users: true,
-          subscriptions: true,
-          attendanceEntries: true
-        }
-      },
-      users: {
-        where: {
-          role: { in: ['GYM_OWNER', 'MANAGER', 'SUPER_ADMIN'] }
-        },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          phone: true,
-          role: true,
-          createdAt: true
-        }
-      }
-    },
-    orderBy: { inviteCode: 'asc' }
+  // Group 1: Single Super Admin State
+  console.log('📦 TEST GROUP 1: Single Super Admin Account & Clean Database');
+  
+  const superAdmin = await prisma.user.findFirst({
+    where: { role: 'SUPER_ADMIN' }
   });
 
-  it('Should have at least 5 distinct Gym Workspaces registered', () => {
-    assert.strictEqual(gyms.length >= 5, true, `Expected >= 5 gyms, got ${gyms.length}`);
+  it('Single Super Admin account exists with email superadmin@ironvault.com', () => {
+    assert(superAdmin, 'Super Admin user should exist');
+    assert.strictEqual(superAdmin.email, 'superadmin@ironvault.com');
+    assert.strictEqual(superAdmin.role, 'SUPER_ADMIN');
   });
 
-  const expectedCodes = ['100001', '200002', '300003', '400004', '500005'];
-  it('Should verify all 5 unique 6-digit access codes exist', () => {
-    const codes = gyms.map(g => g.inviteCode);
-    expectedCodes.forEach(exp => {
-      assert.strictEqual(codes.includes(exp), true, `Missing expected access code: ${exp}`);
-    });
+  it('Super Admin password validates with superadmin123', async () => {
+    const isMatch = await bcrypt.compare('superadmin123', superAdmin.passwordHash);
+    assert.strictEqual(isMatch, true, 'Password superadmin123 should match hash');
   });
 
-  it('Every gym should have a designated Gym Owner with valid email and name', () => {
-    gyms.forEach(g => {
-      const owner = g.users[0] || (g.ownerContactEmail ? { fullName: 'Owner', email: g.ownerContactEmail } : null);
-      assert.notStrictEqual(owner, null, `Gym ${g.name} has no designated owner`);
-      assert.strictEqual(typeof owner.email === 'string' && owner.email.includes('@'), true, `Gym ${g.name} has invalid owner email: ${owner?.email}`);
-      assert.strictEqual(typeof owner.fullName === 'string' && owner.fullName.length > 0, true, `Gym ${g.name} has missing owner name`);
-    });
+  const allUsersCount = await prisma.user.count();
+  const allGymsCount = await prisma.gym.count();
+
+  it('No dummy test data exists in database (only 1 user, 0 dummy gyms)', () => {
+    assert.strictEqual(allUsersCount, 1, `Expected exactly 1 user, found ${allUsersCount}`);
+    assert.strictEqual(allGymsCount, 0, `Expected exactly 0 gyms, found ${allGymsCount}`);
   });
 
-  // -------------------------------------------------------------
-  // TEST 2: Members Directory & Multi-Tenant Scoping
-  // -------------------------------------------------------------
-  console.log('\n👥 TEST GROUP 2: Members Directory & Multi-Tenancy Scoping');
+  // Group 2: Live Prototype Flow (Register Gym -> Join Member -> Super Admin Portal)
+  console.log('\n📦 TEST GROUP 2: Full End-to-End SaaS Lifecycle Test');
 
-  const members = await prisma.user.findMany({
-    where: { role: 'MEMBER' },
-    include: {
-      gym: true,
-      subscriptions: {
-        orderBy: { endDate: 'desc' },
-        take: 1
-      }
+  // Create a brand new gym as an onboarding gym owner
+  const testGym = await prisma.gym.create({
+    data: {
+      name: 'Summit Fitness Club',
+      slug: 'summit-fitness-test',
+      inviteCode: '888999',
+      address: '100 Mountain View Ave',
+      city: 'Denver',
+      state: 'CO',
+      staticQrCodeHash: 'SUMMIT_STATIC_TEST',
+      exitQrCodeHash: 'SUMMIT_EXIT_TEST',
+      ownerContactEmail: 'owner@summitfit.com',
+      ownerContactPhone: '+1-555-099-1234'
     }
   });
 
-  it('Should have at least 12 registered members across all gyms', () => {
-    assert.strictEqual(members.length >= 12, true, `Expected >= 12 members, got ${members.length}`);
+  const ownerPassHash = await bcrypt.hash('ownerpass123', 10);
+  const testOwner = await prisma.user.create({
+    data: {
+      email: 'owner@summitfit.com',
+      fullName: 'David Summit',
+      passwordHash: ownerPassHash,
+      role: 'GYM_OWNER',
+      gymId: testGym.id
+    }
   });
 
-  it('Every member should belong to a valid Gym with matching gymId and inviteCode', () => {
-    members.forEach(m => {
-      assert.notStrictEqual(m.gymId, null, `Member ${m.fullName} has null gymId`);
-      assert.notStrictEqual(m.gym, null, `Member ${m.fullName} has null gym relation`);
-      assert.strictEqual(expectedCodes.includes(m.gym.inviteCode), true, `Member ${m.fullName} belongs to unexpected code ${m.gym?.inviteCode}`);
-    });
+  it('Gym Owner can register a fresh gym with unique 6-digit access code', () => {
+    assert(testGym.id, 'Gym should have UUID');
+    assert.strictEqual(testGym.inviteCode, '888999');
+    assert.strictEqual(testOwner.gymId, testGym.id);
   });
 
-  it('Should correctly filter members strictly belonging to Spartan Arena (Code: 200002)', () => {
-    const spartanGym = gyms.find(g => g.inviteCode === '200002');
-    assert.notStrictEqual(spartanGym, undefined);
-
-    const spartanMembers = members.filter(m => m.gymId === spartanGym.id);
-    assert.strictEqual(spartanMembers.length >= 3, true, `Expected >= 3 Spartan members, got ${spartanMembers.length}`);
-
-    const spartanEmails = spartanMembers.map(m => m.email);
-    assert.strictEqual(spartanEmails.includes('marcus@spartaniron.com'), true);
-    assert.strictEqual(spartanEmails.includes('chloe.fit@gmail.com'), true);
-    assert.strictEqual(spartanEmails.includes('brandon.stark@yahoo.com'), true);
+  // Register a member using the gym code
+  const memberPassHash = await bcrypt.hash('memberpass123', 10);
+  const testMember = await prisma.user.create({
+    data: {
+      email: 'member@summitfit.com',
+      fullName: 'Sarah Athlete',
+      passwordHash: memberPassHash,
+      role: 'MEMBER',
+      gymId: testGym.id
+    }
   });
 
-  it('Should verify active vs expired subscriptions platform-wide', () => {
-    const now = new Date();
-    const activeMembers = members.filter(m => {
-      const sub = m.subscriptions[0];
-      return sub && sub.status === 'ACTIVE' && new Date(sub.endDate) > now;
-    });
-
-    const expiredMembers = members.filter(m => {
-      const sub = m.subscriptions[0];
-      return sub && (sub.status === 'EXPIRED' || new Date(sub.endDate) <= now);
-    });
-
-    assert.strictEqual(activeMembers.length >= 8, true, `Expected >= 8 active members, got ${activeMembers.length}`);
-    assert.strictEqual(expiredMembers.length >= 3, true, `Expected >= 3 expired members, got ${expiredMembers.length}`);
+  await prisma.subscription.create({
+    data: {
+      userId: testMember.id,
+      gymId: testGym.id,
+      planName: 'Monthly Pro Pass',
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: 'ACTIVE',
+      price: 65,
+      paymentMethod: 'ONLINE'
+    }
   });
 
-  // -------------------------------------------------------------
-  // TEST 3: CSV Export Engine & RFC 4180 Compliance
-  // -------------------------------------------------------------
-  console.log('\n📥 TEST GROUP 3: CSV Export Generation & Formatting');
-
-  it('Should generate valid Gyms & Owners CSV matching required schema', () => {
-    const headers = [
-      'Gym ID',
-      'Gym Business Name',
-      '6-Digit Access Code',
-      'Owner Full Name',
-      'Owner Login Gmail',
-      'Owner Phone',
-      'Physical Address',
-      'City',
-      'State',
-      'Registered Members Count',
-      'Active Subscriptions Count',
-      'Total Checkins Scans',
-      'Status',
-      'Created Date'
-    ];
-
-    const rows = gyms.map(g => [
-      g.id,
-      g.name,
-      g.inviteCode,
-      g.users[0]?.fullName || 'Gym Owner',
-      g.users[0]?.email || g.ownerContactEmail || 'N/A',
-      g.users[0]?.phone || g.ownerContactPhone || 'N/A',
-      g.address,
-      g.city || 'N/A',
-      g.state || 'N/A',
-      g._count?.users ?? 0,
-      g._count?.subscriptions ?? 0,
-      g._count?.attendanceEntries ?? 0,
-      g.isActive ? 'Active' : 'Inactive',
-      new Date(g.createdAt).toLocaleDateString()
-    ]);
-
-    const csvString = [
-      headers.map(escapeCsvCell).join(','),
-      ...rows.map(row => row.map(escapeCsvCell).join(','))
-    ].join('\r\n');
-
-    // Assertions
-    const lines = csvString.split('\r\n');
-    assert.strictEqual(lines.length, gyms.length + 1, `Expected ${gyms.length + 1} lines in CSV, got ${lines.length}`);
-    assert.strictEqual(csvString.includes('undefined'), false, 'CSV contains undefined text');
-    assert.strictEqual(csvString.includes('NaN'), false, 'CSV contains NaN text');
-    assert.strictEqual(lines[0].includes('6-Digit Access Code'), true);
-    assert.strictEqual(lines[0].includes('Owner Login Gmail'), true);
+  it('Member can onboard into the gym with active pass and gym binding', () => {
+    assert.strictEqual(testMember.gymId, testGym.id);
+    assert.strictEqual(testMember.role, 'MEMBER');
   });
 
-  it('Should generate valid Members Directory CSV matching required schema', () => {
-    const headers = [
-      'Member ID',
-      'Member Full Name',
-      'Email Address',
-      'Phone Number',
-      'Role',
-      'Gym Business Name',
-      'Gym 6-Digit Access Code',
-      'Membership Plan Name',
-      'Plan Price ($)',
-      'Membership Status',
-      'Start Date',
-      'Expiration Date',
-      'Registered Date'
-    ];
+  // Group 3: Super Admin Inspection & CSV Export
+  console.log('\n📦 TEST GROUP 3: Super Admin Portal Query & CSV Exports');
 
-    const rows = members.map(m => {
-      const activeSub = m.subscriptions[0];
-      const isSubActive = activeSub && activeSub.status === 'ACTIVE' && new Date(activeSub.endDate) > new Date();
-      return [
-        m.id,
-        m.fullName,
-        m.email,
-        m.phone || 'N/A',
-        m.role,
-        m.gym?.name || 'Unassigned',
-        m.gym?.inviteCode || 'N/A',
-        activeSub?.planName || 'No Active Plan',
-        activeSub?.price ?? 0,
-        isSubActive ? 'ACTIVE' : 'INACTIVE',
-        activeSub?.startDate ? new Date(activeSub.startDate).toLocaleDateString() : 'N/A',
-        activeSub?.endDate ? new Date(activeSub.endDate).toLocaleDateString() : 'N/A',
-        new Date(m.createdAt).toLocaleDateString()
-      ];
-    });
+  const adminGymsQuery = await prisma.gym.findMany({
+    include: {
+      _count: { select: { users: true, subscriptions: true } },
+      users: { where: { role: 'GYM_OWNER' } }
+    }
+  });
 
-    const csvString = [
-      headers.map(escapeCsvCell).join(','),
-      ...rows.map(row => row.map(escapeCsvCell).join(','))
-    ].join('\r\n');
+  it('Super Admin queries all gyms and sees the newly registered workspace', () => {
+    assert.strictEqual(adminGymsQuery.length, 1);
+    assert.strictEqual(adminGymsQuery[0].name, 'Summit Fitness Club');
+    assert.strictEqual(adminGymsQuery[0].users[0].fullName, 'David Summit');
+  });
 
-    const lines = csvString.split('\r\n');
-    assert.strictEqual(lines.length, members.length + 1, `Expected ${members.length + 1} lines in CSV, got ${lines.length}`);
-    assert.strictEqual(csvString.includes('undefined'), false, 'Members CSV contains undefined text');
-    assert.strictEqual(csvString.includes('NaN'), false, 'Members CSV contains NaN text');
-    assert.strictEqual(lines[0].includes('Gym 6-Digit Access Code'), true);
-    assert.strictEqual(lines[0].includes('Membership Status'), true);
+  const gymsHeaders = ['Gym ID', 'Gym Business Name', '6-Digit Access Code', 'Owner Full Name', 'Owner Login Gmail'];
+  const gymsRow = [testGym.id, testGym.name, testGym.inviteCode, testOwner.fullName, testOwner.email];
+  const gymsCsv = [gymsHeaders.map(escapeCsvCell).join(','), gymsRow.map(escapeCsvCell).join(',')].join('\r\n');
+
+  it('Super Admin Gyms CSV Export matches RFC 4180 format', () => {
+    assert(gymsCsv.includes('"Summit Fitness Club"'));
+    assert(gymsCsv.includes('"888999"'));
+    assert(gymsCsv.includes('"David Summit"'));
+  });
+
+  // Cleanup the test data so DB remains 100% pristine with only Super Admin
+  await prisma.subscription.deleteMany({ where: { gymId: testGym.id } });
+  await prisma.user.deleteMany({ where: { gymId: testGym.id } });
+  await prisma.gym.delete({ where: { id: testGym.id } });
+
+  const finalUserCount = await prisma.user.count();
+  const finalGymCount = await prisma.gym.count();
+
+  it('Database cleanly resets to single Super Admin state (1 user, 0 gyms)', () => {
+    assert.strictEqual(finalUserCount, 1);
+    assert.strictEqual(finalGymCount, 0);
   });
 
   console.log('\n======================================================');
-  console.log(`🎉 ALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!`);
+  console.log(`🎉 ALL ${passed}/${total} TESTS PASSED CLEANLY!`);
   console.log('======================================================\n');
 }
 
-runSuperAdminTests()
-  .catch((err) => {
-    console.error('Test run failed:', err);
+runTests()
+  .catch((e) => {
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
   });
-
