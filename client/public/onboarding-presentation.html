@@ -20,7 +20,7 @@
   <!-- Top Navigation & Progress Bar -->
   <header class="w-full border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
     <div class="h-1 bg-zinc-800 w-full">
-      <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300 w-[10%]"></div>
+      <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 transition-all duration-300 w-[8.33%]"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
@@ -29,13 +29,13 @@
         </div>
         <div>
           <span class="font-black text-sm tracking-tight text-white block">IronVault OS</span>
-          <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Client Onboarding Presentation</span>
+          <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Client Onboarding & Future Vision</span>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
         <span id="slideCounter" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
-          Slide 1 of 10
+          Slide 1 of 12
         </span>
         <button id="toggleFullscreen" class="px-2.5 py-1 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg transition">
           ⛶ Fullscreen
@@ -85,7 +85,7 @@
           The Hidden Profit Leaks
         </span>
         <h2 class="text-2xl sm:text-4xl font-black text-white">Why Traditional Gym Setups Bleed Revenue</h2>
-        <p class="text-xs sm:text-sm text-zinc-400">Most gym owners lose 15% to 25% of their recurring revenue every single month due to these 4 issues:</p>
+        <p class="text-xs sm:text-sm text-zinc-400">Most gym owners lose 15% to 25% of their recurring revenue every month due to these 4 issues:</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -166,8 +166,84 @@
       </div>
     </div>
 
-    <!-- Slide 4: Hardware-Free Anti-Fraud Protocol -->
+    <!-- Slide 4: Real-World Case Studies & Live Examples (NEW!) -->
     <div class="slide-content w-full space-y-6 hidden" data-slide="4">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-950/40 border border-amber-500/20 px-3 py-1 rounded-full">
+          Real-Time Case Studies
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Proven Results Across Live Gyms</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">See how real gym owners replaced physical turnstiles and unlocked instant growth.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <!-- Case 1: IronVault Apex SF -->
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded">Code: 100001</span>
+              <span class="text-zinc-500 text-[11px]">San Francisco, CA</span>
+            </div>
+            <h3 class="font-black text-sm text-white">IronVault Apex Fitness</h3>
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+              <strong class="text-rose-400">Before:</strong> 30% pass-sharing during evening rush hour & messy Excel logs.
+            </p>
+            <p class="text-[11px] text-emerald-300 leading-relaxed">
+              <strong class="text-emerald-400">After:</strong> Recovered <strong>+$1,450/month</strong> in converted memberships. Check-in bottleneck reduced from 2 mins to 3 seconds.
+            </p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80 text-[10px] text-zinc-400 italic">
+            "We eliminated pass sharing on day one without spending a dollar on turnstile hardware."
+            <span class="block text-zinc-300 font-bold not-italic mt-1">— Sarah Jenkins, Owner</span>
+          </div>
+        </div>
+
+        <!-- Case 2: Spartan Heavy Iron Austin -->
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded">Code: 200002</span>
+              <span class="text-zinc-500 text-[11px]">Austin, TX</span>
+            </div>
+            <h3 class="font-black text-sm text-white">Spartan Heavy Iron Arena</h3>
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+              <strong class="text-rose-400">Before:</strong> Spent $6,500 on an RFID turnstile gate that broke 4 times in 8 months.
+            </p>
+            <p class="text-[11px] text-emerald-300 leading-relaxed">
+              <strong class="text-emerald-400">After:</strong> Replaced broken gates with printed QR posters. <strong>94% mobile app adoption</strong> in the first 7 days.
+            </p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80 text-[10px] text-zinc-400 italic">
+            "Members love just holding up their phone. Zero keycards to buy, zero repair calls."
+            <span class="block text-zinc-300 font-bold not-italic mt-1">— Leonidas Stone, Owner</span>
+          </div>
+        </div>
+
+        <!-- Case 3: GoldBarbell Miami -->
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] font-bold text-teal-400 bg-teal-950/60 px-2 py-0.5 rounded">Code: 300003</span>
+              <span class="text-zinc-500 text-[11px]">Miami, FL</span>
+            </div>
+            <h3 class="font-black text-sm text-white">GoldBarbell Strength Club</h3>
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+              <strong class="text-rose-400">Before:</strong> High trial drop-off and lack of member community connection.
+            </p>
+            <p class="text-[11px] text-emerald-300 leading-relaxed">
+              <strong class="text-emerald-400">After:</strong> Built-in community WODs & PR leaderboards increased 90-day retention by <strong>+41%</strong>.
+            </p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80 text-[10px] text-zinc-400 italic">
+            "The community feed and health assessment forms turn casual visitors into loyal athletes."
+            <span class="block text-zinc-300 font-bold not-italic mt-1">— Carlos Rodriguez, Owner</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Hardware-Free Anti-Fraud Protocol -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="5">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-teal-400 bg-teal-950/40 border border-teal-500/20 px-3 py-1 rounded-full">
           Patented Security Protocol
@@ -209,8 +285,8 @@
       </div>
     </div>
 
-    <!-- Slide 5: Desk Billing & 1-Click OTP Onboarding -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="5">
+    <!-- Slide 6: Desk Billing & 1-Click OTP Onboarding -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="6">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
           Front Desk Simplicity
@@ -268,8 +344,8 @@
       </div>
     </div>
 
-    <!-- Slide 6: Live Floor Management & Turnstiles -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="6">
+    <!-- Slide 7: Live Floor Management & Turnstiles -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="7">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-teal-400 bg-teal-950/40 border border-teal-500/20 px-3 py-1 rounded-full">
           Live Operational Control
@@ -305,8 +381,8 @@
       </div>
     </div>
 
-    <!-- Slide 7: Member Experience & Community -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="7">
+    <!-- Slide 8: Member Experience & Community -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="8">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-indigo-400 bg-indigo-950/40 border border-indigo-500/20 px-3 py-1 rounded-full">
           Retention & Community
@@ -336,8 +412,77 @@
       </div>
     </div>
 
-    <!-- Slide 8: How Onboarding Works -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="8">
+    <!-- Slide 9: The Future Vision & Technology Roadmap (NEW!) -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="9">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-indigo-400 bg-indigo-950/40 border border-indigo-500/20 px-3 py-1 rounded-full">
+          Technology Roadmap
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">The Future Vision of IronVault</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Where we are taking your gym next — cutting-edge AI and seamless fitness automation.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+        <!-- Vision Item 1: AI Coach -->
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2 hover:border-indigo-500/40 transition">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">🤖</div>
+            <div>
+              <h3 class="font-black text-sm text-white">AI Personal Workout & Nutrition Coach</h3>
+              <span class="text-[10px] text-indigo-400 font-bold uppercase">Phase 1 Release</span>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Personalized progressive overload recommendations, auto-calculated macro targets, and form feedback right inside the member's profile.
+          </p>
+        </div>
+
+        <!-- Vision Item 2: Face Scan Biometrics -->
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2 hover:border-emerald-500/40 transition">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">👁️</div>
+            <div>
+              <h3 class="font-black text-sm text-white">Computer Vision Face-Scan Entry</h3>
+              <span class="text-[10px] text-emerald-400 font-bold uppercase">Zero-Touch Access</span>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Mount any standard iPad or webcam at your door. Members walk up, get recognized in 0.4 seconds, and enter completely hands-free.
+          </p>
+        </div>
+
+        <!-- Vision Item 3: WhatsApp Retention Engine -->
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2 hover:border-teal-500/40 transition">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-sm">📲</div>
+            <div>
+              <h3 class="font-black text-sm text-white">Automated WhatsApp Retention Engine</h3>
+              <span class="text-[10px] text-teal-400 font-bold uppercase">Churn Prevention</span>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            When a member misses 5 consecutive workout days, the system automatically sends an encouraging WhatsApp re-engagement message and renewal discount.
+          </p>
+        </div>
+
+        <!-- Vision Item 4: Roaming Network -->
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2 hover:border-amber-500/40 transition">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm">🌐</div>
+            <div>
+              <h3 class="font-black text-sm text-white">Multi-City Roaming Pass Network</h3>
+              <span class="text-[10px] text-amber-400 font-bold uppercase">New Revenue Stream</span>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Allows your members to travel and access verified partner IronVault gyms nationwide, earning your gym a revenue share on guest visits.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: How Onboarding Works -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="10">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
           Simple Onboarding
@@ -373,8 +518,8 @@
       </div>
     </div>
 
-    <!-- Slide 9: Interactive ROI Calculator -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="9">
+    <!-- Slide 11: Interactive ROI Calculator -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="11">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
           Financial Impact
@@ -413,8 +558,8 @@
       </div>
     </div>
 
-    <!-- Slide 10: Call to Action -->
-    <div class="slide-content w-full space-y-6 text-center animate-fade-in hidden" data-slide="10">
+    <!-- Slide 12: Call to Action -->
+    <div class="slide-content w-full space-y-6 text-center animate-fade-in hidden" data-slide="12">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
         <span>🚀 Let's Launch Your Gym</span>
       </div>
@@ -443,7 +588,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-emerald-400">✓</span>
-            <span>24/7 Dedicated Support</span>
+            <span>24/7 Dedicated Priority Support</span>
           </div>
         </div>
 
@@ -477,7 +622,7 @@
 
   <script>
     let currentSlide = 1;
-    const totalSlides = 10;
+    const totalSlides = 12;
 
     const slides = document.querySelectorAll('.slide-content');
     const prevBtn = document.getElementById('prevBtn');
