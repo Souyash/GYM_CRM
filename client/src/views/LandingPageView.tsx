@@ -23,7 +23,19 @@ import {
   Moon,
   LogIn,
   UserCheck,
-  Building2
+  Building2,
+  Play,
+  Download,
+  QrCode,
+  Laptop,
+  RefreshCw,
+  AlertTriangle,
+  CreditCard,
+  Check,
+  ChevronDown,
+  ExternalLink,
+  Sliders,
+  DollarSign
 } from 'lucide-react';
 import { api } from '../services/api';
 import { BodybuildingAnatomyMap } from '../components/BodybuildingAnatomyMap';
@@ -36,45 +48,12 @@ interface LandingPageViewProps {
   onGoToDashboard?: () => void;
 }
 
-const HERO_ATHLETE_PREVIEWS = [
-  {
-    title: 'Classic Physique & Hypertrophy',
-    subtitle: 'Heavy Dumbbell Preacher Curls & V-Taper',
-    img: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1400&auto=format&fit=crop',
-    stat: '44cm Arm Peak • 8% Body Fat'
-  },
-  {
-    title: 'Open Division Heavyweight Power',
-    subtitle: 'High-Bar Olympic Squats & Platform Deadlifts',
-    img: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1400&auto=format&fit=crop',
-    stat: '280 KG Deadlift • 185 KG Bench'
-  },
-  {
-    title: 'Wellness & Glute-Hamstring Conditioning',
-    subtitle: 'Barbell Hip Thrusts & Hack Squats',
-    img: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=1400&auto=format&fit=crop',
-    stat: '160 KG Squat • Stage Ready'
-  }
-];
-
 export const LandingPageView: React.FC<LandingPageViewProps> = ({
   onOpenAuth,
   isLoggedIn = false,
   onGoToDashboard
 }) => {
-  const [classes, setClasses] = useState<any[]>([]);
-  const [isLoadingClasses, setIsLoadingClasses] = useState(true);
-  const [heroAthleteIndex, setHeroAthleteIndex] = useState(0);
-
-  // Auto-rotate hero athlete showcase every 5 seconds
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroAthleteIndex((prev) => (prev + 1) % HERO_ATHLETE_PREVIEWS.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Theme support
+  // Theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gym_theme');
@@ -96,85 +75,164 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
-  // Load preview of upcoming group classes
+  // Interactive Hero Preview Tab: 'MEMBER_APP' | 'OWNER_RADAR' | 'ANTI_FRAUD'
+  const [heroTab, setHeroTab] = useState<'MEMBER_APP' | 'OWNER_RADAR' | 'ANTI_FRAUD'>('MEMBER_APP');
+  const [simulatedDoorOpen, setSimulatedDoorOpen] = useState(false);
+
+  // PWA Install prompt state
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [showIosInstallModal, setShowIosInstallModal] = useState(false);
+
   useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const data = await api.getGroupClasses();
-        setClasses((data.classes || []).slice(0, 4));
-      } catch (err) {
-        console.warn('Could not load public classes preview:', err);
-      } finally {
-        setIsLoadingClasses(false);
-      }
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
     };
-    fetchClasses();
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setIsInstallable(false);
+      }
+      setDeferredPrompt(null);
+    } else {
+      // Check if iOS
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      if (isIos) {
+        setShowIosInstallModal(true);
+      } else {
+        alert('To install IronVault:\n\n1. Tap your browser menu (3 dots or share button)\n2. Select "Install App" or "Add to Home Screen"');
+      }
+    }
+  };
+
+  // Interactive ROI Calculator State
+  const [calcMembers, setCalcMembers] = useState<number>(350);
+  const [calcFee, setCalcFee] = useState<number>(55);
+
+  // Calculated values
+  const passSharingLossPercent = 0.14; // ~14% industry average sharing/loss
+  const monthlyLoss = Math.round(calcMembers * calcFee * passSharingLossPercent);
+  const annualSaved = monthlyLoss * 12;
+  const hardwareSaved = 4800; // Average cost of physical turnstiles & RFID readers
+
+  // Interactive door simulator reset
+  const handleTriggerSimulatedCheckIn = () => {
+    setSimulatedDoorOpen(true);
+    setTimeout(() => {
+      setSimulatedDoorOpen(false);
+    }, 3500);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white font-poppins selection:bg-emerald-500 selection:text-white transition-colors duration-200">
-      {/* 1. PUBLIC BRAND NAVIGATION */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-white/80 dark:bg-black/80 border-b border-slate-200/80 dark:border-zinc-800 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-white font-poppins selection:bg-emerald-500 selection:text-black transition-colors duration-200">
+      
+      {/* ========================================================================= */}
+      {/* 1. PUBLIC BRAND NAVIGATION BAR                                            */}
+      {/* ========================================================================= */}
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-[#070709]/80 border-b border-slate-200/80 dark:border-zinc-800/80 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-md dark:shadow-glow-green">
-              <Shield className="w-5 h-5 stroke-[2.5]" />
+          <div
+            className="flex items-center gap-3 cursor-pointer select-none"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <Shield className="w-6 h-6 text-black" />
             </div>
             <div>
-              <span className="text-xl font-black tracking-tight block leading-none">
-                IRON<span className="text-emerald-600 dark:text-emerald-400">VAULT</span>
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-zinc-500">
-                FITNESS & HEALTH CLUB
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-xl tracking-wider text-slate-900 dark:text-white">
+                  IRON<span className="text-emerald-500">VAULT</span>
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  CRM OS
+                </span>
+              </div>
+              <p className="text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">
+                Zero-Hardware Smart Gym Platform
+              </p>
             </div>
           </div>
 
-          {/* Center Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-300">
-            <a href="#plans" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Membership</a>
-            <a href="#anatomy" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Physique Anatomy</a>
-            <a href="#arsenal" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Heavy Iron</a>
-            <a href="#athletes" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Champions</a>
-            <a href="#tech" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Smart Access</a>
-            <a href="#classes" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition">Classes</a>
+          {/* Center Navigation Links (Hidden on small mobile) */}
+          <nav className="hidden lg:flex items-center gap-7 text-xs font-bold text-slate-600 dark:text-zinc-300">
+            <a href="#mobile-app" className="hover:text-emerald-500 transition flex items-center gap-1.5">
+              <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Mobile App</span>
+            </a>
+            <a href="#how-it-works" className="hover:text-emerald-500 transition">
+              How It Works
+            </a>
+            <a href="#turnstiles" className="hover:text-emerald-500 transition">
+              Zero-Hardware Access
+            </a>
+            <a href="#roi-calculator" className="hover:text-emerald-500 transition">
+              ROI Calculator
+            </a>
+            <a href="#pricing" className="hover:text-emerald-500 transition">
+              Gym Pricing
+            </a>
+            <a
+              href="/onboarding-presentation.html"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-emerald-400 text-amber-500 font-black transition flex items-center gap-1"
+            >
+              <Play className="w-3 h-3 fill-current" />
+              <span>Video & Demo Deck</span>
+            </a>
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
-            {/* Theme Switcher */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Dark/Light Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
-              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 transition"
+              title="Toggle Theme"
             >
-              {isDark ? <Sun className="w-4 h-4 text-emerald-400" /> : <Moon className="w-4 h-4 text-emerald-600" />}
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+            </button>
+
+            {/* Install App CTA */}
+            <button
+              onClick={handleInstallClick}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition active:scale-95"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Install App</span>
             </button>
 
             {isLoggedIn ? (
               <button
                 onClick={onGoToDashboard}
-                className="btn-primary-green flex items-center gap-2 py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
+                className="btn-primary-green px-4 py-2 text-xs rounded-xl shadow-lg shadow-emerald-500/20"
               >
-                <UserCheck className="w-4 h-4" />
-                <span>Go to Dashboard</span>
+                <span>Launch App</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenAuth('MEMBER_LOGIN')}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                  className="px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-500 transition"
                 >
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>Member Portal</span>
+                  Sign In
                 </button>
                 <button
-                  onClick={() => onOpenAuth('SIGNUP')}
-                  className="btn-primary-green flex items-center gap-1.5 py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
+                  onClick={() => onOpenAuth('REGISTER_BUSINESS')}
+                  className="btn-primary-green px-4 py-2 text-xs rounded-xl shadow-lg shadow-emerald-500/20 whitespace-nowrap"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Join Club</span>
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>Start Gym Workspace</span>
                 </button>
               </div>
             )}
@@ -182,608 +240,926 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
       </header>
 
-      {/* 2. HERO SECTION - HIGH IMPACT BODYBUILDING & SMART CRM */}
-      <section className="relative overflow-hidden pt-8 pb-16 sm:pt-14 sm:pb-24">
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 dark:bg-emerald-500/15 blur-[140px] pointer-events-none rounded-full" />
-        <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-amber-500/10 blur-[120px] pointer-events-none rounded-full" />
+      {/* ========================================================================= */}
+      {/* 2. HERO SECTION: SAAS PLATFORM & MOBILE APP OS                            */}
+      {/* ========================================================================= */}
+      <section className="relative pt-10 sm:pt-16 pb-20 overflow-hidden">
+        {/* Background Ambient Radial Glows */}
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 -right-32 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left Column: Headline, Copy & CTAs */}
-            <div className="lg:col-span-6 text-center lg:text-left space-y-6">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-black uppercase tracking-widest animate-pulse">
-                <Flame className="w-3.5 h-3.5 text-amber-500" />
-                <span>Heavy Iron • Biometric Turnstiles • 24/7 Access</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Column: Headline, Value Proposition & CTAs */}
+            <div className="lg:col-span-7 space-y-6 text-left">
+              {/* Top Announcement Pill */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[11px] font-black uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-spin" style={{ animationDuration: '4s' }} />
+                <span>Zero-Hardware Turnstiles • 10-Year Permanent Mobile Login</span>
               </div>
 
-              {/* Main Title */}
+              {/* Main Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-slate-900 dark:text-white">
-                WHERE HEAVY IRON <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-400">
-                  MEETS PURE POWER.
+                The Smart Gym CRM & Mobile App That{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300">
+                  Stops Stolen Access.
                 </span>
               </h1>
 
-              <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-300 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
-                Built for serious lifters, bodybuilders, and athletes. Ditch plastic membership cards forever — enter with hardware-free smartphone turnstile access, track muscle hypertrophy metrics, and lift on Olympic competition platforms with up to 70 KG dumbbells.
+              {/* Sub-Headline */}
+              <p className="text-base sm:text-lg text-slate-600 dark:text-zinc-300 max-w-2xl leading-relaxed">
+                Transform any commercial gym in 60 seconds with <strong>zero turnstiles to buy</strong>.
+                Athletes check in via phone camera with <strong>1-device biometric binding</strong>.
+                Members stay permanently signed in, but are <strong>automatically logged out</strong> if repayments lapse.
               </p>
 
-              {/* Action CTAs */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5">
+              {/* Primary CTAs */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                 <button
-                  onClick={() => onOpenAuth('SIGNUP')}
-                  className="w-full sm:w-auto px-8 py-4 rounded-2xl btn-primary-green font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 transition active:scale-95"
+                  onClick={() => onOpenAuth('REGISTER_BUSINESS')}
+                  className="btn-primary-green px-7 py-4 rounded-2xl text-sm font-black shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Get 30-Day Pro Pass</span>
+                  <Building2 className="w-4 h-4" />
+                  <span>Start Free Gym Trial (14 Days)</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <button
-                  onClick={() => onOpenAuth('MEMBER_LOGIN')}
-                  className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-white font-bold text-xs uppercase tracking-wider hover:border-emerald-500 transition flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+                  onClick={() => onOpenAuth('SIGNUP')}
+                  className="px-6 py-4 rounded-2xl text-sm font-bold bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-slate-900 dark:text-white border border-slate-200 dark:border-zinc-800 transition flex items-center justify-center gap-2"
                 >
-                  <Smartphone className="w-4 h-4 text-emerald-500" />
-                  <span>Member Portal Sign In</span>
+                  <UserCheck className="w-4 h-4 text-emerald-500" />
+                  <span>Join Your Gym (Enter 6-Digit Code)</span>
                 </button>
               </div>
 
-              {/* Stat Counters Grid */}
-              <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg mx-auto lg:mx-0">
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800">
-                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">70 KG</p>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mt-0.5">DB Rack</p>
+              {/* Onboarding Presentation & Demo Link */}
+              <div className="flex items-center gap-3 pt-1">
+                <a
+                  href="/onboarding-presentation.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition"
+                >
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                    <Play className="w-3 h-3 text-emerald-500 fill-emerald-500" />
+                  </div>
+                  <span>Watch 2-Minute Interactive Onboarding & Video Walkthrough ➔</span>
+                </a>
+              </div>
+
+              {/* Social Proof & Metrics Strip */}
+              <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200/80 dark:border-zinc-800/80">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
+                    $0.00
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Hardware Equipment Cost
+                  </p>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800">
-                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">24/7</p>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mt-0.5">Facility</p>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-black text-emerald-500 font-mono">
+                    1-Device
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Strict Pass Sharing Lock
+                  </p>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800">
-                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">6 Racks</p>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mt-0.5">Olympic Spec</p>
-                </div>
-                <div className="p-3.5 rounded-2xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800">
-                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">50m</p>
-                  <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mt-0.5">Geofenced</p>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-black text-teal-400 font-mono">
+                    10-Year
+                  </div>
+                  <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
+                    Persistent Mobile Sessions
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Hero Bodybuilding Figure & Interactive Visual */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative mx-auto max-w-lg rounded-3xl overflow-hidden bg-zinc-950 border-2 border-emerald-500/40 shadow-2xl shadow-emerald-500/10 group">
-                {/* Hero Athlete Photo */}
-                <div className="relative h-[480px] sm:h-[520px] w-full overflow-hidden">
-                  <img
-                    src={HERO_ATHLETE_PREVIEWS[heroAthleteIndex].img}
-                    alt={HERO_ATHLETE_PREVIEWS[heroAthleteIndex].title}
-                    className="w-full h-full object-cover object-top filter brightness-95 contrast-110 saturate-105 transition-all duration-700 group-hover:scale-105"
-                  />
-                  {/* Subtle Gradient Overlays for High-End Cinematic Look */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+            {/* Right Column: Interactive Live App Mockup (Phone Frame) */}
+            <div className="lg:col-span-5 relative flex justify-center">
+              
+              {/* App View Switcher Tabs */}
+              <div className="w-full max-w-sm">
+                <div className="flex bg-slate-200/70 dark:bg-zinc-900/90 p-1.5 rounded-2xl mb-4 text-xs font-bold border border-slate-200 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab('MEMBER_APP')}
+                    className={`flex-1 py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
+                      heroTab === 'MEMBER_APP'
+                        ? 'bg-emerald-500 text-black shadow-md font-black'
+                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>Member App</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab('OWNER_RADAR')}
+                    className={`flex-1 py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
+                      heroTab === 'OWNER_RADAR'
+                        ? 'bg-emerald-500 text-black shadow-md font-black'
+                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Owner Radar</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHeroTab('ANTI_FRAUD')}
+                    className={`flex-1 py-2 px-2 rounded-xl transition flex items-center justify-center gap-1.5 ${
+                      heroTab === 'ANTI_FRAUD'
+                        ? 'bg-emerald-500 text-black shadow-md font-black'
+                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Security</span>
+                  </button>
+                </div>
 
-                  {/* Top-Left Floating HUD Pill */}
-                  <div className="absolute top-4 left-4 p-2.5 px-3.5 rounded-2xl bg-black/80 border border-emerald-500/40 backdrop-blur-md text-left shadow-lg">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider">
-                        Live Floor Telemetry
-                      </span>
-                    </div>
-                    <p className="text-xs font-black text-white font-mono mt-0.5">
-                      {HERO_ATHLETE_PREVIEWS[heroAthleteIndex].stat}
-                    </p>
+                {/* iPhone Frame Container */}
+                <div className="relative mx-auto w-full max-w-[340px] rounded-[44px] bg-black p-3.5 shadow-2xl ring-1 ring-zinc-800 shadow-emerald-500/10 border-4 border-zinc-800">
+                  {/* Dynamic Island / Notch */}
+                  <div className="absolute top-6 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-30 flex items-center justify-center gap-2 border border-zinc-800/80">
+                    <span className="w-2.5 h-2.5 rounded-full bg-zinc-900" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse" />
                   </div>
 
-                  {/* Top-Right Floating Badge */}
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-amber-500/90 text-black font-black text-[10px] uppercase tracking-widest shadow-md">
-                    ⚡ PRO ATHLETE ZONE
-                  </div>
+                  {/* Phone Screen Inner */}
+                  <div className="relative rounded-[36px] bg-zinc-950 overflow-hidden text-white min-h-[500px] border border-zinc-900 flex flex-col justify-between p-5 pt-10">
+                    
+                    {/* TAB 1: MEMBER MOBILE APP VIEW */}
+                    {heroTab === 'MEMBER_APP' && (
+                      <div className="space-y-4">
+                        {/* Member Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="text-left">
+                            <span className="text-[10px] uppercase font-black text-emerald-400 tracking-wider">
+                              IronVault Athlete
+                            </span>
+                            <h3 className="text-base font-black text-white">Alex Vance</h3>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            PRO PASS ACTIVE
+                          </span>
+                        </div>
 
-                  {/* Bottom Information Banner */}
-                  <div className="absolute bottom-16 left-4 right-4 p-4 rounded-2xl bg-zinc-950/85 border border-zinc-800/80 backdrop-blur-md">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-black text-white">
-                          {HERO_ATHLETE_PREVIEWS[heroAthleteIndex].title}
-                        </h4>
-                        <p className="text-[11px] text-zinc-400 mt-0.5">
-                          {HERO_ATHLETE_PREVIEWS[heroAthleteIndex].subtitle}
-                        </p>
+                        {/* Interactive Digital Access Pass Card */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-black border border-zinc-800 text-center space-y-3 relative overflow-hidden">
+                          <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                            <span>Facility QR Turnstile</span>
+                            <span className="font-mono text-emerald-400">Code: 100001</span>
+                          </div>
+
+                          {/* Dynamic Pass Status Alert */}
+                          {simulatedDoorOpen ? (
+                            <div className="py-6 px-3 rounded-xl bg-emerald-500/20 border border-emerald-500 text-emerald-400 animate-in zoom-in-95 duration-200">
+                              <CheckCircle2 className="w-10 h-10 mx-auto mb-1 text-emerald-400 animate-bounce" />
+                              <span className="font-black text-xs uppercase tracking-wide block">
+                                Access Granted • Door Unlocked
+                              </span>
+                              <span className="text-[10px] text-zinc-300">
+                                1-Device Signature Verified
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="py-4 px-2 flex flex-col items-center">
+                              <div className="w-28 h-28 rounded-2xl bg-white p-2.5 shadow-lg flex items-center justify-center mb-2">
+                                <QrCode className="w-full h-full text-black" />
+                              </div>
+                              <span className="text-[10px] text-zinc-400 font-mono">
+                                Valid for Next 28 Days
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Trigger simulated scan */}
+                          <button
+                            type="button"
+                            onClick={handleTriggerSimulatedCheckIn}
+                            className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition flex items-center justify-center gap-1.5 shadow-md"
+                          >
+                            <QrCode className="w-3.5 h-3.5" />
+                            <span>{simulatedDoorOpen ? 'Simulating Next Scan...' : 'Test Turnstile Scan'}</span>
+                          </button>
+                        </div>
+
+                        {/* Member Stats */}
+                        <div className="grid grid-cols-2 gap-2 text-left">
+                          <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+                            <span className="text-[10px] text-zinc-500 uppercase font-bold block">Streak</span>
+                            <span className="text-sm font-black text-emerald-400 font-mono">14 Days 🔥</span>
+                          </div>
+                          <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+                            <span className="text-[10px] text-zinc-500 uppercase font-bold block">Status</span>
+                            <span className="text-sm font-black text-white font-mono">Always Online</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold">
-                        <Dumbbell className="w-4 h-4" />
-                        <span>IPF Spec</span>
-                      </div>
-                    </div>
-                  </div>
+                    )}
 
-                  {/* Interactive Athlete Switcher Tabs at Bottom of Image */}
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-center gap-2">
-                    {HERO_ATHLETE_PREVIEWS.map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setHeroAthleteIndex(idx)}
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          heroAthleteIndex === idx
-                            ? 'w-10 bg-emerald-400 shadow-glow-green'
-                            : 'w-2.5 bg-zinc-600 hover:bg-zinc-400'
-                        }`}
-                        title={`View Athlete Profile ${idx + 1}`}
-                      />
-                    ))}
+                    {/* TAB 2: GYM OWNER LIVE RADAR */}
+                    {heroTab === 'OWNER_RADAR' && (
+                      <div className="space-y-3.5 text-left">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] uppercase font-black text-emerald-400 tracking-wider">
+                              Titan Force Gym
+                            </span>
+                            <h3 className="text-base font-black text-white">Live Turnstile Radar</h3>
+                          </div>
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                        </div>
+
+                        {/* Live Counts Card */}
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800">
+                            <span className="text-[10px] text-zinc-400 uppercase font-bold block">On Floor</span>
+                            <span className="text-xl font-black text-emerald-400 font-mono">42 Athletes</span>
+                          </div>
+                          <div className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800">
+                            <span className="text-[10px] text-zinc-400 uppercase font-bold block">Desk Revenue</span>
+                            <span className="text-xl font-black text-teal-400 font-mono">$1,840/day</span>
+                          </div>
+                        </div>
+
+                        {/* Live stream rows */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 block">
+                            Recent Entries (Real-Time)
+                          </span>
+                          <div className="p-2 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              <span className="font-bold text-white">David K.</span>
+                            </div>
+                            <span className="text-[10px] text-emerald-400 font-mono">ENTER • 12s ago</span>
+                          </div>
+                          <div className="p-2 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              <span className="font-bold text-white">Sarah M.</span>
+                            </div>
+                            <span className="text-[10px] text-emerald-400 font-mono">ENTER • 1m ago</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => onOpenAuth('STAFF_LOGIN')}
+                          className="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs transition"
+                        >
+                          Open Full Desk Radar
+                        </button>
+                      </div>
+                    )}
+
+                    {/* TAB 3: ANTI-FRAUD SECURITY */}
+                    {heroTab === 'ANTI_FRAUD' && (
+                      <div className="space-y-4 text-left">
+                        <div>
+                          <span className="text-[10px] uppercase font-black text-red-400 tracking-wider">
+                            Anti-Pass Sharing Guard
+                          </span>
+                          <h3 className="text-base font-black text-white">1-Device Binding Engine</h3>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-red-950/40 border border-red-500/40 space-y-2">
+                          <div className="flex items-center gap-2 text-red-400 text-xs font-black uppercase">
+                            <AlertTriangle className="w-4 h-4" />
+                            <span>Simulated Fraud Blocked</span>
+                          </div>
+                          <p className="text-xs text-zinc-300">
+                            Member tried to forward QR screenshot to a friend's phone:
+                          </p>
+                          <div className="p-2 rounded-lg bg-black/60 font-mono text-[10px] text-red-300 border border-red-500/30">
+                            ERR_DEVICE_MISMATCH: Unauthorized phone hardware ID. Turnstile locked.
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-1">
+                          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                            Auto-Repayment Policy
+                          </span>
+                          <p className="text-xs text-zinc-400">
+                            When pass expires, member is automatically logged out. Regains access the second desk renewal is paid.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Phone Bottom Home Bar */}
+                    <div className="w-28 h-1 bg-zinc-800 rounded-full mx-auto mt-2" />
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* 3. INTERACTIVE BODYBUILDING ANATOMY & MUSCLE TARGETING */}
-      <section id="anatomy" className="py-16 sm:py-24">
+      {/* ========================================================================= */}
+      {/* 3. DEDICATED MOBILE APP INSTALLATION SHOWCASE                              */}
+      {/* ========================================================================= */}
+      <section id="mobile-app" className="py-20 bg-slate-100/70 dark:bg-zinc-950/70 border-y border-slate-200 dark:border-zinc-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <BodybuildingAnatomyMap />
-        </div>
-      </section>
-
-      {/* 4. HEAVY IRON & PRO ARSENAL EQUIPMENT SHOWCASE */}
-      <div id="arsenal">
-        <GymEquipmentShowcase />
-      </div>
-
-      {/* 5. CHAMPIONS & BODYBUILDING ATHLETES HALL OF FAME */}
-      <div id="athletes">
-        <BodybuildingAthletesSpotlight />
-      </div>
-
-      {/* 3. SMART ACCESS SHOWCASE (Hardware-Free) */}
-      <section id="tech" className="py-16 sm:py-24 bg-slate-100/60 dark:bg-zinc-950/60 border-y border-slate-200 dark:border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Smart Physical Security</span>
+          
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Native iOS, Android & Instant PWA</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
-              Hardware-Free Access. <br />
-              <span className="text-emerald-600 dark:text-emerald-400">Your Phone Is Your Gate Key.</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">
+              The App Your Members Will Never Want to Delete.
             </h2>
-            <p className="mt-4 text-sm text-slate-600 dark:text-zinc-400">
-              No expensive optical turnstile readers or lost plastic fobs. Our proprietary access protocol pairs dynamic smartphone camera scanning with GPS geofencing and anti-fraud hardware binding.
+            <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-400 leading-relaxed">
+              Install natively on any smartphone in 5 seconds with zero app store wait time.
+              Built for speed, camera turnstile access, and 10-year persistent sessions.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* 3 Installation Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            
+            {/* CARD 1: iOS */}
+            <div className="app-card p-6 sm:p-7 space-y-4 text-left relative overflow-hidden">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl">
+                🍏
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                Apple iPhone (iOS)
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
+                Open in Safari ➔ Tap <strong>Share</strong> ➔ Tap <strong>"Add to Home Screen"</strong>. Launches full-screen as a standalone native app with camera turnstiles.
+              </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowIosInstallModal(true)}
+                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                >
+                  <span>View iPhone Quick Guide</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* CARD 2: Android */}
+            <div className="app-card p-6 sm:p-7 space-y-4 text-left relative overflow-hidden">
+              <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xl">
+                🤖
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                Google Android
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
+                Tap <strong>"Install App"</strong> in Chrome or Samsung Internet. Enjoy instant camera scanning, background sync, and offline biometric checks.
+              </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleInstallClick}
+                  className="btn-primary-green py-2 px-4 text-xs rounded-xl"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Install on Android</span>
+                </button>
+              </div>
+            </div>
+
+            {/* CARD 3: 10-Year Sessions */}
+            <div className="app-card p-6 sm:p-7 space-y-4 text-left relative overflow-hidden border-emerald-500/30">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-xl">
+                ⚡
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">
+                10-Year Permanent Sessions
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed">
+                Members never get logged out mid-workout. If their subscription pass expires, the app auto-logs them out until desk payment is settled.
+              </p>
+              <div className="pt-2">
+                <span className="badge-active-green text-[11px]">
+                  ✓ Automated Repayment Lock
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. ZERO-HARDWARE ARCHITECTURE (HOW IT WORKS)                              */}
+      {/* ========================================================================= */}
+      <section id="how-it-works" className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <Lock className="w-3.5 h-3.5" />
+              <span>How It Works</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">
+              Zero Turnstiles to Buy. 4 Easy Steps.
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-zinc-400">
+              Replaces \$5,000 turnstiles and RFID key fobs with smartphone cameras and cryptographically bound device access.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            
             {/* Step 1 */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 relative group hover:border-emerald-500 transition">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg mb-6">
+            <div className="app-card p-6 space-y-3 text-left">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 font-mono font-black text-lg flex items-center justify-center border border-emerald-500/30">
                 01
               </div>
-              <h3 className="text-lg font-bold mb-2">Scan Gate at Arrival</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Open IronVault on your phone or MacBook, tap "Scan Gate QR", and point your camera at the physical gym entrance poster.
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Print Facility Poster
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                Gym owners print our high-res Facility QR Poster directly from the dashboard and mount it at the gym entrance.
               </p>
-              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <Smartphone className="w-4 h-4" />
-                <span>Instant Camera Viewfinder</span>
-              </div>
             </div>
 
             {/* Step 2 */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 relative group hover:border-emerald-500 transition">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg mb-6">
+            <div className="app-card p-6 space-y-3 text-left">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 font-mono font-black text-lg flex items-center justify-center border border-emerald-500/30">
                 02
               </div>
-              <h3 className="text-lg font-bold mb-2">4-Tier Anti-Fraud Verification</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                The server automatically checks 50-meter GPS proximity, device hardware binding, active membership status, and 3-minute anti-passback cooldown.
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                6-Digit Member Join
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                Athletes enter your gym's unique 6-digit access code (e.g. 100001) in the app. Their hardware is cryptographically bound to that 1 phone.
               </p>
-              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <Shield className="w-4 h-4" />
-                <span>Sub-Second Validation</span>
-              </div>
             </div>
 
             {/* Step 3 */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 relative group hover:border-emerald-500 transition">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg mb-6">
+            <div className="app-card p-6 space-y-3 text-left">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 font-mono font-black text-lg flex items-center justify-center border border-emerald-500/30">
                 03
               </div>
-              <h3 className="text-lg font-bold mb-2">Gate Unlocks & Session Logged</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                You receive an instant access chime and email receipt, while staff see your check-in and streak appear live on their floor monitor.
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                0.3s Camera Scan
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                Athletes point their phone camera at the entrance poster. The system verifies active pass, GPS radius, and device ID in 300 milliseconds.
               </p>
-              <div className="mt-6 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <Activity className="w-4 h-4" />
-                <span>Live Floor WebSocket Sync</span>
-              </div>
             </div>
+
+            {/* Step 4 */}
+            <div className="app-card p-6 space-y-3 text-left">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 font-mono font-black text-lg flex items-center justify-center border border-emerald-500/30">
+                04
+              </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Auto-Repayment Gate
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                When a member's pass expires, their app automatically logs out. They settle payment at the desk, and their app unlocks instantly.
+              </p>
+            </div>
+
           </div>
+
         </div>
       </section>
 
-      {/* 4. MEMBERSHIP PLANS & PRICING */}
-      <section id="plans" className="py-20 sm:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
-              <Award className="w-3.5 h-3.5" />
-              <span>Transparent Pricing</span>
+      {/* ========================================================================= */}
+      {/* 5. INTERACTIVE ROI & PASS-SHARING RECOVERY CALCULATOR                      */}
+      {/* ========================================================================= */}
+      <section id="roi-calculator" className="py-20 bg-slate-100/70 dark:bg-zinc-950/70 border-y border-slate-200 dark:border-zinc-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <DollarSign className="w-3.5 h-3.5" />
+              <span>Revenue Calculator</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight">
-              Invest in Your Strength. <br />
-              <span className="text-emerald-600 dark:text-emerald-400">No Hidden Fees. Cancel Anytime.</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">
+              How Much Revenue Is Your Gym Losing?
             </h2>
-            <p className="mt-4 text-sm text-slate-600 dark:text-zinc-400">
-              Every membership unlocks our digital turnstile pass, locker rooms, high-performance coaching, and 24/7 access.
+            <p className="text-sm text-slate-600 dark:text-zinc-400">
+              The fitness industry averages 12–18% lost revenue from barcode screenshot forwarding and stolen passes.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
-            {/* PLAN 1: DAY PASS */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 flex flex-col justify-between hover:border-slate-400 dark:hover:border-zinc-700 transition">
+          <div className="app-card p-6 sm:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center shadow-xl">
+            {/* Left: Interactive Sliders */}
+            <div className="space-y-6 text-left">
               <div>
-                <span className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-                  Single Session
-                </span>
-                <h3 className="text-2xl font-black mt-1">Day Pass</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2">
-                  Perfect for travelers, drop-ins, and weekend trial lifters.
-                </p>
-
-                <div className="my-6">
-                  <span className="text-4xl font-black">$15</span>
-                  <span className="text-xs text-slate-400 dark:text-zinc-500 ml-1">/ single entry</span>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-zinc-300 mb-2">
+                  <span>Active Gym Members</span>
+                  <span className="font-mono text-emerald-500 text-sm font-black">{calcMembers} Members</span>
                 </div>
-
-                <ul className="space-y-3 text-xs text-slate-600 dark:text-zinc-300">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Full facility & free weights access</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Single-day digital QR turnstile pass</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Locker & recovery shower amenities</span>
-                  </li>
-                </ul>
+                <input
+                  type="range"
+                  min="50"
+                  max="1500"
+                  step="25"
+                  value={calcMembers}
+                  onChange={(e) => setCalcMembers(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                />
               </div>
 
-              <button
-                onClick={() => onOpenAuth('SIGNUP', 'Day Pass')}
-                className="w-full mt-8 py-3.5 rounded-xl border-2 border-slate-200 dark:border-zinc-700 font-bold text-xs uppercase tracking-wider hover:border-emerald-500 hover:text-emerald-500 transition"
-              >
-                Purchase Day Pass
-              </button>
+              <div>
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-zinc-300 mb-2">
+                  <span>Average Monthly Membership Fee</span>
+                  <span className="font-mono text-emerald-500 text-sm font-black">${calcFee}/month</span>
+                </div>
+                <input
+                  type="range"
+                  min="20"
+                  max="200"
+                  step="5"
+                  value={calcFee}
+                  onChange={(e) => setCalcFee(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                />
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 space-y-1">
+                <span className="font-bold block uppercase tracking-wider text-[10px]">
+                  💡 1-Device Fingerprint Enforcement
+                </span>
+                <p>
+                  IronVault binds each member account to their phone hardware. Screenshots and forward passes are rejected automatically at the door.
+                </p>
+              </div>
             </div>
 
-            {/* PLAN 2: MONTHLY UNLIMITED PRO (FEATURED) */}
-            <div className="p-8 rounded-3xl bg-gradient-to-b from-emerald-950/40 via-zinc-900 to-zinc-900 border-2 border-emerald-500 flex flex-col justify-between relative shadow-xl shadow-emerald-500/10">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest shadow-md">
-                ⚡ MOST POPULAR • 30-DAY PRO
+            {/* Right: Calculated Savings Card */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 text-center space-y-5 text-white">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 block">
+                Estimated Annual Revenue Recovered
+              </span>
+              <div className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 font-mono">
+                +${annualSaved.toLocaleString()}<span className="text-xs text-zinc-400">/year</span>
               </div>
 
-              <div>
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-                  Unlimited Access
-                </span>
-                <h3 className="text-2xl font-black mt-1">Monthly Pro Pass</h3>
-                <p className="text-xs text-zinc-400 mt-2">
-                  Our core membership for committed lifters and fitness enthusiasts.
-                </p>
-
-                <div className="my-6">
-                  <span className="text-5xl font-black text-emerald-400">$65</span>
-                  <span className="text-xs text-zinc-400 ml-1">/ month</span>
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-zinc-800/80 text-left">
+                <div>
+                  <span className="text-[10px] text-zinc-500 uppercase font-bold block">Monthly Recovery</span>
+                  <span className="text-base font-bold text-white font-mono">+${monthlyLoss.toLocaleString()}/mo</span>
                 </div>
-
-                <ul className="space-y-3 text-xs text-zinc-200">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span><strong>24/7/365 Unlimited</strong> Turnstile Access</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span><strong>All Group Fitness Classes</strong> included</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Permanent bound smartphone digital key</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Live community leaderboard & streak rewards</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Email workout receipts & arrival summaries</span>
-                  </li>
-                </ul>
+                <div>
+                  <span className="text-[10px] text-zinc-500 uppercase font-bold block">Turnstiles Saved</span>
+                  <span className="text-base font-bold text-emerald-400 font-mono">${hardwareSaved.toLocaleString()}</span>
+                </div>
               </div>
 
               <button
-                onClick={() => onOpenAuth('SIGNUP', 'Monthly Unlimited Pro Pass')}
-                className="w-full mt-8 py-3.5 rounded-xl btn-primary-green font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition active:scale-95"
+                type="button"
+                onClick={() => onOpenAuth('REGISTER_BUSINESS')}
+                className="w-full btn-primary-green py-3 rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20"
               >
-                Join with 30-Day Pro Pass →
-              </button>
-            </div>
-
-            {/* PLAN 3: ANNUAL VIP */}
-            <div className="p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 flex flex-col justify-between hover:border-slate-400 dark:hover:border-zinc-700 transition">
-              <div>
-                <span className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-                  Best Value Plan
-                </span>
-                <h3 className="text-2xl font-black mt-1">Annual VIP Pass</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-2">
-                  Full 12-month commitment with exclusive athlete perks & guest passes.
-                </p>
-
-                <div className="my-6">
-                  <span className="text-4xl font-black">$599</span>
-                  <span className="text-xs text-slate-400 dark:text-zinc-500 ml-1">/ year ($49/mo eq.)</span>
-                </div>
-
-                <ul className="space-y-3 text-xs text-slate-600 dark:text-zinc-300">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>All Monthly Pro benefits for 365 days</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span><strong>12 Free Guest Passes</strong> for friends</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Free monthly body composition scan (InBody)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>15% discount on supplements & gear</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => onOpenAuth('SIGNUP', 'Annual VIP Pass')}
-                className="w-full mt-8 py-3.5 rounded-xl border-2 border-slate-200 dark:border-zinc-700 font-bold text-xs uppercase tracking-wider hover:border-emerald-500 hover:text-emerald-500 transition"
-              >
-                Claim Annual VIP
+                <span>Recover My Gym's Revenue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* 5. LIVE GROUP CLASSES PREVIEW */}
-      <section id="classes" className="py-20 bg-slate-100/60 dark:bg-zinc-950/60 border-t border-slate-200 dark:border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Coach-Led Fitness</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
-                Upcoming Group Classes
+      {/* ========================================================================= */}
+      {/* 6. BODYBUILDING ANATOMY, ARSENAL & SPOTLIGHTS                             */}
+      {/* ========================================================================= */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+          
+          {/* Muscle Anatomy Map */}
+          <div>
+            <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+              <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest block">
+                Pro Athlete Training
+              </span>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white">
+                Interactive Muscle Targeter & Biomechanics
               </h2>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                Included with all active Pro and VIP memberships. Reserve your spot directly in the app.
-              </p>
             </div>
-
-            <button
-              onClick={() => onOpenAuth('SIGNUP')}
-              className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
-            >
-              <span>Join to Reserve Spots</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <BodybuildingAnatomyMap />
           </div>
 
-          {isLoadingClasses ? (
-            <div className="text-center py-12 text-slate-400 text-xs animate-pulse">
-              Loading current group class schedule...
-            </div>
-          ) : classes.length === 0 ? (
-            <div className="p-8 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-center">
-              <p className="text-sm font-bold text-slate-700 dark:text-zinc-300">Daily classes scheduled regularly.</p>
-              <p className="text-xs text-slate-400 mt-1">Log in to view the live studio schedule.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {classes.map((cls) => {
-                const available = Math.max(0, cls.maxSeats - (cls._count?.bookings || cls.bookings?.length || 0));
-                const classDate = new Date(cls.startTime);
-                return (
-                  <div
-                    key={cls.id}
-                    className="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-emerald-500/50 transition flex flex-col justify-between shadow-sm"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                          {cls.intensity || 'All Levels'}
-                        </span>
-                        <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-zinc-400">
-                          {classDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
+          {/* Heavy Arsenal Equipment */}
+          <div>
+            <GymEquipmentShowcase />
+          </div>
 
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">{cls.title}</h4>
-                      <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Coach {cls.coach}</p>
-                      <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1.5 line-clamp-1">📍 {cls.zone}</p>
-                    </div>
+          {/* Athletes Hall of Fame */}
+          <div>
+            <BodybuildingAthletesSpotlight />
+          </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px]">
-                      <span className="text-slate-500 dark:text-zinc-400">
-                        {available > 0 ? (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">{available} spots left</span>
-                        ) : (
-                          <span className="text-rose-500 font-bold">Fully Booked</span>
-                        )}
-                      </span>
-
-                      <button
-                        onClick={() => onOpenAuth('SIGNUP')}
-                        className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
-                      >
-                        Book →
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </section>
 
-      {/* 6. AMENITIES & EQUIPMENT SHOWCASE */}
-      <section id="amenities" className="py-20 sm:py-28">
+      {/* ========================================================================= */}
+      {/* 7. SAAS PRICING FOR GYM BUSINESSES                                        */}
+      {/* ========================================================================= */}
+      <section id="pricing" className="py-20 bg-slate-100/70 dark:bg-zinc-950/70 border-t border-slate-200 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
-              <Dumbbell className="w-3.5 h-3.5" />
-              <span>World-Class Facility</span>
+          
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Simple, Transparent Pricing</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black tracking-tight">
-              Engineered for Serious Training
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white">
+              Plans Built for Single Studios to 50-Location Chains.
             </h2>
-            <p className="mt-4 text-sm text-slate-600 dark:text-zinc-400">
-              From powerlifting competition racks to sprint turf and recovery saunas, IronVault is equipped for results.
+            <p className="text-sm text-slate-600 dark:text-zinc-400">
+              Always 100% free for athletes and gym members. 14-day risk-free trial for gym owners.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                <Dumbbell className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* TIER 1: STARTER GYM */}
+            <div className="app-card p-8 space-y-6 text-left flex flex-col justify-between">
+              <div className="space-y-4">
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Single Studio</span>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">Starter Facility</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-slate-900 dark:text-white font-mono">$49</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400">/month</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
+                  Ideal for independent crossfit boxes, boxing clubs, and local gyms up to 200 members.
+                </p>
+                <ul className="space-y-2.5 text-xs text-slate-700 dark:text-zinc-300 pt-3 border-t border-slate-200 dark:border-zinc-800">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Up to 200 Active Members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Zero-Hardware QR Turnstiles</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>1-Device Anti-Pass Sharing Lock</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Desk Billing & Renewal Manager</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>iOS & Android Mobile App</span>
+                  </li>
+                </ul>
               </div>
-              <h3 className="font-bold text-base mb-1">Olympic Platforms & Eleiko Plates</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                6 competition lifting platforms with certified calibrated bumper plates, Texas power bars, and chalk stations.
-              </p>
+
+              <button
+                type="button"
+                onClick={() => onOpenAuth('REGISTER_BUSINESS', 'Starter Facility')}
+                className="w-full btn-secondary-gym py-3 rounded-xl text-xs font-bold"
+              >
+                Start 14-Day Free Trial
+              </button>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                <Flame className="w-5 h-5" />
+            {/* TIER 2: PRO GYM (FEATURED) */}
+            <div className="app-card p-8 space-y-6 text-left flex flex-col justify-between border-2 border-emerald-500 relative shadow-xl shadow-emerald-500/10">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-emerald-500 text-black font-black text-[10px] uppercase tracking-widest shadow-md">
+                ⚡ MOST POPULAR
               </div>
-              <h3 className="font-bold text-base mb-1">30-Yard Sprint & Sled Turf</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Heavy-duty sled pushes, prowlers, medicine balls, battle ropes, and agility sprint lanes.
-              </p>
+
+              <div className="space-y-4">
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Commercial Powerhouse</span>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">Pro Fitness Arena</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-emerald-500 font-mono">$99</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400">/month</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
+                  For growing commercial gyms that need high-throughput turnstiles and retention automation.
+                </p>
+                <ul className="space-y-2.5 text-xs text-slate-700 dark:text-zinc-300 pt-3 border-t border-slate-200 dark:border-zinc-800">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Up to 1,000 Active Members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Unlimited Turnstiles & Posters</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Automated Pass Repayment Lock</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>WhatsApp Inactive Retention Engine</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>AI Health Intelligence & CSV Export</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Live Attendance Radar & Anti-Tailgating</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onOpenAuth('REGISTER_BUSINESS', 'Pro Fitness Arena')}
+                className="w-full btn-primary-green py-3.5 rounded-xl text-xs font-black shadow-lg shadow-emerald-500/25"
+              >
+                Launch Pro Workspace
+              </button>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                <Clock className="w-5 h-5" />
+            {/* TIER 3: MULTI-LOCATION ENTERPRISE */}
+            <div className="app-card p-8 space-y-6 text-left flex flex-col justify-between">
+              <div className="space-y-4">
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Multi-Location Franchise</span>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">Enterprise Chain</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-slate-900 dark:text-white font-mono">$199</span>
+                  <span className="text-xs text-slate-500 dark:text-zinc-400">/month</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
+                  Multi-branch access, cross-city roaming passes, and dedicated Super Admin controls.
+                </p>
+                <ul className="space-y-2.5 text-xs text-slate-700 dark:text-zinc-300 pt-3 border-t border-slate-200 dark:border-zinc-800">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Unlimited Members & Locations</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Cross-Branch Roaming Pass Network</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Custom Whitelabel Branding & Domain</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>24/7 Dedicated Account Director</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    <span>Custom Turnstile & Turnkey Hardware API</span>
+                  </li>
+                </ul>
               </div>
-              <h3 className="font-bold text-base mb-1">24/7 Unrestricted Entry</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Train early morning or late night. Digital biometric turnstiles allow safe, automated access at all hours.
-              </p>
+
+              <button
+                type="button"
+                onClick={() => onOpenAuth('REGISTER_BUSINESS', 'Enterprise Chain')}
+                className="w-full btn-secondary-gym py-3 rounded-xl text-xs font-bold"
+              >
+                Contact Enterprise Sales
+              </button>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                <Users className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base mb-1">Community Feed & Leaderboards</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Celebrate member PRs, log workouts, join monthly attendance challenges, and climb the gym rankings.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base mb-1">Sauna & Cold Recovery Suite</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Finnish cedarwood dry saunas, private shower facilities, secure lockers, and hyperice massage guns.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
-                <Shield className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-base mb-1">Strict Anti-Fraud & Safe Access</h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
-                Safe, verified facility: every check-in is authenticated, preventing unauthorized access and overcrowding.
-              </p>
-            </div>
           </div>
+
         </div>
       </section>
 
-      {/* 7. BOTTOM CTA SECTION */}
-      <section className="py-16 bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-center">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight">
-            Ready to Elevate Your Training?
-          </h2>
-          <p className="mt-4 text-sm sm:text-base text-emerald-100 max-w-xl mx-auto">
-            Join IronVault today. Sign up with your real email, verify your instant OTP, and unlock turnstile access immediately.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={() => onOpenAuth('SIGNUP')}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-black text-sm uppercase tracking-wider shadow-lg transition active:scale-95"
-            >
-              Get Started with 30-Day Pro Pass
-            </button>
-            <button
-              onClick={() => onOpenAuth('MEMBER_LOGIN')}
-              className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-black/30 hover:bg-black/40 text-white border border-white/20 font-bold text-sm transition active:scale-95"
-            >
-              Sign In to Member Portal
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. PUBLIC FOOTER */}
-      <footer className="bg-white dark:bg-black border-t border-slate-200 dark:border-zinc-800 py-12 text-xs text-slate-500 dark:text-zinc-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black">
-              <Shield className="w-4 h-4 stroke-[2.5]" />
+      {/* ========================================================================= */}
+      {/* 8. PUBLIC FOOTER                                                          */}
+      {/* ========================================================================= */}
+      <footer className="py-14 border-t border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#070709] text-left">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+            {/* Col 1 */}
+            <div className="space-y-3 md:col-span-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-black" />
+                </div>
+                <span className="font-black text-lg tracking-wider text-slate-900 dark:text-white">
+                  IRON<span className="text-emerald-500">VAULT</span>
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-sm leading-relaxed">
+                The modern operating system for gyms and athletes. Zero-hardware turnstiles, 1-device biometric access security, and 10-year persistent mobile sessions.
+              </p>
             </div>
-            <span className="font-bold text-slate-800 dark:text-zinc-300">
-              IronVault Fitness Club • Smart Access Control
-            </span>
+
+            {/* Col 2 */}
+            <div className="space-y-2 text-xs">
+              <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] block">
+                Platform
+              </span>
+              <ul className="space-y-1.5 text-slate-500 dark:text-zinc-400">
+                <li><a href="#mobile-app" className="hover:text-emerald-500">Mobile App (iOS/Android)</a></li>
+                <li><a href="#how-it-works" className="hover:text-emerald-500">Zero-Hardware Access</a></li>
+                <li><a href="#roi-calculator" className="hover:text-emerald-500">ROI Calculator</a></li>
+                <li><a href="/onboarding-presentation.html" target="_blank" rel="noreferrer" className="hover:text-emerald-500">Onboarding Slideshow</a></li>
+              </ul>
+            </div>
+
+            {/* Col 3 */}
+            <div className="space-y-2 text-xs">
+              <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] block">
+                Portals
+              </span>
+              <ul className="space-y-1.5 text-slate-500 dark:text-zinc-400">
+                <li><button onClick={() => onOpenAuth('MEMBER_LOGIN')} className="hover:text-emerald-500">Member Sign-In</button></li>
+                <li><button onClick={() => onOpenAuth('SIGNUP')} className="hover:text-emerald-500">Join Gym (6-Digit Code)</button></li>
+                <li><button onClick={() => onOpenAuth('REGISTER_BUSINESS')} className="hover:text-emerald-500">Register Gym Business</button></li>
+                <li><button onClick={() => onOpenAuth('STAFF_LOGIN')} className="hover:text-emerald-500">Staff / Super Admin Login</button></li>
+              </ul>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6 font-medium">
-            <button onClick={() => onOpenAuth('STAFF_LOGIN')} className="hover:text-emerald-500 transition">
-              Staff & Admin Portal
-            </button>
-            <a href="#plans" className="hover:text-emerald-500 transition">
-              Pricing Plans
-            </a>
-            <a href="#classes" className="hover:text-emerald-500 transition">
-              Class Schedule
-            </a>
+          <div className="pt-6 border-t border-slate-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-zinc-500 gap-3">
+            <p>© {new Date().getFullYear()} IronVault Inc. All rights reserved. 256-Bit Hardware Encrypted.</p>
+            <div className="flex items-center gap-2 text-emerald-500 font-bold text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>All Systems Operational • Cloud Live</span>
+            </div>
           </div>
-
-          <p className="text-center sm:text-right">
-            © {new Date().getFullYear()} IronVault CRM. All rights reserved.
-          </p>
         </div>
       </footer>
+
+      {/* ========================================================================= */}
+      {/* 9. MOBILE STICKY FLOATING BOTTOM BAR (For Mobile Screens)                 */}
+      {/* ========================================================================= */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bg-black/95 backdrop-blur-lg border-t border-zinc-800 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleInstallClick}
+          className="flex-1 py-3 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-zinc-800"
+        >
+          <Download className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Install App</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenAuth('REGISTER_BUSINESS')}
+          className="flex-1 py-3 px-2 rounded-xl bg-emerald-500 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          <span>Gym Owner</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onOpenAuth('MEMBER_LOGIN')}
+          className="py-3 px-3 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-xs flex items-center justify-center"
+          title="Athlete Login"
+        >
+          <LogIn className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 10. IPHONE (iOS) QUICK INSTALL MODAL                                      */}
+      {/* ========================================================================= */}
+      {showIosInstallModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="app-card max-w-sm w-full p-6 text-center space-y-4 relative border-emerald-500/40">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-2xl">
+              🍏
+            </div>
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">
+              Install on Apple iPhone
+            </h3>
+            <div className="text-xs text-slate-600 dark:text-zinc-300 space-y-3 text-left bg-slate-100 dark:bg-zinc-900/90 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800">
+              <p className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-emerald-500 text-black font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                <span>In Safari, tap the <strong>Share</strong> button (the box with an arrow at the bottom).</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-emerald-500 text-black font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                <span>Scroll down and tap <strong>"Add to Home Screen"</strong>.</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-emerald-500 text-black font-black text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                <span>Tap <strong>"Add"</strong> in the top-right corner.</span>
+              </p>
+            </div>
+            <p className="text-[11px] text-emerald-500 font-bold">
+              ✓ IronVault will open full-screen just like an App Store app!
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowIosInstallModal(false)}
+              className="w-full btn-primary-green py-2.5 rounded-xl text-xs"
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
-

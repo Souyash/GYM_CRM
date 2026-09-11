@@ -12,3 +12,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
+// Gracefully dismiss the zero-latency HTML preloader
+const initialPreloader = document.getElementById('initial-preloader');
+if (initialPreloader) {
+  initialPreloader.style.opacity = '0';
+  setTimeout(() => {
+    initialPreloader.remove();
+  }, 400);
+}
+

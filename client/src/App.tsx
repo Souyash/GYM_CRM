@@ -15,6 +15,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { CommunityFeed } from './components/CommunityFeed';
 import { LandingPageView } from './views/LandingPageView';
 import { HealthIntelligenceView } from './views/HealthIntelligenceView';
+import { PreloaderScreen } from './components/PreloaderScreen';
 import {
   Users,
   CreditCard,
@@ -87,18 +88,7 @@ export const AppContent: React.FC = () => {
   }, [currentTab, searchQuery]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex items-center justify-center font-poppins">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500 flex items-center justify-center animate-pulse">
-            <Shield className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">
-            Loading IronVault Fitness...
-          </p>
-        </div>
-      </div>
-    );
+    return <PreloaderScreen minDurationMs={800} />;
   }
 
   // 1. Unauthenticated Visitors: Public Landing Page or Sign-In Screen
