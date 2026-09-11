@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
 
 export async function getFacilities(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const facilities = await prisma.facility.findMany({
+    let facilities = await prisma.facility.findMany({
       include: {
         _count: {
           select: {
@@ -16,6 +16,70 @@ export async function getFacilities(req: AuthenticatedRequest, res: Response): P
         }
       }
     });
+
+    // If no legacy facilities, check Gyms table
+    if (facilities.length === 0) {
+      const gyms = await prisma.gym.findMany();
+      if (gyms.length > 0) {
+        facilities = gyms.map((g) => ({
+          id: g.id,
+          gymId: g.id,
+          name: g.name,
+          address: g.address,
+          latitude: g.latitude,
+          longitude: g.longitude,
+          geofenceRadiusMeters: g.geofenceRadiusMeters,
+          staticQrCodeHash: g.staticQrCodeHash,
+          exitQrCodeHash: g.exitQrCodeHash || 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026',
+          ownerContactEmail: g.ownerContactEmail || 'support@ironvault.com',
+          ownerContactPhone: g.ownerContactPhone || '+1-555-019-8800',
+          createdAt: g.createdAt,
+          updatedAt: g.updatedAt,
+          _count: { users: 0, attendanceEntries: 0, failedAccessLogs: 0 }
+        })) as any;
+      } else {
+        // Auto-provision the flagship gym & facility so platform always has working QR turnstiles
+        const flagshipGym = await prisma.gym.create({
+          data: {
+            name: 'IronVault Flagship Performance Club',
+            slug: 'ironvault-flagship',
+            inviteCode: '100001',
+            address: '100 IronVault Boulevard, Sector 4',
+            city: 'Metropolis',
+            state: 'NY',
+            latitude: 28.5355,
+            longitude: 77.3910,
+            geofenceRadiusMeters: 100.0,
+            staticQrCodeHash: 'FACILITY_IV_APEX_DOWNTOWN_STATIC_2026',
+            exitQrCodeHash: 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026',
+            ownerContactEmail: 'contact@ironvault.com',
+            ownerContactPhone: '+1-555-019-8800'
+          }
+        });
+
+        const flagshipFac = await prisma.facility.create({
+          data: {
+            id: flagshipGym.id,
+            gymId: flagshipGym.id,
+            name: flagshipGym.name,
+            address: flagshipGym.address,
+            latitude: flagshipGym.latitude,
+            longitude: flagshipGym.longitude,
+            geofenceRadiusMeters: flagshipGym.geofenceRadiusMeters,
+            staticQrCodeHash: flagshipGym.staticQrCodeHash,
+            exitQrCodeHash: flagshipGym.exitQrCodeHash,
+            ownerContactEmail: flagshipGym.ownerContactEmail || 'contact@ironvault.com',
+            ownerContactPhone: flagshipGym.ownerContactPhone || '+1-555-019-8800'
+          }
+        });
+
+        facilities = [{
+          ...flagshipFac,
+          _count: { users: 0, attendanceEntries: 0, failedAccessLogs: 0 }
+        }] as any;
+      }
+    }
+
     res.json({ facilities });
   } catch (error: any) {
     console.error('getFacilities error:', error);
