@@ -483,3 +483,56 @@ export async function getMembers(req: AuthenticatedRequest, res: Response): Prom
     res.status(500).json({ error: 'Failed to retrieve members.' });
   }
 }
+
+/**
+ * Delete / Remove a member from the gym database
+ */
+export async function deleteMember(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const callerGymId = resolveTenantGymId(req);
+
+    if (!id) {
+      res.status(400).json({ error: 'Member ID is required.' });
+      return;
+    }
+
+    const member = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!member) {
+      res.status(404).json({ error: 'Member not found.' });
+      return;
+    }
+
+    // Role check: Only managers/gym owners of the same gym or super admin can delete
+    if (callerGymId && member.gymId && member.gymId !== callerGymId) {
+      res.status(403).json({ error: 'Forbidden: You can only remove members from your own gym.' });
+      return;
+    }
+
+    // Clean up dependent records in transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.memberHealthProfile.deleteMany({ where: { userId: id } });
+      await tx.classBooking.deleteMany({ where: { userId: id } });
+      await tx.postComment.deleteMany({ where: { authorId: id } });
+      await tx.postLike.deleteMany({ where: { userId: id } });
+      await tx.attendanceEntry.deleteMany({ where: { userId: id } });
+      await tx.failedAccessLog.deleteMany({ where: { userId: id } });
+      await tx.deviceChangeRequest.deleteMany({ where: { userId: id } });
+      await tx.subscription.deleteMany({ where: { userId: id } });
+      await tx.user.delete({ where: { id } });
+    });
+
+    console.log(`[Member Removal] Member ${member.fullName} (${member.email}) removed from gym database.`);
+
+    res.json({
+      success: true,
+      message: `Member ${member.fullName} has been removed from the gym database.`
+    });
+  } catch (error: any) {
+    console.error('deleteMember error:', error);
+    res.status(500).json({ error: error?.message || 'Failed to delete member.' });
+  }
+}

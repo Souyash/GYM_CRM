@@ -112,6 +112,15 @@ export async function apiRequest<T = any>(
     const error: any = new Error(errorMsg);
     error.status = response.status;
     error.data = data;
+
+    if (typeof window !== 'undefined' && (data?.code === 'MEMBERSHIP_EXPIRED' || data?.code === 'ACCOUNT_DEACTIVATED')) {
+      window.dispatchEvent(
+        new CustomEvent('ironvault:auth_revoked', {
+          detail: { code: data.code, message: errorMsg }
+        })
+      );
+    }
+
     throw error;
   }
 
@@ -190,6 +199,7 @@ export const api = {
   sendOnboardOtp: (payload: any) => apiRequest('/memberships/onboard/send-otp', { method: 'POST', body: JSON.stringify(payload) }),
   verifyOnboardOtp: (payload: any) => apiRequest('/memberships/onboard/verify-otp', { method: 'POST', body: JSON.stringify(payload) }),
   deskBilling: (payload: any) => apiRequest('/memberships/bill', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteMember: (id: string) => apiRequest(`/memberships/${id}`, { method: 'DELETE' }),
 
   // Threat Monitoring & Failed Logs
   getFailedLogs: (params?: { attemptType?: string; page?: number }) => {

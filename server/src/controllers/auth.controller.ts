@@ -127,7 +127,7 @@ export async function registerBusiness(req: AuthenticatedRequest, res: Response)
       facilityId: result.gym.id
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '3650d' });
 
     res.status(201).json({
       success: true,
@@ -239,7 +239,7 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
       facilityId: user.facilityId
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '3650d' });
 
     res.status(201).json({
       message: 'Account created successfully. Welcome to IronVault!',
@@ -305,6 +305,25 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
       return;
     }
 
+    // For Members: Ensure pass is active and payments/renewals are not expired
+    if (user.role === 'MEMBER') {
+      const activeSub = await prisma.subscription.findFirst({
+        where: {
+          userId: user.id,
+          status: 'ACTIVE',
+          endDate: { gt: new Date() }
+        }
+      });
+
+      if (!activeSub) {
+        res.status(403).json({
+          error: 'Membership Expired: Your pass has expired or payment was not completed on time. Please visit the gym front desk to renew your pass.',
+          code: 'MEMBERSHIP_EXPIRED'
+        });
+        return;
+      }
+    }
+
     const effectiveGymId = user.gymId || user.facilityId;
 
     const tokenPayload: JwtPayload = {
@@ -315,7 +334,7 @@ export async function login(req: AuthenticatedRequest, res: Response): Promise<v
       facilityId: user.facilityId
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '3650d' });
 
     res.json({
       message: 'Login successful.',
@@ -360,9 +379,31 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
       }
     });
 
-    if (!user) {
-      res.status(404).json({ error: 'User not found.' });
+    if (!user || !user.isActive) {
+      res.status(401).json({
+        error: 'Access Revoked: Your account has been removed or deactivated from the gym database.',
+        code: 'ACCOUNT_DEACTIVATED'
+      });
       return;
+    }
+
+    // For Members: Check that membership repayment is up to date & pass has not expired
+    if (user.role === 'MEMBER') {
+      const activeSub = await prisma.subscription.findFirst({
+        where: {
+          userId: user.id,
+          status: 'ACTIVE',
+          endDate: { gt: new Date() }
+        }
+      });
+
+      if (!activeSub) {
+        res.status(403).json({
+          error: 'Membership Expired: Your pass has expired or payment was not completed on time. You have been logged out. Please visit the gym front desk to renew your pass.',
+          code: 'MEMBERSHIP_EXPIRED'
+        });
+        return;
+      }
     }
 
     res.json({
@@ -621,7 +662,7 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
       facilityId: user.facilityId
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '3650d' });
 
     res.status(201).json({
       message: 'Email verified successfully! Welcome to IronVault.',
@@ -840,7 +881,7 @@ export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Respo
       facilityId: user.facilityId
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '3650d' });
 
     res.json({
       message: 'Login successful. Welcome back!',

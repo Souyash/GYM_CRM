@@ -20,6 +20,8 @@ interface AuthContextType {
   logout: () => void;
   refreshProfile: () => Promise<void>;
   updateDeviceId: (newDeviceId: string) => void;
+  logoutNotice: string | null;
+  clearLogoutNotice: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(localStorage.getItem('ironvault_jwt_token'));
   const [deviceId, setDeviceId] = useState<string>(getOrCreateDeviceId());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [logoutNotice, setLogoutNotice] = useState<string | null>(null);
+
+  const clearLogoutNotice = () => setLogoutNotice(null);
 
   const refreshProfile = async () => {
     try {
@@ -42,11 +47,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(data.user);
       joinRoleRoom(data.user.role);
       joinUserRoom(data.user.id);
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Failed to restore session:', err);
       localStorage.removeItem('ironvault_jwt_token');
       setToken(null);
       setUser(null);
+
+      if (err?.data?.code === 'MEMBERSHIP_EXPIRED' || err?.message?.includes('membership has expired')) {
+        setLogoutNotice('⚠️ Your membership has expired or repayment is overdue. You have been logged out. Please renew your subscription at the front desk.');
+      } else if (err?.data?.code === 'ACCOUNT_DEACTIVATED' || err?.message?.includes('deactivated')) {
+        setLogoutNotice('⛔ Your account has been removed from this gym\'s database. Please contact gym administration.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +65,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     refreshProfile();
+
+    const handleAuthRevoked = (event: Event) => {
+      const customEvt = event as CustomEvent;
+      const code = customEvt.detail?.code;
+      const msg = customEvt.detail?.message;
+
+      localStorage.removeItem('ironvault_jwt_token');
+      setToken(null);
+      setUser(null);
+
+      if (code === 'MEMBERSHIP_EXPIRED' || msg?.includes('membership has expired')) {
+        setLogoutNotice('⚠️ Your membership has expired or repayment is overdue. You have been logged out. Please renew your subscription at the front desk.');
+      } else if (code === 'ACCOUNT_DEACTIVATED' || msg?.includes('deactivated')) {
+        setLogoutNotice('⛔ Your account has been removed from this gym\'s database. Please contact gym administration.');
+      } else if (msg) {
+        setLogoutNotice(`Session ended: ${msg}`);
+      }
+    };
+
+    window.addEventListener('ironvault:auth_revoked', handleAuthRevoked);
+    return () => {
+      window.removeEventListener('ironvault:auth_revoked', handleAuthRevoked);
+    };
   }, []);
+
+  // Periodic session verification for active members to auto-logout on expiration
+  useEffect(() => {
+    if (!user || user.role !== 'MEMBER') return;
+
+    const interval = setInterval(async () => {
+      try {
+        await api.getMe();
+      } catch (err: any) {
+        // Handled automatically via ironvault:auth_revoked or refreshProfile
+      }
+    }, 60000); // Check once a minute
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const login = async (credentials: any) => {
     const data = await api.login({
@@ -205,7 +254,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         quickSwitchUser,
         logout,
         refreshProfile,
-        updateDeviceId
+        updateDeviceId,
+        logoutNotice,
+        clearLogoutNotice
       }}
     >
       {children}

@@ -17,7 +17,8 @@ import {
   RefreshCw,
   Copy,
   Check,
-  MapPin
+  MapPin,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -33,7 +34,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   preselectedPlan,
   onBackToWebsite
 }) => {
-  const { login, verifyOtpAndLogin, registerBusiness, sendMemberLoginOtp, loginWithOtp } = useAuth();
+  const { login, verifyOtpAndLogin, registerBusiness, sendMemberLoginOtp, loginWithOtp, logoutNotice, clearLogoutNotice } = useAuth();
   const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS'>(initialTab);
 
   // Member Login Fields
@@ -760,6 +761,27 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   <span>Join Gym</span>
                 </button>
               </div>
+
+              {/* Session / Membership Notice */}
+              {logoutNotice && (
+                <div className="mb-4 p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-start justify-between gap-3 animate-in fade-in duration-300">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold block text-[11px] tracking-wide uppercase text-amber-700 dark:text-amber-400">Account Notice</span>
+                      <p className="mt-0.5 leading-relaxed font-medium">{logoutNotice}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearLogoutNotice}
+                    className="p-1 hover:bg-amber-500/20 rounded-lg text-amber-700 dark:text-amber-300 transition text-xs font-bold flex-shrink-0"
+                    title="Dismiss"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               {/* Error Message */}
               {errorMsg && (

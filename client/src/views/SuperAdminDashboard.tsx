@@ -24,7 +24,8 @@ import {
   FileSpreadsheet,
   ExternalLink,
   User,
-  Activity
+  Activity,
+  Trash2
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -188,6 +189,19 @@ Portal URL: ${window.location.origin}`;
       console.error('Failed to load Super Admin dashboard:', e);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteMember = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to permanently remove "${name}" from the platform?\n\nTheir account, sessions, and records will be deleted immediately.`)) {
+      return;
+    }
+    try {
+      await api.deleteMember(id);
+      setActionNotice(`Member "${name}" was permanently removed.`);
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to remove member');
     }
   };
 
@@ -945,19 +959,30 @@ Portal URL: ${window.location.origin}`;
 
                           {/* Actions */}
                           <td className="py-3.5 px-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleCopyText(m.email, `m-copy-${m.id}`, 'Member Email')}
-                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px] font-bold text-slate-700 dark:text-zinc-300 transition inline-flex items-center gap-1"
-                              title="Copy Email"
-                            >
-                              {copiedKey === `m-copy-${m.id}` ? (
-                                <Check className="w-3 h-3 text-emerald-500" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                              <span>Copy</span>
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleCopyText(m.email, `m-copy-${m.id}`, 'Member Email')}
+                                className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px] font-bold text-slate-700 dark:text-zinc-300 transition inline-flex items-center gap-1"
+                                title="Copy Email"
+                              >
+                                {copiedKey === `m-copy-${m.id}` ? (
+                                  <Check className="w-3 h-3 text-emerald-500" />
+                                ) : (
+                                  <Copy className="w-3 h-3" />
+                                )}
+                                <span>Copy</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMember(m.id, m.fullName || m.email)}
+                                className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-[11px] font-bold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 transition inline-flex items-center gap-1"
+                                title="Permanently delete member"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Delete</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

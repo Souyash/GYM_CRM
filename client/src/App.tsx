@@ -23,7 +23,8 @@ import {
   Activity,
   Plus,
   MessageSquare,
-  HeartPulse
+  HeartPulse,
+  Trash2
 } from 'lucide-react';
 import { api } from './services/api';
 
@@ -52,6 +53,18 @@ export const AppContent: React.FC = () => {
       setMembersList(data.members || []);
     } catch (e) {
       console.error('Failed to load members:', e);
+    }
+  };
+
+  const handleDeleteMember = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to remove "${name}" from this gym's database?\n\nTheir app access will be immediately terminated and all active sessions revoked.`)) {
+      return;
+    }
+    try {
+      await api.deleteMember(id);
+      await loadMembers();
+    } catch (err: any) {
+      alert(err.message || 'Failed to remove member');
     }
   };
 
@@ -214,12 +227,13 @@ export const AppContent: React.FC = () => {
                       <th className="py-3 px-4 font-bold">Current Subscription</th>
                       <th className="py-3 px-4 font-bold">Membership ID</th>
                       <th className="py-3 px-4 font-bold">Access Status</th>
+                      <th className="py-3 px-4 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-dark-800">
                     {membersList.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                        <td colSpan={6} className="py-8 text-center text-slate-400">
                           No members found. Use "New Member Sign-Up" above to register athletes.
                         </td>
                       </tr>
@@ -258,6 +272,17 @@ export const AppContent: React.FC = () => {
                             >
                               {m.isAccessGranted ? 'Active / Granted' : 'Expired / On Hold'}
                             </span>
+                          </td>
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMember(m.id, m.fullName)}
+                              className="px-2.5 py-1 text-xs font-semibold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50 transition inline-flex items-center gap-1.5 ml-auto"
+                              title="Remove member from gym database"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Remove</span>
+                            </button>
                           </td>
                         </tr>
                       ))
