@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IronVault — Gym Owner Onboarding Demonstration</title>
+  <title>IronVault — Gym Owner Onboarding Demonstration & Video Manual</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     @keyframes pulseGlow {
@@ -13,6 +13,30 @@
     .glow-bg {
       animation: pulseGlow 6s ease-in-out infinite;
     }
+    @keyframes scanLaser {
+      0% { top: 10%; opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { top: 88%; opacity: 0; }
+    }
+    .animate-scan-laser {
+      animation: scanLaser 1.8s ease-in-out infinite;
+    }
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .animate-blink {
+      animation: blinkCursor 0.9s infinite;
+    }
+    @keyframes unlockRipple {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-unlock-ripple {
+      animation: unlockRipple 0.5s ease-out forwards;
+    }
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-black select-none overflow-x-hidden">
@@ -20,7 +44,7 @@
   <!-- Top Navigation & Progress Bar -->
   <header class="w-full border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
     <div class="h-1 bg-zinc-800 w-full">
-      <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 transition-all duration-300 w-[8.33%]"></div>
+      <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 transition-all duration-300 w-[7.69%]"></div>
     </div>
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
@@ -29,15 +53,21 @@
         </div>
         <div>
           <span class="font-black text-sm tracking-tight text-white block">IronVault OS</span>
-          <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Client Onboarding & Future Vision</span>
+          <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Client Onboarding & Video Manual</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Direct Quick Link to Animated Video Manual -->
+        <button id="navWatchVideo" class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-300 rounded-lg transition shadow-sm group">
+          <span class="text-rose-400 animate-pulse">●</span>
+          <span>HOW TO USE Video</span>
+        </button>
+
         <span id="slideCounter" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
-          Slide 1 of 12
+          Slide 1 of 13
         </span>
-        <button id="toggleFullscreen" class="px-2.5 py-1 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg transition">
+        <button id="toggleFullscreen" class="px-2.5 py-1 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg transition hidden sm:block">
           ⛶ Fullscreen
         </button>
       </div>
@@ -166,7 +196,7 @@
       </div>
     </div>
 
-    <!-- Slide 4: Real-World Case Studies & Live Examples (NEW!) -->
+    <!-- Slide 4: Real-World Case Studies & Live Examples -->
     <div class="slide-content w-full space-y-6 hidden" data-slide="4">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-950/40 border border-amber-500/20 px-3 py-1 rounded-full">
@@ -285,8 +315,284 @@
       </div>
     </div>
 
-    <!-- Slide 6: Desk Billing & 1-Click OTP Onboarding -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="6">
+    <!-- ================================================================= -->
+    <!-- Slide 6: 🎬 USER MANUAL: "HOW TO USE" ANIMATION VIDEO (NEW!) -->
+    <!-- ================================================================= -->
+    <div class="slide-content w-full space-y-5 hidden" data-slide="6">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-950/60 border border-rose-500/30 text-rose-400 text-xs font-bold uppercase tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          <span>Interactive User Manual & Video Walkthrough</span>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">How IronVault Works in Real Life</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Watch the step-by-step animated demonstration from gym registration to 0.3s gate entry.</p>
+      </div>
+
+      <!-- Cinema-Grade Video Player Simulation Box -->
+      <div class="rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-2xl overflow-hidden max-w-3xl mx-auto flex flex-col">
+        
+        <!-- Video Top Header Bar -->
+        <div class="px-4 py-2.5 bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="flex h-2.5 w-2.5 relative">
+              <span id="recDotPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+            </span>
+            <span class="font-mono text-zinc-300 font-bold text-[11px] tracking-wide">REC • HOW TO USE USER MANUAL</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded font-bold">1080p 60FPS</span>
+            <span id="videoTimeDisplay" class="text-xs font-mono text-emerald-400 font-bold">00:08 / 01:15</span>
+          </div>
+        </div>
+
+        <!-- Animated Motion Stage / Screen Mockup Area -->
+        <div id="videoStage" class="relative bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 min-h-[300px] sm:min-h-[340px] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+          
+          <!-- Subtle Stage Grid Overlay -->
+          <div class="absolute inset-0 bg-[radial-gradient(#3f3f46_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none"></div>
+
+          <!-- CHAPTER 1: GYM OWNER REGISTRATION (0:00 - 0:15) -->
+          <div id="chapter1Content" class="w-full max-w-lg transition-all duration-500">
+            <div class="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <span class="text-[11px] font-bold text-emerald-400">STEP 1: OWNER ONBOARDING</span>
+                <span class="text-[10px] font-mono text-zinc-500">Setup Time: 30 Seconds</span>
+              </div>
+              <div class="space-y-2">
+                <div>
+                  <span class="text-[10px] text-zinc-400 block font-semibold">Gym Facility Name:</span>
+                  <div class="px-3 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-xs text-white flex items-center justify-between">
+                    <span id="autoTypeGym">IronVault Apex Fitness</span>
+                    <span class="w-1.5 h-3.5 bg-emerald-400 animate-blink"></span>
+                  </div>
+                </div>
+                <div>
+                  <span class="text-[10px] text-zinc-400 block font-semibold">Owner Gmail:</span>
+                  <div class="px-3 py-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-xs text-zinc-300">
+                    manager@ironvaultgym.com
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] text-zinc-400 block">Generated Gym Access Code:</span>
+                  <span class="text-base font-mono font-black text-emerald-400 tracking-wider">🔑 CODE: 100001</span>
+                </div>
+                <span class="px-2.5 py-1 text-[10px] font-bold bg-emerald-500 text-black rounded-lg">Workspace Ready</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHAPTER 2: PRINT TURNSTILE POSTER (0:15 - 0:30) -->
+          <div id="chapter2Content" class="w-full max-w-lg transition-all duration-500 hidden">
+            <div class="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex flex-col sm:flex-row items-center gap-5 shadow-xl">
+              <!-- Mock Poster Frame -->
+              <div class="w-36 h-48 bg-zinc-950 border-2 border-dashed border-emerald-500/50 rounded-xl flex flex-col items-center justify-center p-2 text-center relative shadow-inner">
+                <span class="text-[9px] font-mono font-black text-emerald-400 tracking-wider">ENTRANCE TURNSTILE</span>
+                <!-- SVG QR Code Mockup -->
+                <div class="w-20 h-20 bg-white rounded-lg p-1.5 my-2 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" class="w-full h-full text-black fill-current">
+                    <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v3h-3v-3zm-5 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h3v3h-3v-3zM9 13h2v2H9v-2zm2 2h2v2h-2v-2zm-2 2h2v2H9v-2zm2 2h2v2h-2v-2z"/>
+                  </svg>
+                </div>
+                <span class="text-[8px] text-zinc-400 font-bold">SCAN WITH PHONE</span>
+              </div>
+
+              <!-- Explanation side -->
+              <div class="flex-1 space-y-2 text-left">
+                <span class="text-[11px] font-bold text-teal-400">STEP 2: 1-CLICK PRINT POSTER</span>
+                <h4 class="text-xs sm:text-sm font-black text-white">Stick at Gym Front Entrance</h4>
+                <p class="text-[11px] text-zinc-400 leading-relaxed">
+                  Download the high-resolution PDF from your manager portal. No wiring, no turnstile technicians, zero dollar hardware expense.
+                </p>
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-800 text-[10px] text-zinc-300 font-mono">
+                  <span>📄 Turnstile_Poster_100001.pdf</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHAPTER 3: MEMBER ONBOARDING IN 30S (0:30 - 0:45) -->
+          <div id="chapter3Content" class="w-full max-w-lg transition-all duration-500 hidden">
+            <div class="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between gap-4 shadow-xl">
+              <!-- Mock Mobile Device Screen -->
+              <div class="w-48 rounded-2xl bg-zinc-950 border-2 border-zinc-700 p-3 space-y-2 shadow-2xl relative">
+                <div class="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-1"></div>
+                <span class="text-[9px] font-bold text-zinc-400 block text-center">Athlete Self Sign-up</span>
+                
+                <div class="p-2 rounded bg-zinc-900 border border-zinc-800 space-y-1">
+                  <span class="text-[8px] text-zinc-500 block">Enter Gym Code:</span>
+                  <div class="px-1.5 py-0.5 rounded bg-zinc-950 text-emerald-400 font-mono font-bold text-[11px]">
+                    100001
+                  </div>
+                </div>
+
+                <div class="p-2 rounded bg-zinc-900 border border-zinc-800 space-y-1">
+                  <span class="text-[8px] text-zinc-500 block">Athlete Name:</span>
+                  <div class="px-1.5 py-0.5 rounded bg-zinc-950 text-white font-bold text-[10px]">
+                    Alex Rivera
+                  </div>
+                </div>
+
+                <div class="p-1 rounded bg-emerald-500 text-black text-center text-[9px] font-black">
+                  Pass Active ✓
+                </div>
+              </div>
+
+              <!-- Right text explanation -->
+              <div class="flex-1 space-y-2 text-left">
+                <span class="text-[11px] font-bold text-indigo-400">STEP 3: 30-SECOND JOIN</span>
+                <h4 class="text-xs sm:text-sm font-black text-white">Join via 6-Digit Code or WhatsApp Link</h4>
+                <p class="text-[11px] text-zinc-400 leading-relaxed">
+                  Athletes open the app, enter your gym code <strong class="text-white font-mono">100001</strong>, and their pass is activated automatically on their device.
+                </p>
+                <span class="inline-block text-[10px] text-emerald-400 font-bold">✓ Single-Device Cryptographic Binding</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHAPTER 4: SMART 0.3s CAMERA SCAN & UNLOCK (0:45 - 1:00) -->
+          <div id="chapter4Content" class="w-full max-w-lg transition-all duration-500 hidden">
+            <div class="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <span class="text-[11px] font-bold text-emerald-400">STEP 4: SMART PHONE SCANNER</span>
+                <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded font-bold">Scanning Speed: 0.3s</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                <!-- Camera Viewfinder with Laser -->
+                <div class="relative w-full h-36 bg-zinc-950 border border-zinc-700 rounded-xl overflow-hidden flex items-center justify-center">
+                  <!-- Laser Line Scanning -->
+                  <div class="absolute w-full h-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] animate-scan-laser z-20"></div>
+
+                  <!-- QR Target Corner Reticles -->
+                  <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-emerald-400"></div>
+                  <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-emerald-400"></div>
+                  <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-emerald-400"></div>
+                  <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-emerald-400"></div>
+
+                  <div class="w-16 h-16 bg-white/10 backdrop-blur rounded p-1 flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" class="w-12 h-12 text-zinc-300 fill-current opacity-60">
+                      <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v3h-3v-3zm-5 0h2v2h-2v-2zm2 2h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-2 2h2v2h-2v-2zm4 0h3v3h-3v-3zM9 13h2v2H9v-2zm2 2h2v2h-2v-2zm-2 2h2v2H9v-2zm2 2h2v2h-2v-2z"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Live Verification Checks -->
+                <div class="space-y-2">
+                  <div class="p-2 rounded-lg bg-zinc-950 border border-zinc-800 text-[10px] space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-zinc-400">GPS Geofence:</span>
+                      <span class="text-emerald-400 font-bold">✓ INSIDE GYM (14m)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-zinc-400">Device Hardware:</span>
+                      <span class="text-emerald-400 font-bold">✓ BOUND PHONE</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-zinc-400">Pass Expiry:</span>
+                      <span class="text-white font-bold">28 Days Left</span>
+                    </div>
+                  </div>
+
+                  <div class="p-2 rounded-lg bg-emerald-500 text-black text-center text-xs font-black animate-unlock-ripple">
+                    DOOR UNLOCKED • ACCESS GRANTED
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CHAPTER 5: LIVE DESK INTELLIGENCE (1:00 - 1:15) -->
+          <div id="chapter5Content" class="w-full max-w-lg transition-all duration-500 hidden">
+            <div class="p-4 rounded-2xl bg-zinc-900/90 border border-zinc-800 space-y-3 shadow-xl">
+              <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                <span class="text-[11px] font-bold text-amber-400">STEP 5: REAL-TIME DESK RADAR</span>
+                <span class="text-[10px] font-mono text-zinc-400">WebSocket Live Sync</span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="p-2 rounded-xl bg-zinc-950 border border-zinc-800">
+                  <span class="text-[9px] text-zinc-500 block">Active Floor</span>
+                  <span id="mockFloorCounter" class="text-lg font-black text-emerald-400">43</span>
+                </div>
+                <div class="p-2 rounded-xl bg-zinc-950 border border-zinc-800">
+                  <span class="text-[9px] text-zinc-500 block">Today's Scans</span>
+                  <span class="text-lg font-black text-white">187</span>
+                </div>
+                <div class="p-2 rounded-xl bg-zinc-950 border border-zinc-800">
+                  <span class="text-[9px] text-zinc-500 block">Threat Alerts</span>
+                  <span class="text-lg font-black text-emerald-400">0</span>
+                </div>
+              </div>
+
+              <!-- Stream notification -->
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px]">AR</div>
+                  <div>
+                    <span class="text-white font-bold text-[11px] block">Alex Rivera</span>
+                    <span class="text-[10px] text-zinc-500">Monthly Pro • Turnstile 1 In</span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-mono text-emerald-400 font-bold">Just Now</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Voiceover Style Caption / Subtitle Bar -->
+        <div class="px-4 py-2 bg-zinc-950/90 border-t border-zinc-800/80 min-h-[44px] flex items-center justify-center text-center">
+          <p id="videoCaption" class="text-xs text-zinc-300 italic font-medium max-w-xl">
+            "Step 1: Gym owner registers facility in 30 seconds. Your private workspace & 6-digit access code (100001) are provisioned immediately."
+          </p>
+        </div>
+
+        <!-- Video Player Scrubber & Timeline -->
+        <div class="px-4 pt-2 pb-1 bg-zinc-950 border-t border-zinc-800/60">
+          <div class="relative w-full h-2 bg-zinc-800 rounded-full cursor-pointer overflow-hidden" id="videoTimelineContainer">
+            <div id="videoProgressScrubber" class="h-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 transition-all duration-300 w-[12%]"></div>
+          </div>
+        </div>
+
+        <!-- Video Controls Bottom Bar -->
+        <div class="px-4 py-3 bg-zinc-950 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800/60">
+          <!-- Play / Pause & Replay -->
+          <div class="flex items-center gap-2">
+            <button id="videoPlayPauseBtn" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition flex items-center gap-1.5 shadow">
+              <span id="playIcon">⏸</span>
+              <span id="playBtnText">Pause</span>
+            </button>
+            <button id="videoReplayBtn" class="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold transition">
+              ↺ Restart
+            </button>
+          </div>
+
+          <!-- Chapter Fast Scrub Buttons -->
+          <div class="flex items-center gap-1 overflow-x-auto text-[10px]">
+            <button class="chapter-btn px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-emerald-400 font-bold border border-emerald-500/30" data-chapter="1">1. Owner Reg</button>
+            <button class="chapter-btn px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-semibold" data-chapter="2">2. Print Poster</button>
+            <button class="chapter-btn px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-semibold" data-chapter="3">3. Member Join</button>
+            <button class="chapter-btn px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-semibold" data-chapter="4">4. 0.3s Scan</button>
+            <button class="chapter-btn px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-semibold" data-chapter="5">5. Live Desk</button>
+          </div>
+
+          <!-- Speed toggle -->
+          <div class="flex items-center gap-1 text-[11px] font-mono text-zinc-400">
+            <span class="hidden sm:inline">Speed:</span>
+            <button id="speedToggle" class="px-2 py-1 rounded bg-zinc-800 text-white font-bold hover:bg-zinc-700">1.0x</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Slide 7: Desk Billing & 1-Click OTP Onboarding -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="7">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
           Front Desk Simplicity
@@ -344,8 +650,8 @@
       </div>
     </div>
 
-    <!-- Slide 7: Live Floor Management & Turnstiles -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="7">
+    <!-- Slide 8: Live Floor Management & Turnstiles -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="8">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-teal-400 bg-teal-950/40 border border-teal-500/20 px-3 py-1 rounded-full">
           Live Operational Control
@@ -381,8 +687,8 @@
       </div>
     </div>
 
-    <!-- Slide 8: Member Experience & Community -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="8">
+    <!-- Slide 9: Member Experience & Community -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="9">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-indigo-400 bg-indigo-950/40 border border-indigo-500/20 px-3 py-1 rounded-full">
           Retention & Community
@@ -412,8 +718,8 @@
       </div>
     </div>
 
-    <!-- Slide 9: The Future Vision & Technology Roadmap (NEW!) -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="9">
+    <!-- Slide 10: The Future Vision & Technology Roadmap -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="10">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-indigo-400 bg-indigo-950/40 border border-indigo-500/20 px-3 py-1 rounded-full">
           Technology Roadmap
@@ -481,8 +787,8 @@
       </div>
     </div>
 
-    <!-- Slide 10: How Onboarding Works -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="10">
+    <!-- Slide 11: How Onboarding Works -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="11">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
           Simple Onboarding
@@ -518,8 +824,8 @@
       </div>
     </div>
 
-    <!-- Slide 11: Interactive ROI Calculator -->
-    <div class="slide-content w-full space-y-6 hidden" data-slide="11">
+    <!-- Slide 12: Interactive ROI Calculator -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="12">
       <div class="text-center space-y-2 max-w-2xl mx-auto">
         <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
           Financial Impact
@@ -558,8 +864,8 @@
       </div>
     </div>
 
-    <!-- Slide 12: Call to Action -->
-    <div class="slide-content w-full space-y-6 text-center animate-fade-in hidden" data-slide="12">
+    <!-- Slide 13: Call to Action -->
+    <div class="slide-content w-full space-y-6 text-center animate-fade-in hidden" data-slide="13">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
         <span>🚀 Let's Launch Your Gym</span>
       </div>
@@ -622,7 +928,7 @@
 
   <script>
     let currentSlide = 1;
-    const totalSlides = 12;
+    const totalSlides = 13;
 
     const slides = document.querySelectorAll('.slide-content');
     const prevBtn = document.getElementById('prevBtn');
@@ -630,6 +936,7 @@
     const counter = document.getElementById('slideCounter');
     const progressBar = document.getElementById('progressBar');
     const dotContainer = document.getElementById('dotContainer');
+    const navWatchVideo = document.getElementById('navWatchVideo');
 
     // Create indicator dots
     for (let i = 1; i <= totalSlides; i++) {
@@ -671,6 +978,11 @@
       }
 
       updateDots();
+
+      // If entering Slide 6 (Video Manual), auto-start playback
+      if (currentSlide === 6 && !isVideoPlaying) {
+        toggleVideoPlayback(true);
+      }
     }
 
     function goToSlide(n) {
@@ -678,6 +990,12 @@
         currentSlide = n;
         updateSlide();
       }
+    }
+
+    if (navWatchVideo) {
+      navWatchVideo.addEventListener('click', () => {
+        goToSlide(6);
+      });
     }
 
     prevBtn.addEventListener('click', () => {
@@ -745,6 +1063,199 @@
       });
     }
 
+    // =========================================================================
+    // 🎬 INTERACTIVE ANIMATED "HOW TO USE" VIDEO ENGINE
+    // =========================================================================
+    let currentChapter = 1;
+    let isVideoPlaying = false;
+    let videoTimer = null;
+    let videoSecondsElapsed = 8;
+    const totalVideoSeconds = 75; // 01:15
+    let playbackSpeed = 1.0;
+
+    const chapters = [
+      {
+        id: 1,
+        title: "1. Owner Reg",
+        caption: '"Step 1: Gym owner registers facility in 30 seconds. Your private workspace & 6-digit access code (100001) are provisioned immediately."',
+        duration: 15
+      },
+      {
+        id: 2,
+        title: "2. Print Poster",
+        caption: '"Step 2: Print your dynamic entrance & exit QR posters and tape them to your front gate. Zero wiring, zero hardware cost."',
+        duration: 15
+      },
+      {
+        id: 3,
+        title: "3. Member Join",
+        caption: '"Step 3: Athletes join via your unique 6-digit code or invite link. Account is bound to their smartphone hardware to eliminate pass sharing."',
+        duration: 15
+      },
+      {
+        id: 4,
+        title: "4. 0.3s Scan",
+        caption: '"Step 4: Member opens app camera and scans the entrance poster. Triple-layer anti-fraud verifies GPS & pass status in 0.3 seconds."',
+        duration: 15
+      },
+      {
+        id: 5,
+        title: "5. Live Desk",
+        caption: '"Step 5: Front desk dashboard tracks live athlete headcount, verifies renewals, and displays instant security threat alerts in real time."',
+        duration: 15
+      }
+    ];
+
+    const playPauseBtn = document.getElementById('videoPlayPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const playBtnText = document.getElementById('playBtnText');
+    const replayBtn = document.getElementById('videoReplayBtn');
+    const timeDisplay = document.getElementById('videoTimeDisplay');
+    const captionEl = document.getElementById('videoCaption');
+    const progressBarScrubber = document.getElementById('videoProgressScrubber');
+    const speedToggle = document.getElementById('speedToggle');
+    const chapterButtons = document.querySelectorAll('.chapter-btn');
+
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60).toString().padStart(2, '0');
+      const s = Math.floor(secs % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function showChapter(chapIndex) {
+      currentChapter = chapIndex;
+
+      // Update chapter visibility
+      for (let i = 1; i <= 5; i++) {
+        const c = document.getElementById(`chapter${i}Content`);
+        if (c) {
+          if (i === chapIndex) {
+            c.classList.remove('hidden');
+          } else {
+            c.classList.add('hidden');
+          }
+        }
+      }
+
+      // Update caption
+      captionEl.textContent = chapters[chapIndex - 1].caption;
+
+      // Update chapter button styles
+      chapterButtons.forEach((btn) => {
+        const cNum = parseInt(btn.getAttribute('data-chapter'));
+        if (cNum === chapIndex) {
+          btn.className = 'chapter-btn px-2 py-1 rounded bg-zinc-800 text-emerald-400 font-bold border border-emerald-500/30';
+        } else {
+          btn.className = 'chapter-btn px-2 py-1 rounded bg-zinc-900 text-zinc-400 font-semibold hover:bg-zinc-800';
+        }
+      });
+
+      // Special floor counter bump on chapter 5
+      if (chapIndex === 5) {
+        const floorCounter = document.getElementById('mockFloorCounter');
+        if (floorCounter) {
+          floorCounter.textContent = '43';
+        }
+      }
+    }
+
+    function tickVideo() {
+      videoSecondsElapsed += 1 * playbackSpeed;
+      if (videoSecondsElapsed > totalVideoSeconds) {
+        videoSecondsElapsed = totalVideoSeconds;
+        toggleVideoPlayback(false);
+      }
+
+      // Calculate which chapter we are in (each chapter is 15s)
+      const activeChap = Math.min(5, Math.floor(videoSecondsElapsed / 15) + 1);
+      if (activeChap !== currentChapter) {
+        showChapter(activeChap);
+      }
+
+      timeDisplay.textContent = `${formatTime(videoSecondsElapsed)} / ${formatTime(totalVideoSeconds)}`;
+      progressBarScrubber.style.width = `${(videoSecondsElapsed / totalVideoSeconds) * 100}%`;
+    }
+
+    function toggleVideoPlayback(forcePlay) {
+      if (forcePlay !== undefined) {
+        isVideoPlaying = forcePlay;
+      } else {
+        isVideoPlaying = !isVideoPlaying;
+      }
+
+      if (isVideoPlaying) {
+        if (videoSecondsElapsed >= totalVideoSeconds) {
+          videoSecondsElapsed = 0;
+        }
+        playIcon.textContent = '⏸';
+        playBtnText.textContent = 'Pause';
+        if (videoTimer) clearInterval(videoTimer);
+        videoTimer = setInterval(tickVideo, 1000 / playbackSpeed);
+      } else {
+        playIcon.textContent = '▶';
+        playBtnText.textContent = 'Play';
+        if (videoTimer) clearInterval(videoTimer);
+        videoTimer = null;
+      }
+    }
+
+    if (playPauseBtn) {
+      playPauseBtn.addEventListener('click', () => toggleVideoPlayback());
+    }
+
+    if (replayBtn) {
+      replayBtn.addEventListener('click', () => {
+        videoSecondsElapsed = 0;
+        showChapter(1);
+        timeDisplay.textContent = `00:00 / ${formatTime(totalVideoSeconds)}`;
+        progressBarScrubber.style.width = `0%`;
+        toggleVideoPlayback(true);
+      });
+    }
+
+    chapterButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const chap = parseInt(btn.getAttribute('data-chapter'));
+        videoSecondsElapsed = (chap - 1) * 15;
+        showChapter(chap);
+        timeDisplay.textContent = `${formatTime(videoSecondsElapsed)} / ${formatTime(totalVideoSeconds)}`;
+        progressBarScrubber.style.width = `${(videoSecondsElapsed / totalVideoSeconds) * 100}%`;
+      });
+    });
+
+    if (speedToggle) {
+      speedToggle.addEventListener('click', () => {
+        if (playbackSpeed === 1.0) {
+          playbackSpeed = 1.5;
+        } else if (playbackSpeed === 1.5) {
+          playbackSpeed = 2.0;
+        } else {
+          playbackSpeed = 1.0;
+        }
+        speedToggle.textContent = `${playbackSpeed.toFixed(1)}x`;
+        if (isVideoPlaying) {
+          clearInterval(videoTimer);
+          videoTimer = setInterval(tickVideo, 1000 / playbackSpeed);
+        }
+      });
+    }
+
+    // Timeline scrubbing
+    const timelineContainer = document.getElementById('videoTimelineContainer');
+    if (timelineContainer) {
+      timelineContainer.addEventListener('click', (e) => {
+        const rect = timelineContainer.getBoundingClientRect();
+        const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        videoSecondsElapsed = Math.floor(clickRatio * totalVideoSeconds);
+        const activeChap = Math.min(5, Math.floor(videoSecondsElapsed / 15) + 1);
+        showChapter(activeChap);
+        timeDisplay.textContent = `${formatTime(videoSecondsElapsed)} / ${formatTime(totalVideoSeconds)}`;
+        progressBarScrubber.style.width = `${clickRatio * 100}%`;
+      });
+    }
+
+    // Start video on chapter 1
+    showChapter(1);
     updateSlide();
   </script>
 </body>
