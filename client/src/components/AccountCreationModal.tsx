@@ -13,7 +13,8 @@ import {
   Mail,
   Phone,
   Lock,
-  CreditCard
+  CreditCard,
+  HeartPulse
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -275,11 +276,19 @@ export const AccountCreationModal: React.FC<AccountCreationModalProps> = ({
                 </div>
 
                 {role === 'MEMBER' && (
-                  <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800 text-[11px] text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-xl flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                    <span>
-                      <strong>Instant Entrance:</strong> Member can walk up to the entrance turnstile, enter this email, and scan the QR code to enter right now!
-                    </span>
+                  <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800 space-y-2">
+                    <div className="text-[11px] text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-xl flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <span>
+                        <strong>Instant Entrance:</strong> Member can walk up to the entrance turnstile, enter this email, and scan the QR code to enter right now!
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-2.5 rounded-xl flex items-center gap-2">
+                      <HeartPulse className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <span>
+                        <strong>First-Time Login Onboarding:</strong> When this member logs into their dashboard for the first time, they will automatically be prompted to complete their Admission & Fitness Assessment form.
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>

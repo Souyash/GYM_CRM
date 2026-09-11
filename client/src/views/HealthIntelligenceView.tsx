@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { HealthIntelligenceSummary, HealthMemberRecord, MemberHealthProfile } from '../types';
-import { MemberOnboardingModal } from '../components/MemberOnboardingModal';
 
 export const HealthIntelligenceView: React.FC = () => {
   const [summary, setSummary] = useState<HealthIntelligenceSummary | null>(null);
@@ -43,7 +42,6 @@ export const HealthIntelligenceView: React.FC = () => {
   const [selectedCondition, setSelectedCondition] = useState('ALL');
 
   // Modals
-  const [isOnboardOpen, setIsOnboardOpen] = useState(false);
   const [inspectingMember, setInspectingMember] = useState<HealthMemberRecord | null>(null);
 
   const fetchData = async () => {
@@ -162,14 +160,6 @@ export const HealthIntelligenceView: React.FC = () => {
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
             <span>{isExporting ? 'Exporting...' : 'Export Marketing CSV'}</span>
-          </button>
-
-          <button
-            onClick={() => setIsOnboardOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-bold rounded-xl text-xs shadow-lg flex items-center gap-2 transition"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Onboard Member & Health Sheet</span>
           </button>
         </div>
       </div>
@@ -795,16 +785,6 @@ export const HealthIntelligenceView: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Onboarding Modal */}
-      <MemberOnboardingModal
-        isOpen={isOnboardOpen}
-        onClose={() => setIsOnboardOpen(false)}
-        onSuccess={() => {
-          setIsOnboardOpen(false);
-          fetchData();
-        }}
-      />
     </div>
   );
 };
