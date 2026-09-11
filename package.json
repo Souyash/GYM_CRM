@@ -4,6 +4,8 @@
   "description": "Commercial Gym CRM & Member Management System with Turnstile Entry/Exit Scanning",
   "private": true,
   "scripts": {
+    "dev": "npm run server:dev & npm run client:dev",
+    "test": "npm test --prefix server",
     "build": "cd client && npm run build",
     "fix:git": "bash fix-git.sh",
     "client:dev": "npm run dev --prefix client",
