@@ -8,7 +8,9 @@ import {
   resendSignupOtp,
   sendMemberLoginOtp,
   verifyMemberLoginOtp,
-  registerBusiness
+  registerBusiness,
+  forgotPassword,
+  resetPassword
 } from '../controllers/auth.controller.js';
 import { authenticateJWT } from '../middleware/auth.middleware.js';
 import { extractDeviceId } from '../middleware/device.middleware.js';
@@ -17,6 +19,10 @@ const router = Router();
 
 // Business Onboarding (Khatabook SaaS style)
 router.post('/register-business', registerBusiness);
+
+// Password Recovery & Reset via Gmail OTP
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Registration & OTP Email Verification
 router.post('/send-signup-otp', sendSignupOtp);

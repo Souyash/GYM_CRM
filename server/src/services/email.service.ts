@@ -639,4 +639,93 @@ export async function sendMemberLoginOtpEmail(params: {
   });
 }
 
+/**
+ * Sends a 6-digit OTP code when a Gym Owner, Staff, or Member requests a password reset.
+ */
+export async function sendPasswordResetOtpEmail(params: {
+  toEmail: string;
+  fullName: string;
+  otpCode: string;
+}): Promise<{ success: boolean; deliveredVia: 'GMAIL' | 'DEV_CONSOLE'; error?: string }> {
+  const { toEmail, fullName, otpCode } = params;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronVault Password Reset Verification</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #e2e8f0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0b0f19; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 540px; background-color: #111827; border: 1px solid #1f2937; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 36px 36px 20px; text-align: center; background: linear-gradient(180deg, rgba(245,158,11,0.15) 0%, rgba(17,24,39,0) 100%);">
+              <div style="display: inline-block; padding: 10px 18px; border-radius: 9999px; background-color: #78350f; border: 1px solid #d97706; color: #fbbf24; font-weight: 800; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;">
+                🔑 PASSWORD RECOVERY
+              </div>
+              <h1 style="margin: 20px 0 6px; font-size: 26px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+                Reset Your Password
+              </h1>
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">
+                Hello, <strong style="color: #ffffff;">${fullName}</strong>! We received a password reset request for your account.
+              </p>
+            </td>
+          </tr>
+
+          <!-- OTP Box -->
+          <tr>
+            <td style="padding: 16px 36px 24px;">
+              <div style="background-color: #0f172a; border: 2px dashed #f59e0b; border-radius: 16px; padding: 26px 20px; text-align: center;">
+                <p style="margin: 0 0 10px; font-size: 12px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 2px;">
+                  Your 6-Digit Password Reset Code
+                </p>
+                <div style="font-size: 44px; font-weight: 900; letter-spacing: 12px; color: #ffffff; text-shadow: 0 0 20px rgba(245,158,11,0.4); font-family: 'Courier New', Courier, monospace;">
+                  ${otpCode}
+                </div>
+                <p style="margin: 12px 0 0; font-size: 13px; color: #94a3b8;">
+                  ⏱️ Valid for <strong style="color: #f59e0b;">15 minutes</strong>.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Instructions -->
+          <tr>
+            <td style="padding: 0 36px 36px;">
+              <div style="background-color: #1f2937; border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.6; color: #cbd5e1;">
+                <p style="margin: 0 0 8px;"><strong>🔒 Security Alert:</strong> If you did NOT request to reset your password, you can safely ignore this email. Your current password will remain unchanged.</p>
+                <p style="margin: 0;">Enter this code on the password recovery screen along with your new password to restore access to your account.</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 18px 36px; background-color: #0a0e17; border-top: 1px solid #1f2937; text-align: center; font-size: 12px; color: #64748b;">
+              IronVault Fitness • Smart SaaS Gym Security • 2026
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+
+  return await dispatchEmail({
+    toEmail,
+    subject: `🔑 ${otpCode} is your IronVault password reset code`,
+    html,
+    text: `Hello ${fullName},\n\nYour 6-digit password reset verification code is: ${otpCode}\n\nThis code expires in 15 minutes.\nIf you did not request a password reset, please ignore this email.`,
+    devOtpCode: otpCode,
+    fullName
+  });
+}
+
 

@@ -21,7 +21,12 @@ import {
   LogOut,
   Timer,
   Copy,
-  Check
+  Check,
+  KeyRound,
+  Mail,
+  Phone,
+  Lock,
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Facility } from '../types';
@@ -44,6 +49,96 @@ export const SuperAdminDashboard: React.FC = () => {
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Create Gym Workspace Modal State
+  const [isCreateGymModalOpen, setIsCreateGymModalOpen] = useState<boolean>(false);
+  const [gymFormName, setGymFormName] = useState<string>('');
+  const [gymFormCode, setGymFormCode] = useState<string>('100003');
+  const [gymFormOwnerName, setGymFormOwnerName] = useState<string>('');
+  const [gymFormEmail, setGymFormEmail] = useState<string>('');
+  const [gymFormPhone, setGymFormPhone] = useState<string>('');
+  const [gymFormPassword, setGymFormPassword] = useState<string>('GymPass@2026');
+  const [gymFormAddress, setGymFormAddress] = useState<string>('500 Grand Avenue, Suite 100');
+  const [gymFormCity, setGymFormCity] = useState<string>('New York');
+  const [gymFormState, setGymFormState] = useState<string>('NY');
+  const [isSubmittingGym, setIsSubmittingGym] = useState<boolean>(false);
+  const [gymCreationError, setGymCreationError] = useState<string | null>(null);
+  const [createdGymResult, setCreatedGymResult] = useState<any>(null);
+  const [copiedGymCreds, setCopiedGymCreds] = useState<boolean>(false);
+
+  const generateRandomGymCode = () => {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGymFormCode(code);
+  };
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
+    let pass = '';
+    for (let i = 0; i < 10; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setGymFormPassword(pass);
+  };
+
+  const handleOpenCreateGymModal = () => {
+    setIsCreateGymModalOpen(true);
+    setCreatedGymResult(null);
+    setGymCreationError(null);
+    generateRandomGymCode();
+  };
+
+  const handleCreateGymSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gymFormName.trim() || !gymFormOwnerName.trim() || !gymFormEmail.trim() || !gymFormPassword.trim()) {
+      setGymCreationError('Please provide Gym Name, Owner Name, Gmail ID, and Initial Password.');
+      return;
+    }
+    if (gymFormPassword.length < 6) {
+      setGymCreationError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setIsSubmittingGym(true);
+    setGymCreationError(null);
+    try {
+      const res = await api.registerBusiness({
+        gymName: gymFormName.trim(),
+        ownerName: gymFormOwnerName.trim(),
+        email: gymFormEmail.trim(),
+        password: gymFormPassword,
+        phone: gymFormPhone.trim() || undefined,
+        address: gymFormAddress.trim() || 'Main Gym Facility',
+        city: gymFormCity.trim() || 'City',
+        state: gymFormState.trim() || 'State',
+        inviteCode: gymFormCode.trim() || undefined
+      });
+
+      setCreatedGymResult({
+        gym: res.gym,
+        user: res.user,
+        password: gymFormPassword
+      });
+      setActionNotice(`Gym workspace '${res.gym.name}' created with access code: ${res.gym.inviteCode}`);
+      await loadData();
+    } catch (err: any) {
+      setGymCreationError(err.message || 'Failed to create gym workspace. Verify unique code or email.');
+    } finally {
+      setIsSubmittingGym(false);
+    }
+  };
+
+  const handleCopyGymCredentials = () => {
+    if (!createdGymResult) return;
+    const credText = `GYM WORKSPACE CREDENTIALS
+Gym Name: ${createdGymResult.gym.name}
+Unique 6-Digit Access Code: ${createdGymResult.gym.inviteCode}
+Owner Login Gmail: ${createdGymResult.user.email}
+Initial Password: ${createdGymResult.password}
+Portal URL: ${window.location.origin}`;
+    navigator.clipboard.writeText(credText);
+    setCopiedGymCreds(true);
+    setTimeout(() => setCopiedGymCreds(false), 3000);
+  };
 
   const loadData = async () => {
     try {
@@ -191,6 +286,14 @@ export const SuperAdminDashboard: React.FC = () => {
             <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl">
               🏢 {gyms.length} Active Gyms
             </span>
+            <button
+              type="button"
+              onClick={handleOpenCreateGymModal}
+              className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95"
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>➕ Create Gym Workspace</span>
+            </button>
           </div>
         </div>
 
@@ -705,6 +808,276 @@ export const SuperAdminDashboard: React.FC = () => {
         onClose={() => setIsAccountModalOpen(false)}
         onSuccess={() => loadData()}
       />
+
+      {/* Create Gym Workspace Modal */}
+      {isCreateGymModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="app-card w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto border border-slate-200 dark:border-zinc-800 shadow-2xl">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsCreateGymModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-sm">
+                <Building2 className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  Create Gym Workspace
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  Provision an isolated SaaS gym workspace with unique ID & owner Gmail
+                </p>
+              </div>
+            </div>
+
+            {/* Success State */}
+            {createdGymResult ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="font-black text-sm">Gym Workspace Successfully Created!</span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-zinc-300">
+                    The gym workspace and owner credentials have been generated and isolated.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 space-y-3 font-mono text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-zinc-400 font-sans">Gym Name:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{createdGymResult.gym.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-zinc-400 font-sans">6-Digit Access Code:</span>
+                    <span className="font-black text-sm bg-emerald-500 text-black px-2 py-0.5 rounded">
+                      {createdGymResult.gym.inviteCode}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-zinc-400 font-sans">Owner Login Gmail:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{createdGymResult.user.email}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-zinc-400 font-sans">Initial Password:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{createdGymResult.password}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyGymCredentials}
+                    className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-bold text-slate-800 dark:text-zinc-200 transition flex items-center justify-center gap-1.5"
+                  >
+                    {copiedGymCreds ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    <span>{copiedGymCreds ? 'Copied to Clipboard!' : 'Copy Credentials'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsCreateGymModalOpen(false);
+                      setCreatedGymResult(null);
+                    }}
+                    className="flex-1 py-3 rounded-xl btn-primary-green text-xs font-bold uppercase tracking-wider transition"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleCreateGymSubmit} className="space-y-4">
+                {gymCreationError && (
+                  <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                    <span>{gymCreationError}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    Gym Business Name *
+                  </label>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. IronVault Apex Downtown"
+                      value={gymFormName}
+                      onChange={(e) => setGymFormName(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                        6-Digit Access Code *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={generateRandomGymCode}
+                        className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                      >
+                        🎲 Random
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <KeyRound className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="text"
+                        required
+                        maxLength={8}
+                        placeholder="100003"
+                        value={gymFormCode}
+                        onChange={(e) => setGymFormCode(e.target.value.toUpperCase())}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Owner Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="Sarah Jenkins"
+                        value={gymFormOwnerName}
+                        onChange={(e) => setGymFormOwnerName(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    Owner Gmail ID (For Login & OTP Reset) *
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="owner.gym@gmail.com"
+                      value={gymFormEmail}
+                      onChange={(e) => setGymFormEmail(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1">
+                    Password recovery codes (OTP) will be dispatched directly to this Gmail ID.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                        Initial Password *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={generateRandomPassword}
+                        className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                      >
+                        ⚡ Generate
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="text"
+                        required
+                        minLength={6}
+                        placeholder="••••••••"
+                        value={gymFormPassword}
+                        onChange={(e) => setGymFormPassword(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Owner Contact Phone
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="tel"
+                        placeholder="+1 555-019-4422"
+                        value={gymFormPhone}
+                        onChange={(e) => setGymFormPhone(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Facility Street Address
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="123 Fitness Ave"
+                      value={gymFormAddress}
+                      onChange={(e) => setGymFormAddress(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      City, State
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="New York, NY"
+                      value={gymFormCity}
+                      onChange={(e) => setGymFormCity(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateGymModalOpen(false)}
+                    className="w-1/3 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingGym}
+                    className="flex-1 py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                  >
+                    <span>{isSubmittingGym ? 'Provisioning Workspace...' : 'Create Gym Workspace'}</span>
+                    <Building2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

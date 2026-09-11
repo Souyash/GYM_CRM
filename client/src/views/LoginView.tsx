@@ -49,6 +49,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [staffEmail, setStaffEmail] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
 
+  // Forgot Password via Gmail OTP State
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStep, setForgotStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
+  const [forgotOtpCode, setForgotOtpCode] = useState('');
+  const [forgotNewPassword, setForgotNewPassword] = useState('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
+  const [forgotNotice, setForgotNotice] = useState<string | null>(null);
+  const [forgotSuccess, setForgotSuccess] = useState<string | null>(null);
+  const [forgotCooldown, setForgotCooldown] = useState<number>(0);
+
   // Sign Up Form Fields (Join Gym)
   const [gymCode, setGymCode] = useState('');
   const [verifiedGym, setVerifiedGym] = useState<any>(null);
@@ -190,6 +201,93 @@ export const LoginView: React.FC<LoginViewProps> = ({
     }
     return () => clearInterval(interval);
   }, [memberOtpCooldown]);
+
+  useEffect(() => {
+    let interval: any;
+    if (forgotCooldown > 0) {
+      interval = setInterval(() => {
+        setForgotCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [forgotCooldown]);
+
+  const handleOpenForgotPassword = (prefillEmail?: string) => {
+    setIsForgotPassword(true);
+    setForgotStep('EMAIL');
+    setForgotEmail(prefillEmail || memberEmail || staffEmail || '');
+    setForgotOtpCode('');
+    setForgotNewPassword('');
+    setForgotConfirmPassword('');
+    setForgotNotice(null);
+    setForgotSuccess(null);
+    setErrorMsg(null);
+  };
+
+  const handleRequestPasswordResetOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanEmail = forgotEmail.trim();
+    if (!cleanEmail) {
+      setErrorMsg('Please enter your registered Gmail or email address.');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg(null);
+    setForgotNotice(null);
+    try {
+      const res = await api.forgotPassword(cleanEmail);
+      setForgotNotice(res.message || `A 6-digit recovery code has been sent to ${cleanEmail}`);
+      setForgotStep('OTP');
+      setForgotCooldown(60);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to dispatch recovery code. Please verify the email address.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanOtp = forgotOtpCode.trim();
+    if (!cleanOtp || cleanOtp.length !== 6) {
+      setErrorMsg('Please enter the 6-digit verification code sent to your Gmail.');
+      return;
+    }
+    if (!forgotNewPassword || forgotNewPassword.length < 6) {
+      setErrorMsg('New password must be at least 6 characters long.');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setErrorMsg('Passwords do not match. Please re-enter.');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await api.resetPassword({
+        email: forgotEmail.trim(),
+        otp: cleanOtp,
+        newPassword: forgotNewPassword
+      });
+      setForgotSuccess(res.message || 'Password reset successful! You can now log in.');
+      if (activeTab === 'MEMBER_LOGIN') {
+        setMemberEmail(forgotEmail.trim());
+        setMemberPassword(forgotNewPassword);
+        setMemberLoginMode('PASSWORD');
+      } else {
+        setStaffEmail(forgotEmail.trim());
+        setStaffPassword(forgotNewPassword);
+      }
+      setTimeout(() => {
+        setIsForgotPassword(false);
+        setForgotSuccess(null);
+      }, 2200);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to reset password. Please check your verification code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Member Login via Gmail OTP Handlers
   const handleSendMemberOtp = async (e: React.FormEvent) => {
@@ -432,80 +530,238 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
         {/* Main Card */}
         <div className="app-card p-6 sm:p-8">
-          {/* 4-Tab Multi-Tenant Navigation */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl mb-6">
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('MEMBER_LOGIN');
-                setErrorMsg(null);
-              }}
-              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
-                activeTab === 'MEMBER_LOGIN'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span>🏃</span>
-              <span>Member</span>
-            </button>
+          {isForgotPassword ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-slate-900 dark:text-white">Forgot Password</h2>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                      {forgotStep === 'EMAIL' ? 'Step 1: Enter your registered Gmail ID' : 'Step 2: Enter 6-digit OTP & new password'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setErrorMsg(null);
+                    setForgotNotice(null);
+                    setForgotSuccess(null);
+                  }}
+                  className="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 font-semibold py-1 px-2.5 rounded-lg border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Login</span>
+                </button>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('STAFF_LOGIN');
-                setErrorMsg(null);
-              }}
-              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
-                activeTab === 'STAFF_LOGIN'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span>👑</span>
-              <span>Staff / Owner</span>
-            </button>
+              {/* Success Banner */}
+              {forgotSuccess && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <span>{forgotSuccess}</span>
+                </div>
+              )}
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('SIGNUP');
-                setErrorMsg(null);
-              }}
-              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
-                activeTab === 'SIGNUP'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span>🤝</span>
-              <span>Join Gym</span>
-            </button>
+              {/* Error Banner */}
+              {errorMsg && (
+                <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('REGISTER_BUSINESS');
-                setErrorMsg(null);
-              }}
-              className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
-                activeTab === 'REGISTER_BUSINESS'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span>🏢</span>
-              <span>Register Gym</span>
-            </button>
-          </div>
+              {/* Notice Banner */}
+              {forgotNotice && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <span>{forgotNotice}</span>
+                </div>
+              )}
 
-          {/* Error Message */}
-          {errorMsg && (
-            <div className="mb-4 p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
+              {forgotStep === 'EMAIL' ? (
+                <form onSubmit={handleRequestPasswordResetOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Registered Gmail / Email Address *
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="you@gmail.com"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1.5">
+                      Enter the Gmail ID associated with your gym account. We will send a secure 6-digit recovery OTP passcode.
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                  >
+                    <span>{isLoading ? 'Sending Passcode...' : 'Send Recovery OTP to Gmail'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                        6-Digit Verification Code (OTP) *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleRequestPasswordResetOtp()}
+                        disabled={forgotCooldown > 0 || isLoading}
+                        className={`text-xs font-semibold ${
+                          forgotCooldown > 0 ? 'text-slate-400 cursor-not-allowed' : 'text-emerald-600 dark:text-emerald-400 hover:underline'
+                        }`}
+                      >
+                        {forgotCooldown > 0 ? `Resend in ${forgotCooldown}s` : 'Resend Code'}
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <KeyRound className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="text"
+                        required
+                        maxLength={6}
+                        placeholder="123456"
+                        value={forgotOtpCode}
+                        onChange={(e) => setForgotOtpCode(e.target.value.replace(/\D/g, ''))}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-mono tracking-widest text-slate-900 dark:text-white placeholder:tracking-normal focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      New Password (Min 6 Characters) *
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        placeholder="••••••••"
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      Confirm New Password *
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        placeholder="••••••••"
+                        value={forgotConfirmPassword}
+                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setForgotStep('EMAIL')}
+                      className="w-1/3 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-900 transition"
+                    >
+                      Change Email
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex-1 py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                    >
+                      <span>{isLoading ? 'Resetting Password...' : 'Save New Password'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-          )}
+          ) : (
+            <>
+              {/* 3-Tab Multi-Tenant Navigation */}
+              <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('MEMBER_LOGIN');
+                    setErrorMsg(null);
+                  }}
+                  className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                    activeTab === 'MEMBER_LOGIN'
+                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>🏃</span>
+                  <span>Member</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('STAFF_LOGIN');
+                    setErrorMsg(null);
+                  }}
+                  className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                    activeTab === 'STAFF_LOGIN'
+                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>👑</span>
+                  <span>Staff / Owner</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('SIGNUP');
+                    setErrorMsg(null);
+                  }}
+                  className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                    activeTab === 'SIGNUP'
+                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>🤝</span>
+                  <span>Join Gym</span>
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {errorMsg && (
+                <div className="mb-4 p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
           {/* TAB 1: MEMBER LOGIN */}
           {activeTab === 'MEMBER_LOGIN' && (
@@ -694,9 +950,18 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                      Password
-                    </label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenForgotPassword(memberEmail)}
+                        className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
                       <input
@@ -751,9 +1016,18 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenForgotPassword(staffEmail)}
+                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
                   <input
@@ -1171,7 +1445,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </button>
             </form>
           )}
-        </div>
+        </>
+      )}
+    </div>
 
         {/* Quick Demo Switcher Across Multi-Tenant Gyms */}
         <div className="p-4 rounded-3xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800 shadow-sm">

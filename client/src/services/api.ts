@@ -124,7 +124,8 @@ export const api = {
   login: (credentials: any) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   register: (payload: any) => apiRequest('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
   registerBusiness: (payload: {
-    gymName: string;
+    gymName?: string;
+    businessName?: string;
     ownerName: string;
     email: string;
     password: string;
@@ -132,6 +133,7 @@ export const api = {
     address: string;
     city?: string;
     state?: string;
+    inviteCode?: string;
     geofenceRadiusMeters?: number;
   }) => apiRequest('/auth/register-business', { method: 'POST', body: JSON.stringify(payload) }),
   sendSignupOtp: (payload: { email: string; password: string; fullName: string; phone?: string; role?: string; gymCode?: string; gymId?: string }) =>
@@ -144,6 +146,10 @@ export const api = {
     apiRequest('/auth/send-login-otp', { method: 'POST', body: JSON.stringify({ email }) }),
   verifyMemberLoginOtp: (payload: { email: string; otp: string; device_id?: string }) =>
     apiRequest('/auth/verify-login-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  forgotPassword: (email: string) =>
+    apiRequest('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (payload: { email: string; otp: string; newPassword: string }) =>
+    apiRequest('/auth/reset-password', { method: 'POST', body: JSON.stringify(payload) }),
   getMe: () => apiRequest('/auth/me'),
 
   // Multi-Tenant Gym Management

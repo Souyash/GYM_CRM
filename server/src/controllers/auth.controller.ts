@@ -10,7 +10,12 @@ import {
   emitFailedAccessAlert
 } from '../services/socket.service.js';
 import { dispatchThreatAlerts } from '../services/notification.service.js';
-import { sendSignupOtpEmail, sendWelcomeEmail, sendMemberLoginOtpEmail } from '../services/email.service.js';
+import {
+  sendSignupOtpEmail,
+  sendWelcomeEmail,
+  sendMemberLoginOtpEmail,
+  sendPasswordResetOtpEmail
+} from '../services/email.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_2026_dev';
 
@@ -33,24 +38,28 @@ export async function registerBusiness(req: AuthenticatedRequest, res: Response)
   try {
     const {
       businessName,
+      gymName,
       ownerName,
       email,
       password,
       phone,
       address,
       city,
-      state
+      state,
+      inviteCode: customInviteCode
     } = req.body;
 
-    if (!businessName || !ownerName || !email || !password) {
-      res.status(400).json({ error: 'Business name, owner name, email, and password are required.' });
+    const targetBizName = (businessName || gymName || '').trim();
+
+    if (!targetBizName || !ownerName || !email || !password) {
+      res.status(400).json({ error: 'Gym name, owner name, email, and password are required.' });
       return;
     }
 
     const cleanEmail = email.toLowerCase().trim();
     const existingUser = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existingUser) {
-      res.status(409).json({ error: 'An account with this email address already exists. Please log in.' });
+      res.status(409).json({ error: 'An account with this email address already exists. Please log in or use another email.' });
       return;
     }
 
@@ -59,8 +68,19 @@ export async function registerBusiness(req: AuthenticatedRequest, res: Response)
       return;
     }
 
-    const inviteCode = await generateUniqueGymInviteCode();
-    const cleanBizName = businessName.trim();
+    let inviteCode: string;
+    if (customInviteCode && customInviteCode.toString().trim()) {
+      inviteCode = customInviteCode.toString().trim().toUpperCase();
+      const existingGymCode = await prisma.gym.findUnique({ where: { inviteCode } });
+      if (existingGymCode) {
+        res.status(400).json({ error: `Gym code '${inviteCode}' is already taken. Please choose another unique code.` });
+        return;
+      }
+    } else {
+      inviteCode = await generateUniqueGymInviteCode();
+    }
+
+    const cleanBizName = targetBizName;
     const slugBase = cleanBizName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const slug = `${slugBase || 'gym'}-${crypto.randomInt(100, 999)}`;
     const staticQrCodeHash = `GYM_${cleanBizName.replace(/\s+/g, '_').toUpperCase()}_STATIC_${Date.now()}`;
@@ -830,5 +850,124 @@ export async function verifyMemberLoginOtp(req: AuthenticatedRequest, res: Respo
   } catch (error: any) {
     console.error('verifyMemberLoginOtp error:', error);
     res.status(500).json({ error: 'Failed to verify login code.' });
+  }
+}
+
+/**
+ * 10. Forgot Password (Dispatches 6-digit OTP code to registered Gmail ID)
+ */
+export async function forgotPassword(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ error: 'Please enter your registered Gmail or email address.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      include: { gym: true }
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'No account found with this email address. Please check your Gmail or contact your gym admin.' });
+      return;
+    }
+
+    // Generate secure 6-digit numeric OTP
+    const otpCode = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    // Upsert into OtpVerification
+    await prisma.otpVerification.upsert({
+      where: { email: cleanEmail },
+      create: {
+        email: cleanEmail,
+        otpCode,
+        payload: JSON.stringify({ purpose: 'PASSWORD_RESET', userId: user.id }),
+        expiresAt
+      },
+      update: {
+        otpCode,
+        payload: JSON.stringify({ purpose: 'PASSWORD_RESET', userId: user.id }),
+        expiresAt,
+        attempts: 0
+      }
+    });
+
+    await sendPasswordResetOtpEmail({
+      toEmail: cleanEmail,
+      fullName: user.fullName,
+      otpCode
+    });
+
+    res.json({
+      success: true,
+      message: `A 6-digit password reset code has been sent to your Gmail (${cleanEmail}).`
+    });
+  } catch (error: any) {
+    console.error('Failed forgotPassword request:', error);
+    res.status(500).json({ error: 'Internal server error processing password reset request.' });
+  }
+}
+
+/**
+ * 11. Reset Password (Verifies 6-digit OTP and updates password)
+ */
+export async function resetPassword(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      res.status(400).json({ error: 'Email, 6-digit verification code, and new password are required.' });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      res.status(400).json({ error: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.trim();
+
+    const record = await prisma.otpVerification.findUnique({ where: { email: cleanEmail } });
+
+    if (!record || record.otpCode !== cleanOtp) {
+      res.status(400).json({ error: 'Invalid or incorrect verification code. Please check your Gmail.' });
+      return;
+    }
+
+    if (new Date() > record.expiresAt) {
+      res.status(400).json({ error: 'This verification code has expired. Please request a fresh code.' });
+      return;
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    const user = await prisma.user.update({
+      where: { email: cleanEmail },
+      data: { passwordHash },
+      include: { gym: true }
+    });
+
+    // Delete OTP record after successful reset
+    await prisma.otpVerification.delete({ where: { email: cleanEmail } });
+
+    res.json({
+      success: true,
+      message: 'Password successfully updated! You can now log in with your new password.',
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        gym: user.gym
+      }
+    });
+  } catch (error: any) {
+    console.error('Failed resetPassword request:', error);
+    res.status(500).json({ error: 'Internal server error resetting password.' });
   }
 }

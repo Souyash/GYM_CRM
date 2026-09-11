@@ -163,29 +163,15 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             ) : (
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => onOpenAuth('REGISTER_BUSINESS')}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-800 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-200 text-xs font-black uppercase tracking-wider transition active:scale-95 shadow-sm"
-                  title="Register your gym facility and get a 6-digit access code for members"
-                >
-                  <Building2 className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Register Gym</span>
-                </button>
-                <button
-                  onClick={() => onOpenAuth('STAFF_LOGIN')}
-                  className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
-                >
-                  <span>Owner Login</span>
-                </button>
-                <button
                   onClick={() => onOpenAuth('MEMBER_LOGIN')}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
                 >
                   <LogIn className="w-3.5 h-3.5" />
                   <span>Member Portal</span>
                 </button>
                 <button
                   onClick={() => onOpenAuth('SIGNUP')}
-                  className="btn-primary-green flex items-center gap-1.5 py-2 px-3.5 text-xs font-bold uppercase tracking-wider"
+                  className="btn-primary-green flex items-center gap-1.5 py-2.5 px-4 text-xs font-bold uppercase tracking-wider"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Join Club</span>
@@ -241,31 +227,6 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 >
                   <Smartphone className="w-4 h-4 text-emerald-500" />
                   <span>Member Portal Sign In</span>
-                </button>
-              </div>
-
-              {/* Gym Owner SaaS Onboarding Callout Banner */}
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-left">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500 text-black flex items-center justify-center font-black shrink-0 shadow-sm">
-                    <Building2 className="w-5 h-5 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                      <span>Are you a Gym Owner?</span>
-                      <span className="text-[9px] bg-amber-500/20 text-amber-800 dark:text-amber-300 font-extrabold px-1.5 py-0.5 rounded-md">Multi-Tenant SaaS</span>
-                    </p>
-                    <p className="text-[11px] text-slate-600 dark:text-zinc-400">
-                      Launch your isolated gym workspace with 6-digit member codes & turnstiles in 30 seconds.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => onOpenAuth('REGISTER_BUSINESS')}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-1.5 shrink-0 shadow-md shadow-amber-500/20 active:scale-95"
-                >
-                  <span>Register Your Gym</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
