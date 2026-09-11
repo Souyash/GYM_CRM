@@ -38,7 +38,7 @@ export const AppContent: React.FC = () => {
 
   // Public Landing Page & Auth Modal Navigation
   const [showAuthScreen, setShowAuthScreen] = useState<boolean>(false);
-  const [authInitialTab, setAuthInitialTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP'>('MEMBER_LOGIN');
+  const [authInitialTab, setAuthInitialTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS'>('MEMBER_LOGIN');
   const [authSelectedPlan, setAuthSelectedPlan] = useState<string | undefined>(undefined);
   const [viewPublicSiteAsUser, setViewPublicSiteAsUser] = useState<boolean>(false);
 

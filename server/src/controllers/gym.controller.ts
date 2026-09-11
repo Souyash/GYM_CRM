@@ -290,3 +290,4 @@ export async function updateGym(req: AuthenticatedRequest, res: Response): Promi
     res.status(500).json({ error: 'Failed to update gym details.' });
   }
 }
+

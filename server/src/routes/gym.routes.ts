@@ -20,3 +20,4 @@ router.get('/:id', authenticateJWT, getGymById);
 router.put('/:id', authenticateJWT, requireRole('SUPER_ADMIN', 'GYM_OWNER'), updateGym);
 
 export default router;
+
