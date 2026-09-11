@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IronVault — Gym Owner Onboarding Demonstration</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+    .glow-bg {
+      animation: pulseGlow 6s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col justify-between font-sans selection:bg-emerald-500 selection:text-black select-none overflow-x-hidden">
+
+  <!-- Top Navigation & Progress Bar -->
+  <header class="w-full border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
+    <div class="h-1 bg-zinc-800 w-full">
+      <div id="progressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300 w-[10%]"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500 text-black flex items-center justify-center font-black text-sm shadow-md">
+          IV
+        </div>
+        <div>
+          <span class="font-black text-sm tracking-tight text-white block">IronVault OS</span>
+          <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Client Onboarding Presentation</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span id="slideCounter" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+          Slide 1 of 10
+        </span>
+        <button id="toggleFullscreen" class="px-2.5 py-1 text-xs text-zinc-400 hover:text-white border border-zinc-800 hover:border-zinc-700 rounded-lg transition">
+          ⛶ Fullscreen
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Slide Stage Container -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-8 flex items-center justify-center relative">
+    
+    <!-- Ambient Glow Background -->
+    <div class="absolute w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none glow-bg"></div>
+
+    <!-- Slide 1: Welcome & Hook -->
+    <div class="slide-content w-full flex flex-col items-center text-center space-y-6 animate-fade-in" data-slide="1">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+        <span>⚡ The All-in-One Multi-Tenant Gym Operating System</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-3xl leading-tight">
+        Modernize Your Gym. <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500">Zero Hardware Turnstiles.</span>
+      </h1>
+      <p class="text-sm sm:text-base text-zinc-400 max-w-2xl leading-relaxed">
+        Stop losing revenue to pass-sharing and manual registers. Give your athletes a premium smartphone access experience while cutting hardware costs to zero.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl pt-4">
+        <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-left space-y-1">
+          <span class="text-emerald-400 font-bold text-sm block">📱 100% Smartphone Powered</span>
+          <span class="text-xs text-zinc-400">No $5,000 RFID gates or plastic keycards needed.</span>
+        </div>
+        <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-left space-y-1">
+          <span class="text-emerald-400 font-bold text-sm block">🛡️ Anti-Passback Fraud Lock</span>
+          <span class="text-xs text-zinc-400">Single-device binding & GPS geofencing.</span>
+        </div>
+        <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-left space-y-1">
+          <span class="text-emerald-400 font-bold text-sm block">⚡ 60-Second Onboarding</span>
+          <span class="text-xs text-zinc-400">Unique 6-digit access code for your gym.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: The Problems Gym Owners Face -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="2">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-rose-400 bg-rose-950/40 border border-rose-500/20 px-3 py-1 rounded-full">
+          The Hidden Profit Leaks
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Why Traditional Gym Setups Bleed Revenue</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Most gym owners lose 15% to 25% of their recurring revenue every single month due to these 4 issues:</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+        <div class="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 space-y-2 hover:border-rose-500/40 transition">
+          <div class="text-rose-400 font-black text-sm flex items-center gap-2">
+            <span>❌</span> <span>Pass-Sharing & QR Screenshots</span>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Members screenshot their QR barcode or lend their keycard to non-paying workout partners. Front desk staff can't catch everyone during peak hours.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 space-y-2 hover:border-rose-500/40 transition">
+          <div class="text-rose-400 font-black text-sm flex items-center gap-2">
+            <span>❌</span> <span>Expensive RFID & Turnstile Gates</span>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Physical turnstiles cost $4,000–$10,000 to install, break down constantly, and charge high monthly maintenance contracts.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 space-y-2 hover:border-rose-500/40 transition">
+          <div class="text-rose-400 font-black text-sm flex items-center gap-2">
+            <span>❌</span> <span>Messy Excel Registers & Unpaid Drop-ins</span>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Tracking walk-ins on clipboards or spreadsheets leads to missed expiration dates, forgotten renewals, and zero automated follow-ups.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900/90 border border-zinc-800/80 space-y-2 hover:border-rose-500/40 transition">
+          <div class="text-rose-400 font-black text-sm flex items-center gap-2">
+            <span>❌</span> <span>Zero Live Floor Intelligence</span>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Gym owners have no real-time headcount of who is currently working out on the gym floor, session durations, or peak machine crowding times.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: The IronVault Solution -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="3">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
+          The Solution
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Your Dedicated SaaS Workspace</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Like Khatabook, but built from the ground up for modern gyms, barbell clubs, and fitness studios.</p>
+      </div>
+
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-zinc-900 to-zinc-900/50 border border-zinc-800 space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-2 p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/60">
+            <span class="text-2xl">🏢</span>
+            <h3 class="font-black text-sm text-white">Private Gym Workspace</h3>
+            <p class="text-xs text-zinc-400">Your own branded portal with completely isolated member data, subscription plans, and community feed.</p>
+          </div>
+          <div class="space-y-2 p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/60">
+            <span class="text-2xl">🔑</span>
+            <h3 class="font-black text-sm text-white">Unique 6-Digit Access Code</h3>
+            <p class="text-xs text-zinc-400">Members join instantly by entering your gym code (e.g. 100001) or clicking your 1-click invite link.</p>
+          </div>
+          <div class="space-y-2 p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800/60">
+            <span class="text-2xl">🖨️</span>
+            <h3 class="font-black text-sm text-white">Printed QR Turnstiles</h3>
+            <p class="text-xs text-zinc-400">Print your custom entrance poster. Members scan with their phone camera to unlock entrance seamlessly.</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-xl">💡</span>
+            <span class="text-xs text-emerald-300 font-bold">No hardware installation required. Works on any tablet, phone, or laptop at your front desk.</span>
+          </div>
+          <span class="text-[10px] font-mono uppercase bg-emerald-500 text-black px-2 py-0.5 rounded font-black">Zero Capex</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Hardware-Free Anti-Fraud Protocol -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="4">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-teal-400 bg-teal-950/40 border border-teal-500/20 px-3 py-1 rounded-full">
+          Patented Security Protocol
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Stop Pass-Sharing Dead in Its Tracks</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Our triple-layer anti-passback engine ensures only paying members enter your facility.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-black text-lg">
+            1
+          </div>
+          <h3 class="text-sm font-black text-white">GPS Geofenced Radius</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            The app verifies physical location. Members can only check in if they are physically within your gym's 50-meter GPS boundary. Checking in from home is impossible.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-lg">
+            2
+          </div>
+          <h3 class="text-sm font-black text-white">Single-Device Binding</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            A membership account is cryptographically tied to the member's specific smartphone hardware ID. Logging in on a friend's phone triggers an automatic security alert.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-black text-lg">
+            3
+          </div>
+          <h3 class="text-sm font-black text-white">3-Minute Anti-Tailgate Timer</h3>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Once scanned, a cooldown timer prevents the member from scanning again immediately or passing their phone back to an accomplice behind them.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Desk Billing & 1-Click OTP Onboarding -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="5">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
+          Front Desk Simplicity
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Enroll Members in 60 Seconds with OTP</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">No paperwork. No manual data entry errors. Direct email verification.</p>
+      </div>
+
+      <div class="p-6 rounded-3xl bg-zinc-900/90 border border-zinc-800 grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+        <div class="space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">✓</div>
+            <div>
+              <h4 class="text-xs font-bold text-white">Step 1: Enter Name & Gmail ID</h4>
+              <p class="text-[11px] text-zinc-400">Front desk selects plan (Day Pass, Monthly Pro, Annual VIP) and payment method (Cash, Card, UPI/Online).</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">✓</div>
+            <div>
+              <h4 class="text-xs font-bold text-white">Step 2: Instant 6-Digit Verification OTP</h4>
+              <p class="text-[11px] text-zinc-400">A secure passcode arrives immediately in the member's Gmail inbox to confirm ownership.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">✓</div>
+            <div>
+              <h4 class="text-xs font-bold text-white">Step 3: Instant Digital Pass Generated</h4>
+              <p class="text-[11px] text-zinc-400">Member account is activated immediately, receipt dispatched, and turnstile access granted.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-950 border border-zinc-800/80 space-y-3 font-mono text-xs">
+          <div class="flex items-center justify-between text-zinc-400 border-b border-zinc-800 pb-2">
+            <span>MEMBERSHIP ENROLLMENT</span>
+            <span class="text-emerald-400 font-bold">● VERIFIED</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-500">Plan:</span>
+            <span class="text-white font-bold">Monthly Unlimited Pro</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-500">Fee Paid:</span>
+            <span class="text-emerald-400 font-bold">$65.00 (Desk Cash)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-zinc-500">Access Expiry:</span>
+            <span class="text-white">30 Days Active</span>
+          </div>
+          <div class="p-2 rounded bg-emerald-500/10 text-emerald-400 text-[11px] text-center font-bold">
+            Automated Welcome Email Dispatched
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Live Floor Management & Turnstiles -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="6">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-teal-400 bg-teal-950/40 border border-teal-500/20 px-3 py-1 rounded-full">
+          Live Operational Control
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Real-Time Floor Headcount & Timers</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Always know who is inside your facility with live session monitoring.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 text-center space-y-1">
+          <span class="text-3xl sm:text-4xl font-black text-emerald-400 block">42</span>
+          <span class="text-xs font-bold text-white block">Athletes On Floor Now</span>
+          <span class="text-[11px] text-zinc-500">Live active turnstile sessions</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 text-center space-y-1">
+          <span class="text-3xl sm:text-4xl font-black text-white block">58m</span>
+          <span class="text-xs font-bold text-white block">Avg Workout Duration</span>
+          <span class="text-[11px] text-zinc-500">Optimal equipment utilization</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 text-center space-y-1">
+          <span class="text-3xl sm:text-4xl font-black text-teal-400 block">186</span>
+          <span class="text-xs font-bold text-white block">Today's Total Scans</span>
+          <span class="text-[11px] text-zinc-500">Zero manual sign-in required</span>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="text-zinc-300 font-bold">1-Click Desk Checkout & Departure Scanners Included</span>
+        </div>
+        <span class="text-zinc-500 font-mono text-[11px]">Auto-tracks departure times</span>
+      </div>
+    </div>
+
+    <!-- Slide 7: Member Experience & Community -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="7">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-indigo-400 bg-indigo-950/40 border border-indigo-500/20 px-3 py-1 rounded-full">
+          Retention & Community
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Give Members an App They'll Love</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">Keep athletes engaged, accountable, and renewing every month.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2">
+          <span class="text-2xl">💬</span>
+          <h3 class="font-black text-sm text-white">In-House Community Feed</h3>
+          <p class="text-xs text-zinc-400">Post daily Workouts of the Day (WOD), gym announcements, and let members celebrate personal records (PRs).</p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2">
+          <span class="text-2xl">📅</span>
+          <h3 class="font-black text-sm text-white">Group Class Bookings</h3>
+          <p class="text-xs text-zinc-400">Schedule HIIT, powerlifting, or yoga classes with seat limits. Members book with 1 tap.</p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-2">
+          <span class="text-2xl">📋</span>
+          <h3 class="font-black text-sm text-white">Health Intelligence Form</h3>
+          <p class="text-xs text-zinc-400">Digital 2-part onboarding capturing BMI, body fat %, fitness goals, and medical conditions for your trainers.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: How Onboarding Works -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="8">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
+          Simple Onboarding
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">How You Get Started in 3 Steps</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">We set up your entire gym workspace and get your front desk running in minutes.</p>
+      </div>
+
+      <div class="space-y-3 max-w-2xl mx-auto">
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-start gap-4">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500 text-black flex items-center justify-center font-black text-sm flex-shrink-0">1</div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Workspace Provisioning</h4>
+            <p class="text-xs text-zinc-400 mt-0.5">We create your dedicated gym workspace with your business address, owner Gmail ID, and assign your unique 6-digit access code (e.g. 100001).</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-start gap-4">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500 text-black flex items-center justify-center font-black text-sm flex-shrink-0">2</div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Print Your Entrance Turnstile Poster</h4>
+            <p class="text-xs text-zinc-400 mt-0.5">Download your pre-configured, high-res entrance & exit QR code posters and display them at your front desk or turnstile gate.</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-start gap-4">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500 text-black flex items-center justify-center font-black text-sm flex-shrink-0">3</div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Members Join & Scan Instantly</h4>
+            <p class="text-xs text-zinc-400 mt-0.5">Members download the app, enter your 6-digit code or scan the poster, and start checking in securely every day.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Interactive ROI Calculator -->
+    <div class="slide-content w-full space-y-6 hidden" data-slide="9">
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded-full">
+          Financial Impact
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-black text-white">Calculate Your Monthly Revenue Recovery</h2>
+        <p class="text-xs sm:text-sm text-zinc-400">See how much revenue IronVault puts back in your bank account every month.</p>
+      </div>
+
+      <div class="p-6 rounded-3xl bg-zinc-900 border border-zinc-800 max-w-2xl mx-auto space-y-6">
+        <div class="space-y-2">
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-zinc-300">Active Gym Members:</span>
+            <span id="memberCountDisplay" class="text-emerald-400 font-mono text-sm">150 Members</span>
+          </div>
+          <input id="memberSlider" type="range" min="30" max="600" step="10" value="150" class="w-full accent-emerald-500 cursor-pointer">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <div class="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/80 text-center space-y-1">
+            <span class="text-[10px] uppercase font-bold text-zinc-500 block">Pass Sharing Prevented</span>
+            <span id="fraudSaved" class="text-xl sm:text-2xl font-black text-rose-400">$975 / mo</span>
+            <span class="text-[10px] text-zinc-500 block">10% recovered non-paying visitors</span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/80 text-center space-y-1">
+            <span class="text-[10px] uppercase font-bold text-zinc-500 block">Hardware Turnstile Savings</span>
+            <span class="text-xl sm:text-2xl font-black text-emerald-400">$4,500</span>
+            <span class="text-[10px] text-zinc-500 block">Zero RFID gates to buy</span>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
+          <span class="text-xs text-zinc-400 block font-semibold">Estimated Net 1st-Year Benefit:</span>
+          <span id="annualBenefit" class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 block">+$16,200.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: Call to Action -->
+    <div class="slide-content w-full space-y-6 text-center animate-fade-in hidden" data-slide="10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+        <span>🚀 Let's Launch Your Gym</span>
+      </div>
+
+      <h2 class="text-3xl sm:text-5xl font-black text-white max-w-xl mx-auto leading-tight">
+        Ready to Transform Your Gym Operations?
+      </h2>
+
+      <p class="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
+        Join the next generation of independent fitness owners. Setup takes under 5 minutes with zero upfront hardware costs.
+      </p>
+
+      <div class="p-6 rounded-3xl bg-zinc-900 border border-zinc-800 max-w-md mx-auto space-y-4">
+        <div class="space-y-2 text-left text-xs text-zinc-300">
+          <div class="flex items-center gap-2">
+            <span class="text-emerald-400">✓</span>
+            <span>Free White-Glove Workspace Setup</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-emerald-400">✓</span>
+            <span>Pre-Printed High-Res Turnstile Posters</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-emerald-400">✓</span>
+            <span>Staff & Front-Desk Training Call</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-emerald-400">✓</span>
+            <span>24/7 Dedicated Support</span>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button id="ctaButton" class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20 active:scale-98">
+            Provision My Gym Workspace Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Slide Controls & Footer -->
+  <footer class="w-full border-t border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md py-4 px-4 sticky bottom-0 z-50">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <button id="prevBtn" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition flex items-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed">
+        <span>←</span> <span>Previous</span>
+      </button>
+
+      <!-- Slide Indicator Dots -->
+      <div id="dotContainer" class="flex items-center gap-1.5 hidden sm:flex">
+        <!-- Dots injected dynamically -->
+      </div>
+
+      <button id="nextBtn" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black transition flex items-center gap-1.5 active:scale-95 shadow-md">
+        <span>Next</span> <span>→</span>
+      </button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 10;
+
+    const slides = document.querySelectorAll('.slide-content');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const counter = document.getElementById('slideCounter');
+    const progressBar = document.getElementById('progressBar');
+    const dotContainer = document.getElementById('dotContainer');
+
+    // Create indicator dots
+    for (let i = 1; i <= totalSlides; i++) {
+      const dot = document.createElement('button');
+      dot.className = `w-2.5 h-2.5 rounded-full transition-all duration-200 ${i === 1 ? 'bg-emerald-400 w-6' : 'bg-zinc-700 hover:bg-zinc-500'}`;
+      dot.addEventListener('click', () => goToSlide(i));
+      dotContainer.appendChild(dot);
+    }
+
+    function updateDots() {
+      const dots = dotContainer.querySelectorAll('button');
+      dots.forEach((dot, index) => {
+        if (index + 1 === currentSlide) {
+          dot.className = 'w-6 h-2.5 rounded-full bg-emerald-400 transition-all duration-200';
+        } else {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-zinc-700 hover:bg-zinc-500 transition-all duration-200';
+        }
+      });
+    }
+
+    function updateSlide() {
+      slides.forEach((slide) => {
+        const slideNum = parseInt(slide.getAttribute('data-slide'));
+        if (slideNum === currentSlide) {
+          slide.classList.remove('hidden');
+        } else {
+          slide.classList.add('hidden');
+        }
+      });
+
+      counter.textContent = `Slide ${currentSlide} of ${totalSlides}`;
+      progressBar.style.width = `${(currentSlide / totalSlides) * 100}%`;
+      prevBtn.disabled = currentSlide === 1;
+      
+      if (currentSlide === totalSlides) {
+        nextBtn.innerHTML = '<span>Finish</span> ✓';
+      } else {
+        nextBtn.innerHTML = '<span>Next</span> →';
+      }
+
+      updateDots();
+    }
+
+    function goToSlide(n) {
+      if (n >= 1 && n <= totalSlides) {
+        currentSlide = n;
+        updateSlide();
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlide();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlide();
+      } else {
+        goToSlide(1);
+      }
+    });
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        if (currentSlide < totalSlides) {
+          currentSlide++;
+          updateSlide();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (currentSlide > 1) {
+          currentSlide--;
+          updateSlide();
+        }
+      }
+    });
+
+    // Fullscreen toggle
+    document.getElementById('toggleFullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // ROI Calculator Slider Logic
+    const slider = document.getElementById('memberSlider');
+    const memberDisplay = document.getElementById('memberCountDisplay');
+    const fraudSaved = document.getElementById('fraudSaved');
+    const annualBenefit = document.getElementById('annualBenefit');
+
+    if (slider) {
+      slider.addEventListener('input', (e) => {
+        const count = parseInt(e.target.value);
+        memberDisplay.textContent = `${count} Members`;
+        const monthlyFraud = Math.round(count * 0.10 * 65);
+        fraudSaved.textContent = `$${monthlyFraud.toLocaleString()} / mo`;
+        const annual = (monthlyFraud * 12) + 4500;
+        annualBenefit.textContent = `+$${annual.toLocaleString()}.00`;
+      });
+    }
+
+    // CTA button click
+    const cta = document.getElementById('ctaButton');
+    if (cta) {
+      cta.addEventListener('click', () => {
+        alert('Ready to onboard! Contact your IronVault platform administrator to receive your 6-digit access code and launch your workspace today.');
+      });
+    }
+
+    updateSlide();
+  </script>
+</body>
+</html>
