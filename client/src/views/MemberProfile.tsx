@@ -34,6 +34,7 @@ import { CommunityFeed } from '../components/CommunityFeed';
 import { WorkoutLogModal } from '../components/WorkoutLogModal';
 import { WorkoutDepartureModal } from '../components/WorkoutDepartureModal';
 import { MemberOnboardingModal } from '../components/MemberOnboardingModal';
+import { MemberOnboardingForm } from '../components/MemberOnboardingForm';
 
 interface MemberProfileProps {
   onOpenScanner: (mode?: 'ENTER' | 'EXIT') => void;
@@ -62,6 +63,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [isLoadingHealth, setIsLoadingHealth] = useState<boolean>(false);
   const [isHealthEditOpen, setIsHealthEditOpen] = useState<boolean>(false);
   const [isFirstTimeOnboardOpen, setIsFirstTimeOnboardOpen] = useState<boolean>(false);
+  const [isOnboardFormExpanded, setIsOnboardFormExpanded] = useState<boolean>(false);
   const [editWeight, setEditWeight] = useState('');
   const [editTargetWeight, setEditTargetWeight] = useState('');
   const [editGoal, setEditGoal] = useState('Weight Loss & Fat Burn');
@@ -544,121 +546,205 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       </div>
 
-      {/* 2.5 PERSONAL FITNESS ASSESSMENT & TARGET GOALS CARD */}
-      <div className="community-card p-5 sm:p-6 bg-white dark:bg-[#0d0d10] border border-amber-500/20 rounded-3xl shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80 pb-3">
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
-              <HeartPulse className="w-5 h-5" />
-            </span>
-            <div>
-              <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                My Fitness Assessment & Target Goals
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Body composition, BMI, and personalized milestones
-              </p>
+      {/* 2.5 MEMBER ONBOARDING WIZARD & FITNESS ASSESSMENT CARD */}
+      {!healthProfile || isOnboardFormExpanded ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <Sparkles className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  {!healthProfile
+                    ? 'Member Admission & Health Assessment'
+                    : 'Update Member Admission & Health Profile'}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  Required contact, body metrics, and medical clearance details
+                </p>
+              </div>
+            </div>
+            {healthProfile && (
+              <button
+                type="button"
+                onClick={() => setIsOnboardFormExpanded(false)}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700 transition"
+              >
+                Close Editor
+              </button>
+            )}
+          </div>
+
+          <MemberOnboardingForm
+            initialValues={{
+              fullName: user?.fullName,
+              email: user?.email,
+              phone: user?.phone,
+              profile: healthProfile
+            }}
+            isCollapsible={Boolean(healthProfile)}
+            onCancel={() => setIsOnboardFormExpanded(false)}
+            onSuccess={(savedProfile) => {
+              setHealthProfile(savedProfile);
+              setIsOnboardFormExpanded(false);
+              setIsFirstTimeOnboardOpen(false);
+              refreshProfile();
+            }}
+          />
+        </div>
+      ) : (
+        <div className="community-card p-5 sm:p-6 bg-white dark:bg-[#0d0d10] border border-amber-500/20 rounded-3xl shadow-lg space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80 pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <HeartPulse className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  My Fitness Assessment & Target Goals
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  Body composition, BMI, and personalized milestones
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsOnboardFormExpanded(true)}
+                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>Edit Full Profile</span>
+              </button>
+              <button
+                onClick={() => setIsHealthEditOpen(true)}
+                className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold rounded-xl text-xs border border-amber-500/30 flex items-center gap-1.5 transition self-start sm:self-auto"
+              >
+                <span>Quick Metrics</span>
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {!healthProfile && (
-              <button
-                onClick={() => setIsFirstTimeOnboardOpen(true)}
-                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Complete Health Sheet</span>
-              </button>
-            )}
-            <button
-              onClick={() => setIsHealthEditOpen(true)}
-              className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold rounded-xl text-xs border border-amber-500/30 flex items-center gap-1.5 transition self-start sm:self-auto"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-              <span>Update Metrics</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          {/* Current Weight */}
-          <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
-              Current Weight
-            </span>
-            <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
-              {healthProfile?.currentWeightKg ? `${healthProfile.currentWeightKg} kg` : 'Not recorded'}
-            </span>
-            {healthProfile?.heightCm && (
-              <span className="text-[10px] text-zinc-400">Height: {healthProfile.heightCm} cm</span>
-            )}
-          </div>
-
-          {/* BMI */}
-          <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
-              Calculated BMI
-            </span>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-base font-black text-slate-900 dark:text-white">
-                {healthProfile?.bmi ? healthProfile.bmi : '—'}
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            {/* Current Weight */}
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+                Current Weight
               </span>
-              {healthProfile?.bmi && (
-                <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold border ${
-                  healthProfile.bmi < 18.5
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                    : healthProfile.bmi < 25
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                    : healthProfile.bmi < 30
-                    ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
-                    : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                }`}>
-                  {healthProfile.bmi < 18.5 ? 'Underweight' : healthProfile.bmi < 25 ? 'Normal' : healthProfile.bmi < 30 ? 'Overweight' : 'Obese'}
+              <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
+                {healthProfile?.currentWeightKg ? `${healthProfile.currentWeightKg} kg` : 'Not recorded'}
+              </span>
+              {healthProfile?.heightCm && (
+                <span className="text-[10px] text-zinc-400">Height: {healthProfile.heightCm} cm</span>
+              )}
+            </div>
+
+            {/* BMI */}
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+                Calculated BMI
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-base font-black text-slate-900 dark:text-white">
+                  {healthProfile?.bmi ? healthProfile.bmi : '—'}
+                </span>
+                {healthProfile?.bmi && (
+                  <span
+                    className={`px-2 py-0.5 rounded text-[9px] font-extrabold border ${
+                      healthProfile.bmi < 18.5
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        : healthProfile.bmi < 25
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        : healthProfile.bmi < 30
+                        ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
+                        : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                    }`}
+                  >
+                    {healthProfile.bmi < 18.5
+                      ? 'Underweight'
+                      : healthProfile.bmi < 25
+                      ? 'Normal'
+                      : healthProfile.bmi < 30
+                      ? 'Overweight'
+                      : 'Obese'}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-zinc-400">Metric Index</span>
+            </div>
+
+            {/* Primary Goal */}
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+                Primary Goal
+              </span>
+              <span className="text-sm font-bold text-amber-500 truncate mt-0.5 block">
+                {healthProfile?.primaryGoal || 'General Fitness'}
+              </span>
+              <span className="text-[10px] text-zinc-400">
+                Timeline: {healthProfile?.targetTimeline || '3 Months'}
+              </span>
+            </div>
+
+            {/* Target Weight */}
+            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
+              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+                Target Goal Weight
+              </span>
+              <span className="text-base font-black text-emerald-500 mt-0.5 block">
+                {healthProfile?.targetWeightKg ? `${healthProfile.targetWeightKg} kg` : 'Not set'}
+              </span>
+              {healthProfile?.currentWeightKg && healthProfile?.targetWeightKg && (
+                <span className="text-[10px] text-zinc-400 font-semibold">
+                  Delta: {Math.round((healthProfile.targetWeightKg - healthProfile.currentWeightKg) * 10) / 10} kg
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-zinc-400">Metric Index</span>
           </div>
 
-          {/* Primary Goal */}
-          <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
-              Primary Goal
-            </span>
-            <span className="text-sm font-bold text-amber-500 truncate mt-0.5 block">
-              {healthProfile?.primaryGoal || 'General Fitness'}
-            </span>
-            <span className="text-[10px] text-zinc-400">Timeline: {healthProfile?.targetTimeline || '3 Months'}</span>
-          </div>
+          {/* Body Circumferences Strip if recorded */}
+          {(healthProfile?.waistCm || healthProfile?.chestCm || healthProfile?.hipCm) && (
+            <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex flex-wrap gap-4 text-xs text-zinc-400">
+              <span className="font-semibold text-zinc-300">Circumference Data:</span>
+              {healthProfile.waistCm && <span>Waist: <strong>{healthProfile.waistCm} cm</strong></span>}
+              {healthProfile.chestCm && <span>Chest: <strong>{healthProfile.chestCm} cm</strong></span>}
+              {healthProfile.hipCm && <span>Hip: <strong>{healthProfile.hipCm} cm</strong></span>}
+            </div>
+          )}
 
-          {/* Target Weight */}
-          <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
-              Target Goal Weight
-            </span>
-            <span className="text-base font-black text-emerald-500 mt-0.5 block">
-              {healthProfile?.targetWeightKg ? `${healthProfile.targetWeightKg} kg` : 'Not set'}
-            </span>
-            {healthProfile?.currentWeightKg && healthProfile?.targetWeightKg && (
-              <span className="text-[10px] text-zinc-400 font-semibold">
-                Delta: {Math.round((healthProfile.targetWeightKg - healthProfile.currentWeightKg) * 10) / 10} kg
+          {/* Health Clearance status bar */}
+          <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-bold text-slate-500 dark:text-zinc-400">Health Clearance:</span>
+            {healthProfile.hasHealthCondition ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                Medical Notes on File
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                Full Physical Clearance ✓
+              </span>
+            )}
+            {healthProfile.isTakingMedication && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                On Medication
+              </span>
+            )}
+            {healthProfile.advisedAvoidExercise && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                Exercise Restrictions
+              </span>
+            )}
+            {healthProfile.city && (
+              <span className="text-[10px] text-slate-400 dark:text-zinc-500 ml-auto">
+                Location: {healthProfile.city}{healthProfile.state ? `, ${healthProfile.state}` : ''}
               </span>
             )}
           </div>
         </div>
-
-        {/* Body Circumferences Strip if recorded */}
-        {(healthProfile?.waistCm || healthProfile?.chestCm || healthProfile?.hipCm) && (
-          <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex flex-wrap gap-4 text-xs text-zinc-400">
-            <span className="font-semibold text-zinc-300">Circumference Data:</span>
-            {healthProfile.waistCm && <span>Waist: <strong>{healthProfile.waistCm} cm</strong></span>}
-            {healthProfile.chestCm && <span>Chest: <strong>{healthProfile.chestCm} cm</strong></span>}
-            {healthProfile.hipCm && <span>Hip: <strong>{healthProfile.hipCm} cm</strong></span>}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Health Profile Edit Modal */}
       {isHealthEditOpen && (

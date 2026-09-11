@@ -22,6 +22,7 @@ import {
   Dumbbell
 } from 'lucide-react';
 import { api } from '../services/api';
+import { MemberOnboardingForm } from './MemberOnboardingForm';
 
 interface MemberOnboardingModalProps {
   isOpen: boolean;
@@ -297,6 +298,26 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
     }
   };
 
+  if (!isOpen) return null;
+
+  if (mode === 'SELF') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md overflow-y-auto">
+        <div className="relative w-full max-w-4xl my-auto">
+          <MemberOnboardingForm
+            initialValues={initialValues}
+            isCollapsible={!isMandatory}
+            onCancel={!isMandatory ? onClose : undefined}
+            onSuccess={() => {
+              if (onSuccess) onSuccess();
+              if (onClose) onClose();
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       <div className="relative w-full max-w-4xl bg-gradient-to-b from-zinc-900 to-black border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden my-6">
@@ -309,7 +330,7 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
               </span>
               <div>
                 <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
-                  <span>{mode === 'SELF' ? 'Mandatory Member Admission & Fitness Assessment' : 'Member Onboarding & Fitness Assessment'}</span>
+                  <span>Member Onboarding & Fitness Assessment</span>
                   {isMandatory && (
                     <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-amber-500 text-black">
                       Required
@@ -317,9 +338,7 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
                   )}
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  {mode === 'SELF'
-                    ? 'Complete Form 1 (Contact & Address) and Form 2 (Health Assessment) to unlock your dashboard.'
-                    : 'Comprehensive 2-part admission sheet & marketing intelligence capture'}
+                  Comprehensive 2-part admission sheet & marketing intelligence capture
                 </p>
               </div>
             </div>
@@ -618,8 +637,7 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
             </div>
 
             {/* Section: Admission Plan & Billing (Admin Onboarding Only) */}
-            {mode !== 'SELF' && (
-              <div className="pt-2 border-t border-zinc-800/80">
+            <div className="pt-2 border-t border-zinc-800/80">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
                   <Dumbbell className="w-4 h-4" /> Admission Membership Plan
                 </h3>
@@ -664,7 +682,6 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
                   ))}
                 </div>
               </div>
-            )}
 
             {/* Next Button */}
             <div className="flex justify-end pt-4 border-t border-zinc-800">
@@ -1070,12 +1087,10 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
 
             <div>
               <h3 className="text-2xl font-black text-white">
-                {mode === 'SELF' ? 'Fitness Assessment Complete!' : 'Member Successfully Onboarded!'}
+                Member Successfully Onboarded!
               </h3>
               <p className="text-sm text-zinc-400 mt-1">
-                {mode === 'SELF'
-                  ? 'Your profile, health history, and fitness goals are now active. Your digital member pass is unlocked!'
-                  : 'All demographic, contact, body metrics, and fitness goals have been securely saved for marketing intelligence.'}
+                All demographic, contact, body metrics, and fitness goals have been securely saved for marketing intelligence.
               </p>
             </div>
 
@@ -1114,7 +1129,7 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
                 }}
                 className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl text-sm transition"
               >
-                {mode === 'SELF' ? 'Enter My Member Dashboard' : 'Close & View Marketing Hub'}
+                Close & View Marketing Hub
               </button>
             </div>
           </div>

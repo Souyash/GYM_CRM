@@ -826,3 +826,88 @@ export async function updateMyHealthProfile(req: AuthenticatedRequest, res: Resp
     res.status(500).json({ error: 'Failed to update fitness metrics.' });
   }
 }
+
+// In-memory Phone OTP store with 10-minute expiry
+const phoneOtpStore = new Map<string, { code: string; expiresAt: number }>();
+
+/**
+ * Send OTP to Mobile Number for Onboarding Verification
+ */
+export async function sendPhoneOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { phone } = req.body;
+    if (!phone || typeof phone !== 'string') {
+      res.status(400).json({ error: 'Valid phone number is required.' });
+      return;
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      res.status(400).json({ error: 'Please provide a valid 10-digit mobile number.' });
+      return;
+    }
+
+    // Generate 6-digit OTP code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    phoneOtpStore.set(cleanPhone, { code: otpCode, expiresAt });
+
+    console.log(`📱 [PHONE OTP] Verification code for ${cleanPhone}: ${otpCode}`);
+
+    res.json({
+      success: true,
+      message: `OTP sent successfully to +91 ${cleanPhone.slice(-10)}`,
+      devOtp: otpCode
+    });
+  } catch (error: any) {
+    console.error('sendPhoneOtp error:', error);
+    res.status(500).json({ error: 'Failed to send phone OTP.' });
+  }
+}
+
+/**
+ * Verify OTP entered for Mobile Number
+ */
+export async function verifyPhoneOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+      res.status(400).json({ error: 'Phone number and 6-digit OTP are required.' });
+      return;
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    const cleanOtp = String(otp).trim();
+
+    const record = phoneOtpStore.get(cleanPhone);
+    if (!record) {
+      res.status(400).json({ error: 'No OTP requested for this phone number or it has expired.' });
+      return;
+    }
+
+    if (Date.now() > record.expiresAt) {
+      phoneOtpStore.delete(cleanPhone);
+      res.status(400).json({ error: 'OTP has expired. Please request a new code.' });
+      return;
+    }
+
+    if (record.code !== cleanOtp) {
+      res.status(400).json({ error: 'Invalid verification code. Please check and retry.' });
+      return;
+    }
+
+    // Verified!
+    phoneOtpStore.delete(cleanPhone);
+
+    res.json({
+      success: true,
+      verified: true,
+      message: 'Mobile number successfully verified.'
+    });
+  } catch (error: any) {
+    console.error('verifyPhoneOtp error:', error);
+    res.status(500).json({ error: 'Failed to verify phone OTP.' });
+  }
+}
+

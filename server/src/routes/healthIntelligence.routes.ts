@@ -6,7 +6,9 @@ import {
   onboardMemberWithHealth,
   exportHealthDataCsv,
   getMyHealthProfile,
-  updateMyHealthProfile
+  updateMyHealthProfile,
+  sendPhoneOtp,
+  verifyPhoneOtp
 } from '../controllers/healthIntelligence.controller.js';
 import { authenticateJWT, requireRole } from '../middleware/auth.middleware.js';
 
@@ -28,5 +30,9 @@ router.get('/me', authenticateJWT, getMyHealthProfile);
 router.put('/me', authenticateJWT, updateMyHealthProfile);
 router.get('/my-profile', authenticateJWT, getMyHealthProfile);
 router.put('/my-profile', authenticateJWT, updateMyHealthProfile);
+
+// Phone OTP verification flow
+router.post('/send-phone-otp', authenticateJWT, sendPhoneOtp);
+router.post('/verify-phone-otp', authenticateJWT, verifyPhoneOtp);
 
 export default router;

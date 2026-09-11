@@ -230,6 +230,10 @@ export const api = {
   getMyHealthProfile: () => apiRequest('/health-intelligence/me'),
   updateMyHealthProfile: (payload: any) =>
     apiRequest('/health-intelligence/me', { method: 'PUT', body: JSON.stringify(payload) }),
+  sendPhoneOtp: (phone: string) =>
+    apiRequest('/health-intelligence/send-phone-otp', { method: 'POST', body: JSON.stringify({ phone }) }),
+  verifyPhoneOtp: (phone: string, otp: string) =>
+    apiRequest('/health-intelligence/verify-phone-otp', { method: 'POST', body: JSON.stringify({ phone, otp }) }),
   downloadHealthCsv: async () => {
     const token = localStorage.getItem('ironvault_jwt_token');
     const apiBase = getApiBase();
