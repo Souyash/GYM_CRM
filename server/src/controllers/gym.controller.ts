@@ -74,16 +74,17 @@ export async function getAllGyms(req: AuthenticatedRequest, res: Response): Prom
         },
         users: {
           where: {
-            role: { in: ['GYM_OWNER', 'MANAGER'] }
+            role: { in: ['GYM_OWNER', 'MANAGER', 'SUPER_ADMIN'] }
           },
           select: {
             id: true,
             fullName: true,
             email: true,
             phone: true,
-            role: true
+            role: true,
+            createdAt: true
           },
-          take: 2
+          take: 5
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -91,17 +92,36 @@ export async function getAllGyms(req: AuthenticatedRequest, res: Response): Prom
 
     // Enriched SaaS stats
     const enriched = gyms.map(g => {
+      const primaryOwner = g.users[0] || null;
+      const ownerName = primaryOwner?.fullName || 'Gym Owner';
+      const ownerEmail = primaryOwner?.email || g.ownerContactEmail || 'N/A';
+      const ownerPhone = primaryOwner?.phone || g.ownerContactPhone || 'N/A';
+
       return {
         id: g.id,
         name: g.name,
         slug: g.slug,
         inviteCode: g.inviteCode,
         address: g.address,
-        city: g.city,
-        state: g.state,
+        city: g.city || '',
+        state: g.state || '',
         isActive: g.isActive,
         createdAt: g.createdAt,
-        owner: g.users[0] || null,
+        ownerName,
+        ownerEmail,
+        ownerPhone,
+        owner: primaryOwner ? {
+          ...primaryOwner,
+          fullName: ownerName,
+          email: ownerEmail,
+          phone: ownerPhone
+        } : {
+          id: '',
+          fullName: ownerName,
+          email: ownerEmail,
+          phone: ownerPhone,
+          role: 'GYM_OWNER'
+        },
         counts: {
           totalUsers: g._count.users,
           subscriptions: g._count.subscriptions,

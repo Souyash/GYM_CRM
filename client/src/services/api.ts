@@ -178,8 +178,13 @@ export const api = {
   deskCheckoutMember: (entryId: string) => apiRequest(`/attendance/${entryId}/checkout`, { method: 'POST' }),
   getMyAttendanceHistory: () => apiRequest('/attendance/my-history'),
 
-  // Membership & Desk Billing
-  getMembers: (search?: string) => apiRequest(`/memberships${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+  getMembers: (search?: string, gymId?: string) => {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (gymId) params.append('gymId', gymId);
+    const qs = params.toString();
+    return apiRequest(`/memberships${qs ? `?${qs}` : ''}`);
+  },
   getPlans: () => apiRequest('/memberships/plans'),
   onboardMember: (payload: any) => apiRequest('/memberships/onboard', { method: 'POST', body: JSON.stringify(payload) }),
   sendOnboardOtp: (payload: any) => apiRequest('/memberships/onboard/send-otp', { method: 'POST', body: JSON.stringify(payload) }),

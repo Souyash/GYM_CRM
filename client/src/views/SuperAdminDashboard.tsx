@@ -1,54 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  ShieldAlert,
-  DollarSign,
-  Users,
-  Activity,
-  MapPin,
-  Clock,
-  CheckCircle2,
-  RefreshCw,
-  Filter,
-  AlertTriangle,
-  Zap,
-  Flame,
-  UserPlus,
-  User,
-  CreditCard,
   Building2,
+  Users,
+  Download,
   Search,
-  Sparkles,
-  LogOut,
-  Timer,
   Copy,
   Check,
+  Filter,
+  ShieldAlert,
   KeyRound,
   Mail,
   Phone,
   Lock,
-  X
+  X,
+  RefreshCw,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  MapPin,
+  Calendar,
+  CreditCard,
+  ChevronDown,
+  FileSpreadsheet,
+  ExternalLink,
+  User,
+  Activity
 } from 'lucide-react';
 import { api } from '../services/api';
-import { Facility } from '../types';
-import { getSocket } from '../services/socket';
-import { AccountCreationModal } from '../components/AccountCreationModal';
+
+/**
+ * Escapes a cell value for standard RFC 4180 CSV
+ */
+function escapeCsvCell(val: any): string {
+  if (val === null || val === undefined) return '""';
+  const str = String(val).replace(/"/g, '""');
+  return `"${str}"`;
+}
+
+/**
+ * Initiates browser download of a generated CSV string with UTF-8 BOM
+ */
+function triggerCsvDownload(csvContent: string, filename: string) {
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 export const SuperAdminDashboard: React.FC = () => {
-  const [facility, setFacility] = useState<Facility | null>(null);
   const [gyms, setGyms] = useState<any[]>([]);
-  const [copiedGymId, setCopiedGymId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [totalRevenue, setTotalRevenue] = useState<number>(24850);
   const [members, setMembers] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [recentAttendance, setRecentAttendance] = useState<any[]>([]);
-  const [activeOnFloor, setActiveOnFloor] = useState<any[]>([]);
-  const [departedToday, setDepartedToday] = useState<any[]>([]);
-  const [activeFloorTab, setActiveFloorTab] = useState<'ON_FLOOR' | 'DEPARTED'>('ON_FLOOR');
-  const [checkingOutId, setCheckingOutId] = useState<string | null>(null);
-  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
-  const [isAccountModalOpen, setIsAccountModalOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Active View Tab: 'GYMS' | 'MEMBERS'
+  const [activeTab, setActiveTab] = useState<'GYMS' | 'MEMBERS'>('GYMS');
+
+  // Search & Filter States
+  const [gymSearch, setGymSearch] = useState<string>('');
+  const [memberSearch, setMemberSearch] = useState<string>('');
+  const [selectedGymFilter, setSelectedGymFilter] = useState<string>('ALL');
+  const [memberStatusFilter, setMemberStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+
+  // Copy feedback
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Create Gym Workspace Modal State
   const [isCreateGymModalOpen, setIsCreateGymModalOpen] = useState<boolean>(false);
@@ -140,37 +160,30 @@ Portal URL: ${window.location.origin}`;
     setTimeout(() => setCopiedGymCreds(false), 3000);
   };
 
+  const handleCopyText = (text: string, key: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setActionNotice(`${label} copied to clipboard!`);
+    setTimeout(() => {
+      setCopiedKey(null);
+      setActionNotice(null);
+    }, 3000);
+  };
+
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [facRes, membersRes, attRes, devRes, gymsRes] = await Promise.all([
-        api.getFacilities(),
-        api.getMembers(),
-        api.getLiveAttendance(),
-        api.getDeviceRequests('PENDING'),
-        api.getAllGyms().catch(() => ({ gyms: [] }))
+      const [gymsRes, membersRes] = await Promise.all([
+        api.getAllGyms().catch(() => ({ gyms: [] })),
+        api.getMembers().catch(() => ({ members: [] }))
       ]);
 
       if (gymsRes?.gyms) {
         setGyms(gymsRes.gyms);
       }
-
-      if (facRes.facilities && facRes.facilities.length > 0) {
-        setFacility(facRes.facilities[0]);
-      }
-
-      if (membersRes.members) {
+      if (membersRes?.members) {
         setMembers(membersRes.members);
-        const calcRevenue = membersRes.members.reduce((acc: number, m: any) => {
-          return acc + (m.latestSubscription?.price || 0);
-        }, 0);
-        if (calcRevenue > 0) setTotalRevenue(calcRevenue + 1200);
       }
-
-      setRecentAttendance(attRes.entries || []);
-      setActiveOnFloor(attRes.activeOnFloor || []);
-      setDepartedToday(attRes.departedToday || []);
-      setPendingRequests(devRes.requests || []);
     } catch (e) {
       console.error('Failed to load Super Admin dashboard:', e);
     } finally {
@@ -178,119 +191,240 @@ Portal URL: ${window.location.origin}`;
     }
   };
 
-  const handleCopyGymInvite = (code: string, gymId: string) => {
-    const link = `${window.location.origin}/?invite=${code}`;
-    navigator.clipboard.writeText(link);
-    setCopiedGymId(gymId);
-    setActionNotice(`Gym Invite URL copied to clipboard: ${link}`);
-    setTimeout(() => {
-      setCopiedGymId(null);
-      setActionNotice(null);
-    }, 3500);
-  };
-
   useEffect(() => {
     loadData();
-
-    const socket = getSocket();
-    const handleRefresh = () => {
-      loadData();
-    };
-
-    socket.on('attendance:new_entry', handleRefresh);
-    socket.on('attendance:member_exited', handleRefresh);
-    socket.on('attendance:live_feed_exit', handleRefresh);
-    socket.on('alert:multi_device', handleRefresh);
-    socket.on('alert:failed_access', handleRefresh);
-
-    return () => {
-      socket.off('attendance:new_entry', handleRefresh);
-      socket.off('attendance:member_exited', handleRefresh);
-      socket.off('attendance:live_feed_exit', handleRefresh);
-      socket.off('alert:multi_device', handleRefresh);
-      socket.off('alert:failed_access', handleRefresh);
-    };
   }, []);
 
-  const handleDeskCheckout = async (entryId: string, memberName: string) => {
-    try {
-      setCheckingOutId(entryId);
-      const res = await api.deskCheckoutMember(entryId);
-      setActionNotice(res.message || `${memberName} checked out successfully.`);
-      await loadData();
-      setTimeout(() => setActionNotice(null), 4000);
-    } catch (err: any) {
-      console.error('Failed desk checkout:', err);
-      setActionNotice(err.message || 'Error checking out member.');
-    } finally {
-      setCheckingOutId(null);
-    }
+  // Filtered Gyms
+  const filteredGyms = useMemo(() => {
+    const q = gymSearch.toLowerCase().trim();
+    if (!q) return gyms;
+    return gyms.filter((g) => {
+      const name = (g.name || '').toLowerCase();
+      const code = (g.inviteCode || '').toLowerCase();
+      const city = (g.city || '').toLowerCase();
+      const state = (g.state || '').toLowerCase();
+      const ownerName = (g.ownerName || g.owner?.fullName || '').toLowerCase();
+      const ownerEmail = (g.ownerEmail || g.owner?.email || g.ownerContactEmail || '').toLowerCase();
+      const ownerPhone = (g.ownerPhone || g.owner?.phone || g.ownerContactPhone || '').toLowerCase();
+      return (
+        name.includes(q) ||
+        code.includes(q) ||
+        city.includes(q) ||
+        state.includes(q) ||
+        ownerName.includes(q) ||
+        ownerEmail.includes(q) ||
+        ownerPhone.includes(q)
+      );
+    });
+  }, [gyms, gymSearch]);
+
+  // Filtered Members
+  const filteredMembers = useMemo(() => {
+    const q = memberSearch.toLowerCase().trim();
+    return members.filter((m) => {
+      // Filter by search term
+      const matchesSearch =
+        !q ||
+        (m.fullName || '').toLowerCase().includes(q) ||
+        (m.email || '').toLowerCase().includes(q) ||
+        (m.phone || '').toLowerCase().includes(q) ||
+        (m.gymName || '').toLowerCase().includes(q) ||
+        (m.gymInviteCode || '').toLowerCase().includes(q);
+
+      // Filter by Gym
+      const matchesGym =
+        selectedGymFilter === 'ALL' ||
+        m.gymId === selectedGymFilter ||
+        m.gymInviteCode === selectedGymFilter;
+
+      // Filter by Status
+      const matchesStatus =
+        memberStatusFilter === 'ALL' ||
+        (memberStatusFilter === 'ACTIVE' && m.status === 'ACTIVE') ||
+        (memberStatusFilter === 'INACTIVE' && m.status !== 'ACTIVE');
+
+      return matchesSearch && matchesGym && matchesStatus;
+    });
+  }, [members, memberSearch, selectedGymFilter, memberStatusFilter]);
+
+  // Total metrics
+  const totalActivePasses = useMemo(() => {
+    return members.filter((m) => m.status === 'ACTIVE').length;
+  }, [members]);
+
+  const totalMonthlyValue = useMemo(() => {
+    return members.reduce((sum, m) => sum + (Number(m.price) || 0), 0);
+  }, [members]);
+
+  // -------------------------------------------------------------
+  // CSV EXPORT LOGIC
+  // -------------------------------------------------------------
+
+  /**
+   * Export All Gyms & Gym Owners to CSV
+   */
+  const handleExportGymsCsv = () => {
+    const dateStr = new Date().toISOString().split('T')[0];
+    const headers = [
+      'Gym ID',
+      'Gym Business Name',
+      '6-Digit Access Code',
+      'Owner Full Name',
+      'Owner Login Gmail',
+      'Owner Phone',
+      'Physical Address',
+      'City',
+      'State',
+      'Registered Members Count',
+      'Active Subscriptions Count',
+      'Total Checkins Scans',
+      'Status',
+      'Created Date'
+    ];
+
+    const rows = filteredGyms.map((g) => [
+      g.id,
+      g.name,
+      g.inviteCode,
+      g.ownerName || g.owner?.fullName || 'N/A',
+      g.ownerEmail || g.owner?.email || g.ownerContactEmail || 'N/A',
+      g.ownerPhone || g.owner?.phone || g.ownerContactPhone || 'N/A',
+      g.address || 'N/A',
+      g.city || 'N/A',
+      g.state || 'N/A',
+      g.counts?.totalUsers ?? g._count?.users ?? 0,
+      g.counts?.subscriptions ?? g._count?.subscriptions ?? 0,
+      g.counts?.attendanceTotal ?? g._count?.attendanceEntries ?? 0,
+      g.isActive ? 'Active' : 'Inactive',
+      g.createdAt ? new Date(g.createdAt).toLocaleDateString() : 'N/A'
+    ]);
+
+    const csvContent = [
+      headers.map(escapeCsvCell).join(','),
+      ...rows.map((row) => row.map(escapeCsvCell).join(','))
+    ].join('\r\n');
+
+    triggerCsvDownload(csvContent, `gym_owners_export_${dateStr}.csv`);
+    setActionNotice(`Successfully exported ${filteredGyms.length} gym owners to CSV!`);
+    setTimeout(() => setActionNotice(null), 4000);
   };
 
-  const handleApproveVisit = async (id: string) => {
-    try {
-      await api.approveDeviceRequest(id, 'Approved by Club Owner');
-      setActionNotice('Extra visit approved! Member account restored.');
-      loadData();
-      setTimeout(() => setActionNotice(null), 4000);
-    } catch (err: any) {
-      console.error('Failed to approve request:', err);
-    }
+  /**
+   * Export All Members Directory to CSV
+   */
+  const handleExportMembersCsv = () => {
+    const dateStr = new Date().toISOString().split('T')[0];
+    const headers = [
+      'Member ID',
+      'Member Full Name',
+      'Email Address',
+      'Phone Number',
+      'Role',
+      'Gym Business Name',
+      'Gym 6-Digit Access Code',
+      'Membership Plan Name',
+      'Plan Price ($)',
+      'Membership Status',
+      'Start Date',
+      'Expiration Date',
+      'Registered Date'
+    ];
+
+    const rows = filteredMembers.map((m) => [
+      m.id,
+      m.fullName,
+      m.email,
+      m.phone || 'N/A',
+      m.role || 'MEMBER',
+      m.gymName || 'Unassigned',
+      m.gymInviteCode || 'N/A',
+      m.planName || m.latestSubscription?.planName || 'No Active Plan',
+      m.price || m.latestSubscription?.price || 0,
+      m.status || (m.isAccessGranted ? 'ACTIVE' : 'INACTIVE'),
+      m.startDate ? new Date(m.startDate).toLocaleDateString() : 'N/A',
+      m.endDate ? new Date(m.endDate).toLocaleDateString() : 'N/A',
+      m.createdAt ? new Date(m.createdAt).toLocaleDateString() : 'N/A'
+    ]);
+
+    const csvContent = [
+      headers.map(escapeCsvCell).join(','),
+      ...rows.map((row) => row.map(escapeCsvCell).join(','))
+    ].join('\r\n');
+
+    triggerCsvDownload(csvContent, `platform_members_export_${dateStr}.csv`);
+    setActionNotice(`Successfully exported ${filteredMembers.length} members to CSV!`);
+    setTimeout(() => setActionNotice(null), 4000);
   };
 
-  // Filtered members
-  const filteredMembers = members.filter((m) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      m.fullName?.toLowerCase().includes(q) ||
-      m.email?.toLowerCase().includes(q) ||
-      m.role?.toLowerCase().includes(q)
-    );
-  });
+  /**
+   * Export Complete Master Archive (Both Gyms & Members)
+   */
+  const handleExportMasterArchive = () => {
+    handleExportGymsCsv();
+    setTimeout(() => {
+      handleExportMembersCsv();
+    }, 600);
+  };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16 px-2 sm:px-4">
-      {/* Action Notification Banner */}
+    <div className="space-y-6 max-w-7xl mx-auto pb-20 px-2 sm:px-4">
+      {/* Toast Notification Banner */}
       {actionNotice && (
-        <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center justify-between shadow-sm animate-fade-in">
-          <span>{actionNotice}</span>
-          <button onClick={() => setActionNotice(null)} className="hover:underline">
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-between shadow-sm animate-fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>{actionNotice}</span>
+          </div>
+          <button onClick={() => setActionNotice(null)} className="hover:underline text-[11px]">
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Super Admin & Developer Command Center Header */}
-      <div className="p-6 rounded-3xl app-card border border-slate-200/80 dark:border-zinc-800 bg-gradient-to-r from-emerald-500/10 via-zinc-900/10 to-teal-500/5 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-lg">
-              <ShieldAlert className="w-6 h-6 stroke-[2.5]" />
+      {/* Top Header: Super Admin Command Center */}
+      <div className="p-6 sm:p-7 rounded-3xl app-card border border-slate-200/80 dark:border-zinc-800 bg-gradient-to-r from-emerald-500/10 via-zinc-900/10 to-teal-500/5 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-lg flex-shrink-0">
+              <ShieldAlert className="w-7 h-7 stroke-[2.5]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Super Admin & Developer Panel
+                  Super Admin Management Portal
                 </h1>
                 <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2.5 py-0.5 rounded-full shadow-sm">
-                  ROOT ADMIN
+                  ROOT LEVEL
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                Central control plane for managing multi-tenant gym workspaces, provisioning gym owner accounts, and platform infrastructure.
+                Central multi-tenant SaaS dashboard: Inspect all gym owner accounts, view platform member directories, and export data.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Action Buttons: Provision & Export */}
+          <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
               onClick={handleOpenCreateGymModal}
               className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black text-xs font-black transition flex items-center gap-2 shadow-md active:scale-95"
             >
               <Building2 className="w-4 h-4" />
-              <span>➕ Provision Gym & Owner</span>
+              <span>➕ Create Gym Workspace</span>
             </button>
+
+            <button
+              type="button"
+              onClick={handleExportMasterArchive}
+              className="py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm active:scale-95"
+              title="Download full CSV reports"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span>Export All Data</span>
+            </button>
+
             <button
               type="button"
               onClick={loadData}
@@ -304,192 +438,33 @@ Portal URL: ${window.location.origin}`;
         </div>
       </div>
 
-      {/* 0. MULTI-TENANT SAAS WORKSPACE MANAGEMENT */}
-      <div className="app-card p-6 space-y-5 rounded-3xl border-2 border-emerald-500/20">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-sm">
-              <Building2 className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Multi-Tenant SaaS Workspaces
-                </h2>
-                <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-2.5 py-0.5 rounded-full">
-                  Super Admin View
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                Each gym operates in strict data isolation with a unique 6-digit client invite code and isolated turnstiles.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl">
-              🏢 {gyms.length} Active Gyms
-            </span>
-            <button
-              type="button"
-              onClick={handleOpenCreateGymModal}
-              className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black text-xs font-black transition flex items-center gap-1.5 shadow-sm active:scale-95"
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>➕ Create Gym Workspace</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Gym Tenants Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-          {gyms.map((g) => (
-            <div
-              key={g.id}
-              className="p-4 rounded-2xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 flex flex-col justify-between gap-3"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                      {g.name}
-                    </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400" />
-                      <span>{g.city || 'Downtown'}, {g.state || 'CA'}</span>
-                      {g.address && <span className="text-slate-400">• {g.address}</span>}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-zinc-500 block">
-                      Access Code
-                    </span>
-                    <span className="font-mono font-black text-sm bg-emerald-500 text-black px-2 py-0.5 rounded-md">
-                      {g.inviteCode}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Tenant Stats */}
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-200/60 dark:border-zinc-800/80 text-center">
-                  <div className="p-2 rounded-xl bg-white dark:bg-zinc-800/80">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase block">
-                      Members
-                    </span>
-                    <span className="text-sm font-black text-slate-900 dark:text-white">
-                      {g._count?.users ?? 0}
-                    </span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white dark:bg-zinc-800/80">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase block">
-                      Passes
-                    </span>
-                    <span className="text-sm font-black text-slate-900 dark:text-white">
-                      {g._count?.subscriptions ?? 0}
-                    </span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white dark:bg-zinc-800/80">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase block">
-                      Scans
-                    </span>
-                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                      {g._count?.attendanceEntries ?? 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-slate-500 dark:text-zinc-400 truncate max-w-[200px]">
-                  ✉️ {g.ownerContactEmail || 'owner@gym.com'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleCopyGymInvite(g.inviteCode, g.id)}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-[11px] font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1.5 transition"
-                >
-                  {copiedGymId === g.id ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
-                      <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>Copy Invite Link</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 1. CLEAN EXECUTIVE HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Facility Management
-            </h1>
-            <span className="badge-active-green text-[10px] py-0.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Live Operations
-            </span>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-            {facility?.name || 'IronVault Central Downtown'} • Simplified activity and member administration
-          </p>
-        </div>
-
-        {/* Primary Action: 1-Click Create Account */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => loadData()}
-            className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
-            title="Refresh Live Data"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
-
-          <button
-            onClick={() => setIsAccountModalOpen(true)}
-            className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-black text-xs transition shadow-md shadow-emerald-500/20 flex items-center gap-2 active:scale-95"
-          >
-            <UserPlus className="w-4 h-4 stroke-[2.5]" />
-            <span>➕ Create Account</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. UNCLUTTERED KPI OVERVIEW (4 High-Impact Metrics) */}
+      {/* KPI Metrics Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Metric 1: Live on Floor */}
+        {/* Metric 1: Total Gyms */}
         <div className="app-card p-5 space-y-2 border-2 border-emerald-500/20">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
-              Live On Floor
+              Gym Workspaces
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Activity className="w-4 h-4 stroke-[2.5]" />
+              <Building2 className="w-4 h-4 stroke-[2.5]" />
             </div>
           </div>
           <div>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
-              {activeOnFloor.length}
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              {gyms.length}
             </span>
             <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              Athletes Inside Now
+              Active Gym Tenants
             </p>
           </div>
         </div>
 
-        {/* Metric 2: Active Passes */}
+        {/* Metric 2: Total Members */}
         <div className="app-card p-5 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
-              Active Passes
+              Total Members
             </span>
             <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <Users className="w-4 h-4 stroke-[2.5]" />
@@ -500,360 +475,504 @@ Portal URL: ${window.location.origin}`;
               {members.length}
             </span>
             <p className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
-              Registered Members
+              Platform Athletes
             </p>
           </div>
         </div>
 
-        {/* Metric 3: Today's Scans */}
+        {/* Metric 3: Active Subscriptions */}
         <div className="app-card p-5 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
-              Today's Scans
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Zap className="w-4 h-4 stroke-[2.5]" />
-            </div>
-          </div>
-          <div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              {recentAttendance.length}
-            </span>
-            <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-              Arrivals Today
-            </p>
-          </div>
-        </div>
-
-        {/* Metric 4: Monthly Billed Revenue */}
-        <div className="app-card p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
-              Monthly Revenue
+              Active Passes
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4 stroke-[2.5]" />
+              <CreditCard className="w-4 h-4 stroke-[2.5]" />
+            </div>
+          </div>
+          <div>
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              {totalActivePasses}
+            </span>
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
+              Currently Valid Passes
+            </p>
+          </div>
+        </div>
+
+        {/* Metric 4: Platform Value */}
+        <div className="app-card p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
+              Platform Recurring Value
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <Activity className="w-4 h-4 stroke-[2.5]" />
             </div>
           </div>
           <div>
             <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              ${totalRevenue.toLocaleString()}
+              ${totalMonthlyValue.toLocaleString()}
             </span>
-            <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              Passes & Billing
+            <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+              Cumulative Passes MRR
             </p>
           </div>
         </div>
       </div>
 
-      {/* 3. DUAL COLUMN WORKFLOW: LIVE ATTENDANCE & PENDING REVIEWS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2/3): Live Member Activity Stream */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="app-card p-5 sm:p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80 pb-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveFloorTab('ON_FLOOR')}
-                  className={`py-1.5 px-3 rounded-xl font-black text-xs transition flex items-center gap-1.5 ${
-                    activeFloorTab === 'ON_FLOOR'
-                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>🟢 Live On Floor ({activeOnFloor.length})</span>
-                </button>
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('GYMS')}
+          className={`py-2.5 px-5 rounded-xl font-black text-xs transition flex items-center gap-2 ${
+            activeTab === 'GYMS'
+              ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-md'
+              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>🏢 Gyms & Owners Details ({filteredGyms.length})</span>
+        </button>
 
-                <button
-                  onClick={() => setActiveFloorTab('DEPARTED')}
-                  className={`py-1.5 px-3 rounded-xl font-black text-xs transition flex items-center gap-1.5 ${
-                    activeFloorTab === 'DEPARTED'
-                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>🏁 Departed Today ({departedToday.length})</span>
-                </button>
-              </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('MEMBERS')}
+          className={`py-2.5 px-5 rounded-xl font-black text-xs transition flex items-center gap-2 ${
+            activeTab === 'MEMBERS'
+              ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-md'
+              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>👥 Members Details Directory ({filteredMembers.length})</span>
+        </button>
+      </div>
 
-              <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
-                {recentAttendance.length} total visits today
+      {/* ========================================================= */}
+      {/* TAB 1: ALL GYMS & GYM OWNERS DETAILS                      */}
+      {/* ========================================================= */}
+      {activeTab === 'GYMS' && (
+        <div className="space-y-4 animate-fade-in">
+          {/* Section Toolbar */}
+          <div className="app-card p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex-1 max-w-md relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <input
+                type="text"
+                placeholder="Search gyms, owners, Gmail IDs, 6-digit codes, cities..."
+                value={gymSearch}
+                onChange={(e) => setGymSearch(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-bold hidden sm:inline">
+                Showing {filteredGyms.length} of {gyms.length} gyms
               </span>
-            </div>
-
-            {/* Tab 1: Live on Floor */}
-            {activeFloorTab === 'ON_FLOOR' && (
-              activeOnFloor.length === 0 ? (
-                <div className="text-center py-10 text-xs text-slate-400 dark:text-zinc-500 space-y-2">
-                  <Users className="w-8 h-8 mx-auto stroke-1 opacity-60" />
-                  <p>No athletes currently on the gym floor.</p>
-                  <p className="text-[11px]">When members scan the entrance QR code, they appear here with an elapsed timer.</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                  {activeOnFloor.map((item) => (
-                    <div key={item.id} className="py-3 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
-                          {item.user?.fullName?.charAt(0) || 'M'}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-900 dark:text-white">
-                              {item.user?.fullName || 'Athlete Member'}
-                            </span>
-                            <span className="badge-active-green text-[9px] py-0 px-1.5">
-                              Active Inside
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                            {item.user?.email || 'Passholder'} • Started {new Date(item.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 font-mono text-xs font-black text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-500/20">
-                          <Timer className="w-3 h-3 animate-spin-slow" />
-                          {item.elapsedMinutes || 1}m
-                        </span>
-
-                        <button
-                          onClick={() => handleDeskCheckout(item.id, item.user?.fullName || 'Member')}
-                          disabled={checkingOutId === item.id}
-                          className="py-1 px-2.5 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-700 dark:text-zinc-300 hover:text-amber-700 dark:hover:text-amber-300 border border-slate-200 dark:border-zinc-700 font-bold text-[11px] transition flex items-center gap-1 active:scale-95"
-                          title="Desk checkout"
-                        >
-                          <LogOut className="w-3 h-3" />
-                          <span>{checkingOutId === item.id ? 'Exiting...' : 'Check Out'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            )}
-
-            {/* Tab 2: Departed Sessions */}
-            {activeFloorTab === 'DEPARTED' && (
-              departedToday.length === 0 ? (
-                <div className="text-center py-10 text-xs text-slate-400 dark:text-zinc-500 space-y-2">
-                  <Clock className="w-8 h-8 mx-auto stroke-1 opacity-60" />
-                  <p>No completed sessions recorded yet today.</p>
-                  <p className="text-[11px]">When members finish their workouts and scan the exit gate, their session history appears here.</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                  {departedToday.map((item) => (
-                    <div key={item.id} className="py-3 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
-                          {item.user?.fullName?.charAt(0) || 'M'}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-900 dark:text-white">
-                              {item.user?.fullName || 'Athlete Member'}
-                            </span>
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300">
-                              Completed
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                            {item.exitDeviceId?.includes('DESK') ? 'Desk Checkout' : 'Exit Turnstile'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <span className="inline-flex items-center gap-1 font-mono text-xs font-black text-slate-800 dark:text-zinc-200 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-lg">
-                          <Clock className="w-3 h-3 text-emerald-500" />
-                          {item.sessionDurationMinutes || 45} mins
-                        </span>
-                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 block mt-0.5">
-                          {new Date(item.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} — {new Date(item.exitedAt || item.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            )}
-          </div>
-
-          {/* Members Table */}
-          <div className="app-card p-5 sm:p-6 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  Registered Accounts Directory
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
-                  Manage members, fitness trainers, and staff credentials
-                </p>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, or role..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-2 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full sm:w-64"
-                />
-              </div>
-            </div>
-
-            <div className="divide-y divide-slate-100 dark:divide-zinc-800/80 max-h-72 overflow-y-auto">
-              {filteredMembers.map((m) => (
-                <div key={m.id} className="py-2.5 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center font-bold text-xs">
-                      {m.fullName?.charAt(0) || 'U'}
-                    </div>
-                    <div>
-                      <span className="font-bold text-slate-900 dark:text-white block">
-                        {m.fullName}
-                      </span>
-                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                        {m.email}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        m.role === 'SUPER_ADMIN'
-                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                          : m.role === 'TRAINER'
-                          ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300'
-                          : m.role === 'MANAGER'
-                          ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300'
-                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                      }`}
-                    >
-                      {m.role === 'SUPER_ADMIN'
-                        ? '👑 Owner'
-                        : m.role === 'TRAINER'
-                        ? '🏋️ Trainer'
-                        : m.role === 'MANAGER'
-                        ? '🧑‍💼 Staff'
-                        : '🏃 Member'}
-                    </span>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline">
-                      {m.latestSubscription?.planName || 'Active Pass'}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column (1/3): Daily Visit Review Queue & Quick Controls */}
-        <div className="space-y-4">
-          {/* Visitor Review & Overrides Box */}
-          <div className="app-card p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4 text-amber-500" />
-                Extra Access Approvals
-              </h3>
-              <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  pendingRequests.length > 0
-                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                    : 'bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400'
-                }`}
-              >
-                {pendingRequests.length} Pending
-              </span>
-            </div>
-
-            <p className="text-[11px] text-slate-500 dark:text-zinc-400">
-              Members requesting an extra workout session today beyond the daily 1-visit policy.
-            </p>
-
-            {pendingRequests.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-400 space-y-1">
-                <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto opacity-70" />
-                <p>All clear! Zero pending approval requests.</p>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {pendingRequests.map((req) => (
-                  <div
-                    key={req.id}
-                    className="p-3 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 space-y-2 text-xs"
-                  >
-                    <div>
-                      <span className="font-black text-slate-900 dark:text-white block">
-                        {req.user?.fullName}
-                      </span>
-                      <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
-                        {req.adminNotes || 'Attempted 2nd visit today'}
-                      </span>
-                    </div>
-
-                    <div className="pt-1 flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleApproveVisit(req.id)}
-                        className="py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-black text-xs transition shadow-sm"
-                      >
-                        ✓ 1-Click Approve
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Quick Shortcuts */}
-          <div className="app-card p-5 space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-              ⚡ Admin Shortcuts
-            </h3>
-
-            <div className="space-y-2">
               <button
-                onClick={() => setIsAccountModalOpen(true)}
-                className="w-full p-3 rounded-2xl bg-slate-50 dark:bg-zinc-900 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200/80 dark:border-zinc-800 text-left transition flex items-center justify-between group"
+                type="button"
+                onClick={handleExportGymsCsv}
+                className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black text-xs font-black transition flex items-center gap-2 shadow-sm active:scale-95"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                    <UserPlus className="w-4 h-4 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      Add New Account
-                    </span>
-                    <span className="text-[10px] text-slate-400 dark:text-zinc-500">
-                      Member, Trainer, or Staff
-                    </span>
-                  </div>
-                </div>
-                <Sparkles className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition" />
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Export Gyms & Owners (CSV)</span>
               </button>
             </div>
           </div>
+
+          {/* Gyms Table */}
+          <div className="app-card rounded-3xl overflow-hidden border border-slate-200 dark:border-zinc-800">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-zinc-900/90 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 uppercase font-black tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3.5 px-4">Gym Workspace</th>
+                    <th className="py-3.5 px-4">Access Code</th>
+                    <th className="py-3.5 px-4">Gym Owner</th>
+                    <th className="py-3.5 px-4">Owner Gmail (Login / OTP)</th>
+                    <th className="py-3.5 px-4">Phone Number</th>
+                    <th className="py-3.5 px-4">Location</th>
+                    <th className="py-3.5 px-4 text-center">Members</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Quick Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+                  {filteredGyms.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center text-slate-400 dark:text-zinc-500">
+                        <Building2 className="w-10 h-10 mx-auto stroke-1 opacity-50 mb-2" />
+                        <p className="text-sm font-bold text-slate-600 dark:text-zinc-400">No Gym Workspaces Found</p>
+                        <p className="text-xs mt-0.5">Try clearing search filters or provision a new gym workspace.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredGyms.map((g) => {
+                      const ownerName = g.ownerName || g.owner?.fullName || 'Gym Owner';
+                      const ownerEmail = g.ownerEmail || g.owner?.email || g.ownerContactEmail || 'N/A';
+                      const ownerPhone = g.ownerPhone || g.owner?.phone || g.ownerContactPhone || 'N/A';
+                      const memberCount = g.counts?.totalUsers ?? g._count?.users ?? 0;
+                      const inviteUrl = `${window.location.origin}/?invite=${g.inviteCode}`;
+
+                      return (
+                        <tr key={g.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition">
+                          {/* Gym Name */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                <Building2 className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-900 dark:text-white block">
+                                  {g.name}
+                                </span>
+                                <span className="text-[10px] text-slate-400 dark:text-zinc-500">
+                                  Created {g.createdAt ? new Date(g.createdAt).toLocaleDateString() : 'Recent'}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* 6-Digit Access Code */}
+                          <td className="py-3.5 px-4">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyText(g.inviteCode, `code-${g.id}`, 'Access Code')}
+                              className="font-mono font-black text-xs bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-lg inline-flex items-center gap-1.5 hover:bg-emerald-500/30 transition"
+                              title="Click to copy 6-digit access code"
+                            >
+                              <span>{g.inviteCode}</span>
+                              {copiedKey === `code-${g.id}` ? (
+                                <Check className="w-3 h-3 text-emerald-500" />
+                              ) : (
+                                <Copy className="w-3 h-3 opacity-60" />
+                              )}
+                            </button>
+                          </td>
+
+                          {/* Owner Name */}
+                          <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                            <div className="flex items-center gap-1.5">
+                              <User className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{ownerName}</span>
+                            </div>
+                          </td>
+
+                          {/* Owner Gmail */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono text-xs text-slate-800 dark:text-zinc-200 truncate max-w-[200px]">
+                                {ownerEmail}
+                              </span>
+                              {ownerEmail !== 'N/A' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyText(ownerEmail, `email-${g.id}`, 'Owner Gmail')}
+                                  className="p-1 text-slate-400 hover:text-emerald-500 transition"
+                                  title="Copy Owner Gmail"
+                                >
+                                  {copiedKey === `email-${g.id}` ? (
+                                    <Check className="w-3 h-3 text-emerald-500" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Owner Phone */}
+                          <td className="py-3.5 px-4 text-slate-600 dark:text-zinc-400">
+                            {ownerPhone !== 'N/A' ? (
+                              <div className="flex items-center gap-1">
+                                <Phone className="w-3 h-3 text-slate-400" />
+                                <span>{ownerPhone}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 dark:text-zinc-600">—</span>
+                            )}
+                          </td>
+
+                          {/* Location */}
+                          <td className="py-3.5 px-4 text-slate-600 dark:text-zinc-400">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                              <span>{g.city || 'City'}, {g.state || 'State'}</span>
+                            </div>
+                          </td>
+
+                          {/* Members Count */}
+                          <td className="py-3.5 px-4 text-center font-black text-slate-900 dark:text-white">
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-800 font-mono">
+                              {memberCount}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Active
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleCopyText(inviteUrl, `link-${g.id}`, 'Client Invite Link')}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px] font-bold text-slate-700 dark:text-zinc-300 transition flex items-center gap-1"
+                                title="Copy Client Join Link"
+                              >
+                                {copiedKey === `link-${g.id}` ? (
+                                  <>
+                                    <Check className="w-3 h-3 text-emerald-500" />
+                                    <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3 h-3" />
+                                    <span>Copy Link</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Simplified Account Creation Modal */}
-      <AccountCreationModal
-        isOpen={isAccountModalOpen}
-        onClose={() => setIsAccountModalOpen(false)}
-        onSuccess={() => loadData()}
-      />
+      {/* ========================================================= */}
+      {/* TAB 2: ALL PLATFORM MEMBERS DETAILS                       */}
+      {/* ========================================================= */}
+      {activeTab === 'MEMBERS' && (
+        <div className="space-y-4 animate-fade-in">
+          {/* Section Toolbar */}
+          <div className="app-card p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+              {/* Search Bar */}
+              <div className="flex-1 relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  placeholder="Search members by name, email, phone, or gym name..."
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
 
-      {/* Create Gym Workspace Modal */}
+              {/* Filter by Gym */}
+              <select
+                value={selectedGymFilter}
+                onChange={(e) => setSelectedGymFilter(e.target.value)}
+                className="bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+              >
+                <option value="ALL">🏢 All Gyms ({gyms.length})</option>
+                {gyms.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name} ({g.inviteCode})
+                  </option>
+                ))}
+              </select>
+
+              {/* Filter by Status */}
+              <select
+                value={memberStatusFilter}
+                onChange={(e: any) => setMemberStatusFilter(e.target.value)}
+                className="bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="ACTIVE">🟢 Active Passes Only</option>
+                <option value="INACTIVE">⚪ Inactive / Expired</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 dark:text-zinc-400 font-bold hidden sm:inline">
+                Showing {filteredMembers.length} of {members.length} members
+              </span>
+              <button
+                type="button"
+                onClick={handleExportMembersCsv}
+                className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black text-xs font-black transition flex items-center gap-2 shadow-sm active:scale-95"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Export Members (CSV)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Members Table */}
+          <div className="app-card rounded-3xl overflow-hidden border border-slate-200 dark:border-zinc-800">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-zinc-900/90 border-b border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 uppercase font-black tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3.5 px-4">Member Athlete</th>
+                    <th className="py-3.5 px-4">Contact Details</th>
+                    <th className="py-3.5 px-4">Assigned Gym & Code</th>
+                    <th className="py-3.5 px-4">Membership Plan</th>
+                    <th className="py-3.5 px-4">Pass Status</th>
+                    <th className="py-3.5 px-4">Enrolled Date</th>
+                    <th className="py-3.5 px-4">Access Expiry</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+                  {filteredMembers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-slate-400 dark:text-zinc-500">
+                        <Users className="w-10 h-10 mx-auto stroke-1 opacity-50 mb-2" />
+                        <p className="text-sm font-bold text-slate-600 dark:text-zinc-400">No Members Found</p>
+                        <p className="text-xs mt-0.5">Try adjusting search keywords or gym filters.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredMembers.map((m) => {
+                      const isActive = m.status === 'ACTIVE';
+                      const planTitle = m.planName || m.latestSubscription?.planName || 'Monthly Pro Access';
+                      const priceVal = m.price || m.latestSubscription?.price || 65;
+
+                      return (
+                        <tr key={m.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition">
+                          {/* Member Athlete */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                {m.fullName?.charAt(0) || 'M'}
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-900 dark:text-white block">
+                                  {m.fullName}
+                                </span>
+                                <span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider font-semibold">
+                                  {m.role || 'MEMBER'}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Contact Details */}
+                          <td className="py-3.5 px-4">
+                            <div className="space-y-0.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-xs text-slate-800 dark:text-zinc-200">
+                                  {m.email}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyText(m.email, `m-email-${m.id}`, 'Member Email')}
+                                  className="p-0.5 text-slate-400 hover:text-emerald-500 transition"
+                                  title="Copy Email"
+                                >
+                                  {copiedKey === `m-email-${m.id}` ? (
+                                    <Check className="w-3 h-3 text-emerald-500" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
+                              {m.phone && (
+                                <p className="text-[11px] text-slate-400 dark:text-zinc-500 flex items-center gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  <span>{m.phone}</span>
+                                </p>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Assigned Gym & Code */}
+                          <td className="py-3.5 px-4">
+                            <div className="space-y-0.5">
+                              <span className="font-bold text-slate-900 dark:text-white block">
+                                {m.gymName || 'Unassigned'}
+                              </span>
+                              {m.gymInviteCode && (
+                                <span className="font-mono text-[10px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-bold">
+                                  Code: {m.gymInviteCode}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Membership Plan */}
+                          <td className="py-3.5 px-4">
+                            <div>
+                              <span className="font-bold text-slate-900 dark:text-white block">
+                                {planTitle}
+                              </span>
+                              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-black">
+                                ${priceVal}/mo
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-4">
+                            {isActive ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Active Pass
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-400">
+                                Inactive
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Enrolled Date */}
+                          <td className="py-3.5 px-4 text-slate-600 dark:text-zinc-400">
+                            {m.createdAt ? new Date(m.createdAt).toLocaleDateString() : 'N/A'}
+                          </td>
+
+                          {/* Access Expiry */}
+                          <td className="py-3.5 px-4 text-slate-600 dark:text-zinc-400 font-mono">
+                            {m.endDate ? new Date(m.endDate).toLocaleDateString() : '30-Day Pass'}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyText(m.email, `m-copy-${m.id}`, 'Member Email')}
+                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-[11px] font-bold text-slate-700 dark:text-zinc-300 transition inline-flex items-center gap-1"
+                              title="Copy Email"
+                            >
+                              {copiedKey === `m-copy-${m.id}` ? (
+                                <Check className="w-3 h-3 text-emerald-500" />
+                              ) : (
+                                <Copy className="w-3 h-3" />
+                              )}
+                              <span>Copy</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: CREATE GYM WORKSPACE & PROVISION OWNER             */}
+      {/* ========================================================= */}
       {isCreateGymModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="app-card w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto border border-slate-200 dark:border-zinc-800 shadow-2xl">
@@ -930,7 +1049,7 @@ Portal URL: ${window.location.origin}`;
                       setIsCreateGymModalOpen(false);
                       setCreatedGymResult(null);
                     }}
-                    className="flex-1 py-3 rounded-xl btn-primary-green text-xs font-bold uppercase tracking-wider transition"
+                    className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black font-black text-xs uppercase tracking-wider transition"
                   >
                     Done
                   </button>
@@ -1048,23 +1167,23 @@ Portal URL: ${window.location.origin}`;
                         type="text"
                         required
                         minLength={6}
-                        placeholder="••••••••"
+                        placeholder="Min 6 characters"
                         value={gymFormPassword}
                         onChange={(e) => setGymFormPassword(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                        className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                      Owner Contact Phone
+                      Owner Phone (Optional)
                     </label>
                     <div className="relative">
                       <Phone className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
                       <input
                         type="tel"
-                        placeholder="+1 555-019-4422"
+                        placeholder="+1 (555) 000-0000"
                         value={gymFormPhone}
                         onChange={(e) => setGymFormPhone(e.target.value)}
                         className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
@@ -1073,48 +1192,66 @@ Portal URL: ${window.location.origin}`;
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                      Facility Street Address
-                    </label>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                    Physical Facility Address
+                  </label>
+                  <div className="relative">
+                    <MapPin className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
                     <input
                       type="text"
-                      placeholder="123 Fitness Ave"
+                      placeholder="e.g. 500 Grand Avenue, Suite 100"
                       value={gymFormAddress}
                       onChange={(e) => setGymFormAddress(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                      City, State
+                      City
                     </label>
                     <input
                       type="text"
-                      placeholder="New York, NY"
+                      placeholder="e.g. New York"
                       value={gymFormCity}
                       onChange={(e) => setGymFormCity(e.target.value)}
                       className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. NY"
+                      value={gymFormState}
+                      onChange={(e) => setGymFormState(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateGymModalOpen(false)}
-                    className="w-1/3 py-3 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
-                  >
-                    Cancel
-                  </button>
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isSubmittingGym}
-                    className="flex-1 py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                    className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg active:scale-98 disabled:opacity-50"
                   >
-                    <span>{isSubmittingGym ? 'Provisioning Workspace...' : 'Create Gym Workspace'}</span>
-                    <Building2 className="w-4 h-4" />
+                    {isSubmittingGym ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Provisioning Gym & Owner...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Building2 className="w-4 h-4" />
+                        <span>Provision Gym & Owner Account</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

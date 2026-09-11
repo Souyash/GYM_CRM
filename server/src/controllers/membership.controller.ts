@@ -399,10 +399,15 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
 
 export async function getMembers(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { search, status } = req.query;
+    const { search, status, gymId: queryGymId, role: queryRole } = req.query;
     const callerGymId = resolveTenantGymId(req);
 
-    const where: any = { role: 'MEMBER' };
+    const where: any = {};
+    if (queryRole && queryRole !== 'ALL') {
+      where.role = String(queryRole);
+    } else if (!queryRole) {
+      where.role = 'MEMBER';
+    }
 
     // STRICT MULTI-TENANT ISOLATION:
     // If not super admin without gym filter, only show members in caller's gym!
@@ -411,6 +416,8 @@ export async function getMembers(req: AuthenticatedRequest, res: Response): Prom
         { gymId: callerGymId },
         { facilityId: callerGymId }
       ];
+    } else if (queryGymId) {
+      where.gymId = String(queryGymId);
     }
 
     if (search) {
@@ -452,12 +459,20 @@ export async function getMembers(req: AuthenticatedRequest, res: Response): Prom
         fullName: m.fullName,
         email: m.email,
         phone: m.phone,
+        role: m.role,
         gymId: m.gymId,
+        gymInviteCode: m.gym?.inviteCode || '',
+        gymName: m.gym?.name || m.facility?.name || 'Unassigned',
+        facility: m.gym?.name || m.facility?.name,
         boundDeviceId: m.boundDeviceId,
         deviceStatus: m.deviceStatus,
-        gymName: m.gym?.name || m.facility?.name,
-        facility: m.gym?.name || m.facility?.name,
+        createdAt: m.createdAt,
         latestSubscription: activeSub || null,
+        planName: activeSub?.planName || 'No Active Pass',
+        price: activeSub?.price ?? 0,
+        startDate: activeSub?.startDate || null,
+        endDate: activeSub?.endDate || null,
+        status: isSubActive ? 'ACTIVE' : (activeSub ? activeSub.status : 'INACTIVE'),
         isAccessGranted: isSubActive && m.deviceStatus === 'NORMAL'
       };
     });
