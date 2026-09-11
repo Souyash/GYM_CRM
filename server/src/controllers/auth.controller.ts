@@ -176,7 +176,8 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
         subscriptions: {
           orderBy: { createdAt: 'desc' },
           take: 5
-        }
+        },
+        healthProfile: true
       }
     });
 
@@ -198,7 +199,8 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
         boundDeviceName: user.boundDeviceName,
         deviceStatus: user.deviceStatus,
         avatarUrl: user.avatarUrl,
-        subscriptions: user.subscriptions
+        subscriptions: user.subscriptions,
+        healthProfile: user.healthProfile
       }
     });
   } catch (error: any) {

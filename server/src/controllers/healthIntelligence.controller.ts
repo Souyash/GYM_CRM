@@ -658,6 +658,26 @@ export async function updateMyHealthProfile(req: AuthenticatedRequest, res: Resp
     }
 
     const {
+      // Optional user basic info updates
+      fullName,
+      phone,
+
+      // Form 1: Contact, Address, Referral
+      dateOfBirth,
+      age: explicitAge,
+      gender,
+      profilePhoto,
+      houseFlatStreet,
+      localityArea,
+      city,
+      state,
+      pinCode,
+      isPermanentSame,
+      permanentAddress,
+      referralSource,
+      referralDetails,
+
+      // Form 2: Body Metrics
       currentWeightKg,
       heightCm,
       bodyFatPercentage,
@@ -665,34 +685,109 @@ export async function updateMyHealthProfile(req: AuthenticatedRequest, res: Resp
       waistCm,
       chestCm,
       hipCm,
+
+      // Form 2: Health Conditions & Medical checks
+      hasHealthCondition,
+      healthConditions,
+      otherConditionText,
+      isTakingMedication,
+      medicationDetails,
+      advisedAvoidExercise,
+      avoidExerciseDetails,
+      hasMajorSurgery,
+      surgeryDetails,
+      hasGymInjury,
+      injuryDetails,
+
+      // Form 2: Goals & Timeline
       primaryGoal,
       specificGoal,
       targetWeightKg,
       targetTimeline
     } = req.body;
 
-    const parsedWeight = currentWeightKg ? parseFloat(String(currentWeightKg)) : null;
-    const parsedHeight = heightCm ? parseFloat(String(heightCm)) : null;
-    const calculatedBmi = computeBmi(parsedWeight, parsedHeight);
+    // 1. Update basic user data if provided
+    if (fullName || phone || profilePhoto) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(fullName ? { fullName: String(fullName).trim() } : {}),
+          ...(phone ? { phone: String(phone).trim() } : {}),
+          ...(profilePhoto ? { avatarUrl: String(profilePhoto).trim() } : {})
+        }
+      });
+    }
 
+    // 2. Computed values
+    const parsedWeight = currentWeightKg !== undefined && currentWeightKg !== '' ? parseFloat(String(currentWeightKg)) : null;
+    const parsedHeight = heightCm !== undefined && heightCm !== '' ? parseFloat(String(heightCm)) : null;
+    const calculatedBmi = computeBmi(parsedWeight, parsedHeight);
+    const calculatedAge = explicitAge !== undefined ? explicitAge : (dateOfBirth ? computeAge(dateOfBirth) : null);
+
+    const conditionsJson = healthConditions !== undefined
+      ? (Array.isArray(healthConditions) ? JSON.stringify(healthConditions) : (typeof healthConditions === 'string' ? healthConditions : null))
+      : undefined;
+
+    // 3. Upsert MemberHealthProfile
     const profile = await prisma.memberHealthProfile.upsert({
       where: { userId },
       update: {
-        currentWeightKg: parsedWeight,
-        heightCm: parsedHeight,
-        bmi: calculatedBmi,
-        bodyFatPercentage: bodyFatPercentage ? parseFloat(String(bodyFatPercentage)) : null,
-        muscleMassKg: muscleMassKg ? parseFloat(String(muscleMassKg)) : null,
-        waistCm: waistCm ? parseFloat(String(waistCm)) : null,
-        chestCm: chestCm ? parseFloat(String(chestCm)) : null,
-        hipCm: hipCm ? parseFloat(String(hipCm)) : null,
-        primaryGoal: primaryGoal || undefined,
-        specificGoal: specificGoal || undefined,
-        targetWeightKg: targetWeightKg ? parseFloat(String(targetWeightKg)) : null,
-        targetTimeline: targetTimeline || undefined
+        ...(dateOfBirth !== undefined ? { dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null } : {}),
+        ...(calculatedAge !== null ? { age: calculatedAge } : {}),
+        ...(gender !== undefined ? { gender } : {}),
+        ...(profilePhoto !== undefined ? { profilePhoto } : {}),
+        ...(houseFlatStreet !== undefined ? { houseFlatStreet } : {}),
+        ...(localityArea !== undefined ? { localityArea } : {}),
+        ...(city !== undefined ? { city } : {}),
+        ...(state !== undefined ? { state } : {}),
+        ...(pinCode !== undefined ? { pinCode } : {}),
+        ...(isPermanentSame !== undefined ? { isPermanentSame: Boolean(isPermanentSame) } : {}),
+        ...(permanentAddress !== undefined ? { permanentAddress } : {}),
+        ...(referralSource !== undefined ? { referralSource } : {}),
+        ...(referralDetails !== undefined ? { referralDetails } : {}),
+
+        ...(parsedWeight !== null ? { currentWeightKg: parsedWeight } : {}),
+        ...(parsedHeight !== null ? { heightCm: parsedHeight } : {}),
+        ...(calculatedBmi !== null ? { bmi: calculatedBmi } : {}),
+        ...(bodyFatPercentage !== undefined ? { bodyFatPercentage: bodyFatPercentage ? parseFloat(String(bodyFatPercentage)) : null } : {}),
+        ...(muscleMassKg !== undefined ? { muscleMassKg: muscleMassKg ? parseFloat(String(muscleMassKg)) : null } : {}),
+        ...(waistCm !== undefined ? { waistCm: waistCm ? parseFloat(String(waistCm)) : null } : {}),
+        ...(chestCm !== undefined ? { chestCm: chestCm ? parseFloat(String(chestCm)) : null } : {}),
+        ...(hipCm !== undefined ? { hipCm: hipCm ? parseFloat(String(hipCm)) : null } : {}),
+
+        ...(hasHealthCondition !== undefined ? { hasHealthCondition: Boolean(hasHealthCondition) } : {}),
+        ...(conditionsJson !== undefined ? { healthConditions: conditionsJson } : {}),
+        ...(otherConditionText !== undefined ? { otherConditionText } : {}),
+        ...(isTakingMedication !== undefined ? { isTakingMedication: Boolean(isTakingMedication) } : {}),
+        ...(medicationDetails !== undefined ? { medicationDetails } : {}),
+        ...(advisedAvoidExercise !== undefined ? { advisedAvoidExercise: Boolean(advisedAvoidExercise) } : {}),
+        ...(avoidExerciseDetails !== undefined ? { avoidExerciseDetails } : {}),
+        ...(hasMajorSurgery !== undefined ? { hasMajorSurgery: Boolean(hasMajorSurgery) } : {}),
+        ...(surgeryDetails !== undefined ? { surgeryDetails } : {}),
+        ...(hasGymInjury !== undefined ? { hasGymInjury: Boolean(hasGymInjury) } : {}),
+        ...(injuryDetails !== undefined ? { injuryDetails } : {}),
+
+        ...(primaryGoal !== undefined ? { primaryGoal } : {}),
+        ...(specificGoal !== undefined ? { specificGoal } : {}),
+        ...(targetWeightKg !== undefined ? { targetWeightKg: targetWeightKg ? parseFloat(String(targetWeightKg)) : null } : {}),
+        ...(targetTimeline !== undefined ? { targetTimeline } : {})
       },
       create: {
         userId,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        age: calculatedAge,
+        gender: gender || null,
+        profilePhoto: profilePhoto || null,
+        houseFlatStreet: houseFlatStreet || null,
+        localityArea: localityArea || null,
+        city: city || null,
+        state: state || null,
+        pinCode: pinCode || null,
+        isPermanentSame: isPermanentSame !== undefined ? Boolean(isPermanentSame) : true,
+        permanentAddress: permanentAddress || null,
+        referralSource: referralSource || null,
+        referralDetails: referralDetails || null,
+
         currentWeightKg: parsedWeight,
         heightCm: parsedHeight,
         bmi: calculatedBmi,
@@ -701,16 +796,29 @@ export async function updateMyHealthProfile(req: AuthenticatedRequest, res: Resp
         waistCm: waistCm ? parseFloat(String(waistCm)) : null,
         chestCm: chestCm ? parseFloat(String(chestCm)) : null,
         hipCm: hipCm ? parseFloat(String(hipCm)) : null,
-        primaryGoal: primaryGoal || undefined,
-        specificGoal: specificGoal || undefined,
+
+        hasHealthCondition: Boolean(hasHealthCondition),
+        healthConditions: conditionsJson || null,
+        otherConditionText: otherConditionText || null,
+        isTakingMedication: Boolean(isTakingMedication),
+        medicationDetails: medicationDetails || null,
+        advisedAvoidExercise: Boolean(advisedAvoidExercise),
+        avoidExerciseDetails: avoidExerciseDetails || null,
+        hasMajorSurgery: Boolean(hasMajorSurgery),
+        surgeryDetails: surgeryDetails || null,
+        hasGymInjury: Boolean(hasGymInjury),
+        injuryDetails: injuryDetails || null,
+
+        primaryGoal: primaryGoal || null,
+        specificGoal: specificGoal || null,
         targetWeightKg: targetWeightKg ? parseFloat(String(targetWeightKg)) : null,
-        targetTimeline: targetTimeline || undefined
+        targetTimeline: targetTimeline || null
       }
     });
 
     res.json({
       success: true,
-      message: 'Your fitness metrics have been updated!',
+      message: 'Your health and fitness assessment has been saved!',
       profile
     });
   } catch (error: any) {

@@ -305,6 +305,7 @@ model MemberHealthProfile {
   state                     String?
   pinCode                   String?
   isPermanentSame           Boolean   @default(true)
+  permanentAddress          String?
 
   // Marketing & Referral Tracking
   referralSource            String?   // Social Media, Walk-in, Friend / Referral, Google, Flyer, Other

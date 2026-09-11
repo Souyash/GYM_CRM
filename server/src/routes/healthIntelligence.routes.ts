@@ -24,6 +24,8 @@ router.post('/onboard', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), 
 router.get('/member/:userId', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), getMemberHealthProfile);
 
 // Member self-service
+router.get('/me', authenticateJWT, getMyHealthProfile);
+router.put('/me', authenticateJWT, updateMyHealthProfile);
 router.get('/my-profile', authenticateJWT, getMyHealthProfile);
 router.put('/my-profile', authenticateJWT, updateMyHealthProfile);
 

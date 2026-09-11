@@ -808,3 +808,4 @@ export const HealthIntelligenceView: React.FC = () => {
     </div>
   );
 };
+

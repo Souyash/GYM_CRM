@@ -98,12 +98,17 @@ export async function apiRequest<T = any>(
   }
 
   if (!response.ok) {
-    const errorMsg =
-      data.error ||
-      data.message ||
-      (response.status === 405
-        ? `Backend not connected at ${apiBase}. On Vercel, please enter your Render backend URL below.`
-        : `Request failed with status ${response.status}`);
+    let errorMsg = data.error || data.message;
+    if (typeof errorMsg === 'string' && (errorMsg.includes('<!DOCTYPE') || errorMsg.includes('<html'))) {
+      const match = errorMsg.match(/<pre>(.*?)<\/pre>/i);
+      errorMsg = match ? match[1].replace(/<[^>]+>/g, '') : `Server returned HTTP ${response.status}`;
+    }
+    if (!errorMsg) {
+      errorMsg =
+        response.status === 405
+          ? `Backend not connected at ${apiBase}. On Vercel, please enter your Render backend URL below.`
+          : `Request failed with status ${response.status}`;
+    }
     const error: any = new Error(errorMsg);
     error.status = response.status;
     error.data = data;

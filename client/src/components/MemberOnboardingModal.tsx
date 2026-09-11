@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   UserCheck,
@@ -25,8 +25,15 @@ import { api } from '../services/api';
 
 interface MemberOnboardingModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   onSuccess?: () => void;
+  mode?: 'ADMIN' | 'SELF';
+  initialValues?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+  };
+  isMandatory?: boolean;
 }
 
 const HEALTH_CONDITIONS_LIST = [
@@ -69,16 +76,27 @@ const REFERRAL_SOURCES = [
 export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  mode = 'ADMIN',
+  initialValues,
+  isMandatory = false
 }) => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Form 1: Contact & Address
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [fullName, setFullName] = useState(initialValues?.fullName || '');
+  const [email, setEmail] = useState(initialValues?.email || '');
+  const [phone, setPhone] = useState(initialValues?.phone || '');
+
+  useEffect(() => {
+    if (initialValues) {
+      if (initialValues.fullName) setFullName(initialValues.fullName);
+      if (initialValues.email) setEmail(initialValues.email);
+      if (initialValues.phone) setPhone(initialValues.phone);
+    }
+  }, [initialValues]);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState('Male');
   const [profilePhoto, setProfilePhoto] = useState('');
@@ -257,8 +275,19 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
         targetTimeline
       };
 
-      const res = await api.onboardWithHealth(payload);
-      setCreatedResult(res);
+      if (mode === 'SELF') {
+        const res = await api.updateMyHealthProfile(payload);
+        setCreatedResult({
+          member: {
+            fullName: fullName || initialValues?.fullName,
+            email: email || initialValues?.email
+          },
+          healthProfile: res.profile
+        });
+      } else {
+        const res = await api.onboardWithHealth(payload);
+        setCreatedResult(res);
+      }
       setCurrentStep(3);
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -269,33 +298,52 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-4xl bg-gradient-to-b from-zinc-900 to-black border border-amber-500/20 rounded-2xl shadow-2xl overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-4xl bg-gradient-to-b from-zinc-900 to-black border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden my-6">
         {/* Header with Stepper */}
-        <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60">
+        <div className="px-6 py-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80">
           <div>
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
                 <HeartPulse className="w-5 h-5" />
               </span>
               <div>
-                <h2 className="text-xl font-bold text-white tracking-wide">
-                  Member Onboarding & Fitness Assessment
+                <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                  <span>{mode === 'SELF' ? 'Mandatory Member Admission & Fitness Assessment' : 'Member Onboarding & Fitness Assessment'}</span>
+                  {isMandatory && (
+                    <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-amber-500 text-black">
+                      Required
+                    </span>
+                  )}
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  Comprehensive 2-part admission sheet & marketing intelligence capture
+                  {mode === 'SELF'
+                    ? 'Complete Form 1 (Contact & Address) and Form 2 (Health Assessment) to unlock your dashboard.'
+                    : 'Comprehensive 2-part admission sheet & marketing intelligence capture'}
                 </p>
               </div>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-zinc-800 transition"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {!isMandatory && onClose && (
+            <button
+              onClick={onClose}
+              className="text-zinc-400 hover:text-white p-2 rounded-lg hover:bg-zinc-800 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
+
+        {/* Mandatory Notification Banner */}
+        {isMandatory && (
+          <div className="mx-6 mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs flex items-center gap-2.5">
+            <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <span>
+              <strong>First-Time Activation:</strong> Welcome! As a new athlete, please fill out Form 1 (Contact & Address) and Form 2 (Health & Fitness Sheet) below to activate your entrance pass.
+            </span>
+          </div>
+        )}
 
         {/* Stepper Indicator */}
         <div className="grid grid-cols-3 border-b border-zinc-800 text-xs sm:text-sm font-medium bg-zinc-950/50">
@@ -569,52 +617,54 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
               </div>
             </div>
 
-            {/* Section: Admission Plan & Billing */}
-            <div className="pt-2 border-t border-zinc-800/80">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
-                <Dumbbell className="w-4 h-4" /> Admission Membership Plan
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { name: 'Monthly Pro Access', price: 65, days: 30 },
-                  { name: 'Quarterly Elite Pass', price: 165, days: 90 },
-                  { name: 'Annual VIP Membership', price: 540, days: 365 },
-                  { name: 'Day Pass', price: 15, days: 1 }
-                ].map((p) => (
-                  <button
-                    key={p.name}
-                    type="button"
-                    onClick={() => handlePlanChange(p.name)}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      planName === p.name
-                        ? 'border-amber-500 bg-amber-500/10 text-white'
-                        : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700'
-                    }`}
-                  >
-                    <div className="text-xs font-semibold truncate">{p.name}</div>
-                    <div className="text-base font-black text-amber-400 mt-1">${p.price}</div>
-                    <div className="text-[10px] text-zinc-400">{p.days} days validity</div>
-                  </button>
-                ))}
-              </div>
+            {/* Section: Admission Plan & Billing (Admin Onboarding Only) */}
+            {mode !== 'SELF' && (
+              <div className="pt-2 border-t border-zinc-800/80">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4" /> Admission Membership Plan
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { name: 'Monthly Pro Access', price: 65, days: 30 },
+                    { name: 'Quarterly Elite Pass', price: 165, days: 90 },
+                    { name: 'Annual VIP Membership', price: 540, days: 365 },
+                    { name: 'Day Pass', price: 15, days: 1 }
+                  ].map((p) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onClick={() => handlePlanChange(p.name)}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        planName === p.name
+                          ? 'border-amber-500 bg-amber-500/10 text-white'
+                          : 'border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700'
+                      }`}
+                    >
+                      <div className="text-xs font-semibold truncate">{p.name}</div>
+                      <div className="text-base font-black text-amber-400 mt-1">${p.price}</div>
+                      <div className="text-[10px] text-zinc-400">{p.days} days validity</div>
+                    </button>
+                  ))}
+                </div>
 
-              <div className="mt-3 flex items-center gap-4">
-                <span className="text-xs text-zinc-400">Payment Mode:</span>
-                {['CASH', 'UPI', 'CARD'].map((m) => (
-                  <label key={m} className="inline-flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={m}
-                      checked={paymentMethod === m}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="text-amber-500 focus:ring-amber-500"
-                    />
-                    {m}
-                  </label>
-                ))}
+                <div className="mt-3 flex items-center gap-4">
+                  <span className="text-xs text-zinc-400">Payment Mode:</span>
+                  {['CASH', 'UPI', 'CARD'].map((m) => (
+                    <label key={m} className="inline-flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value={m}
+                        checked={paymentMethod === m}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="text-amber-500 focus:ring-amber-500"
+                      />
+                      {m}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Next Button */}
             <div className="flex justify-end pt-4 border-t border-zinc-800">
@@ -1019,10 +1069,13 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
             </div>
 
             <div>
-              <h3 className="text-2xl font-black text-white">Member Successfully Onboarded!</h3>
+              <h3 className="text-2xl font-black text-white">
+                {mode === 'SELF' ? 'Fitness Assessment Complete!' : 'Member Successfully Onboarded!'}
+              </h3>
               <p className="text-sm text-zinc-400 mt-1">
-                All demographic, contact, body metrics, and fitness goals have been securely saved for
-                marketing intelligence.
+                {mode === 'SELF'
+                  ? 'Your profile, health history, and fitness goals are now active. Your digital member pass is unlocked!'
+                  : 'All demographic, contact, body metrics, and fitness goals have been securely saved for marketing intelligence.'}
               </p>
             </div>
 
@@ -1056,10 +1109,12 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
 
             <div className="flex justify-center gap-3">
               <button
-                onClick={onClose}
+                onClick={() => {
+                  if (onClose) onClose();
+                }}
                 className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl text-sm transition"
               >
-                Close & View Marketing Hub
+                {mode === 'SELF' ? 'Enter My Member Dashboard' : 'Close & View Marketing Hub'}
               </button>
             </div>
           </div>
@@ -1068,3 +1123,4 @@ export const MemberOnboardingModal: React.FC<MemberOnboardingModalProps> = ({
     </div>
   );
 };
+

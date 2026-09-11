@@ -33,6 +33,7 @@ import { QuickActionBar } from '../components/QuickActionBar';
 import { CommunityFeed } from '../components/CommunityFeed';
 import { WorkoutLogModal } from '../components/WorkoutLogModal';
 import { WorkoutDepartureModal } from '../components/WorkoutDepartureModal';
+import { MemberOnboardingModal } from '../components/MemberOnboardingModal';
 
 interface MemberProfileProps {
   onOpenScanner: (mode?: 'ENTER' | 'EXIT') => void;
@@ -60,6 +61,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [healthProfile, setHealthProfile] = useState<MemberHealthProfile | null>(null);
   const [isLoadingHealth, setIsLoadingHealth] = useState<boolean>(false);
   const [isHealthEditOpen, setIsHealthEditOpen] = useState<boolean>(false);
+  const [isFirstTimeOnboardOpen, setIsFirstTimeOnboardOpen] = useState<boolean>(false);
   const [editWeight, setEditWeight] = useState('');
   const [editTargetWeight, setEditTargetWeight] = useState('');
   const [editGoal, setEditGoal] = useState('Weight Loss & Fat Burn');
@@ -118,12 +120,17 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
     try {
       setIsLoadingHealth(true);
       const data = await api.getMyHealthProfile();
-      if (data && data.profile) {
+      if (data && data.profile && (data.profile.primaryGoal || data.profile.currentWeightKg || data.profile.city)) {
         setHealthProfile(data.profile);
+        setIsFirstTimeOnboardOpen(false);
         if (data.profile.currentWeightKg) setEditWeight(String(data.profile.currentWeightKg));
         if (data.profile.targetWeightKg) setEditTargetWeight(String(data.profile.targetWeightKg));
         if (data.profile.primaryGoal) setEditGoal(data.profile.primaryGoal);
         if (data.profile.targetTimeline) setEditTimeline(data.profile.targetTimeline);
+      } else {
+        // First-time member dashboard load without completed health sheet:
+        setHealthProfile(null);
+        setIsFirstTimeOnboardOpen(true);
       }
     } catch (e) {
       console.error('Failed to load health profile:', e);
@@ -554,13 +561,24 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             </div>
           </div>
 
-          <button
-            onClick={() => setIsHealthEditOpen(true)}
-            className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold rounded-xl text-xs border border-amber-500/30 flex items-center gap-1.5 transition self-start sm:self-auto"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Update Metrics</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {!healthProfile && (
+              <button
+                onClick={() => setIsFirstTimeOnboardOpen(true)}
+                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Complete Health Sheet</span>
+              </button>
+            )}
+            <button
+              onClick={() => setIsHealthEditOpen(true)}
+              className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold rounded-xl text-xs border border-amber-500/30 flex items-center gap-1.5 transition self-start sm:self-auto"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span>Update Metrics</span>
+            </button>
+          </div>
         </div>
 
         {/* Metrics Grid */}
@@ -880,6 +898,28 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         isOpen={isDepartureModalOpen}
         onClose={() => setIsDepartureModalOpen(false)}
         sessionData={departureSessionData}
+      />
+
+      {/* Mandatory First-Time Member Admission & Health Profile Onboarding Modal */}
+      <MemberOnboardingModal
+        isOpen={isFirstTimeOnboardOpen}
+        mode="SELF"
+        isMandatory={true}
+        initialValues={{
+          fullName: user?.fullName,
+          email: user?.email,
+          phone: user?.phone
+        }}
+        onClose={() => {
+          setIsFirstTimeOnboardOpen(false);
+          loadHealthProfile();
+          refreshProfile();
+        }}
+        onSuccess={() => {
+          setIsFirstTimeOnboardOpen(false);
+          loadHealthProfile();
+          refreshProfile();
+        }}
       />
     </div>
   );

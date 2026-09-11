@@ -46,6 +46,7 @@ export interface User {
   deviceStatus: DeviceStatus;
   avatarUrl?: string;
   subscriptions?: Subscription[];
+  healthProfile?: MemberHealthProfile;
 }
 
 export interface LiveAttendanceEntry {
