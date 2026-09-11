@@ -63,7 +63,7 @@ export async function testBackendConnection(url?: string): Promise<{ success: bo
     : getApiBase();
 
   try {
-    const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(30000) });
     if (res.ok) {
       return { success: true, message: 'Backend connected and responding!' };
     }
@@ -71,6 +71,18 @@ export async function testBackendConnection(url?: string): Promise<{ success: bo
   } catch (err: any) {
     return { success: false, message: err.message || 'Unable to reach backend URL' };
   }
+}
+
+// Background warm-up ping for free-tier Render server
+export function prewarmBackend(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    fetch(`${getApiBase()}/health`, { mode: 'cors' }).catch(() => {});
+  } catch {}
+}
+
+if (typeof window !== 'undefined') {
+  setTimeout(prewarmBackend, 200);
 }
 
 export async function apiRequest<T = any>(
@@ -93,7 +105,8 @@ export async function apiRequest<T = any>(
 
   let response: Response;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  // 45-second timeout to allow Render free tier instance cold-start / wake up
+  const timeoutId = setTimeout(() => controller.abort(), 45000);
 
   try {
     response = await fetch(`${apiBase}${endpoint}`, {
@@ -105,8 +118,8 @@ export async function apiRequest<T = any>(
     const isTimeout = networkErr.name === 'AbortError';
     const error: any = new Error(
       isTimeout
-        ? `Request timed out connecting to backend (${apiBase}).`
-        : `Unable to connect to backend server (${apiBase}). Please check your Render backend URL.`
+        ? `Request timed out connecting to backend (${apiBase}). If the server was asleep (Render free tier), it is waking up now. Please try again in 10-15 seconds.`
+        : `Unable to connect to backend server (${apiBase}). Please verify your connection or Render backend URL.`
     );
     error.status = isTimeout ? 408 : 0;
     throw error;

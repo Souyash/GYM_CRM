@@ -88,8 +88,23 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [bizState, setBizState] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingDuration, setLoadingDuration] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [copiedDemo, setCopiedDemo] = useState<string | null>(null);
+
+  // Track loading duration to provide feedback if backend is cold-starting
+  useEffect(() => {
+    let timer: any;
+    if (isLoading) {
+      setLoadingDuration(0);
+      timer = setInterval(() => {
+        setLoadingDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setLoadingDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [isLoading]);
 
   // Auto-detect invite code in URL (e.g. ?invite=100001 or ?gym=100001)
   useEffect(() => {
@@ -783,11 +798,26 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 </div>
               )}
 
+              {/* Cloud Cold Start Waking Banner */}
+              {isLoading && loadingDuration >= 3 && (
+                <div className="mb-4 p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-500/30 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 animate-pulse">
+                  <RefreshCw className="w-4 h-4 animate-spin flex-shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span>Connecting to cloud server... If the backend was asleep (Render free tier), it takes ~20–30s to boot. Please wait...</span>
+                </div>
+              )}
+
               {/* Error Message */}
               {errorMsg && (
                 <div className="mb-4 p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-500/30 text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                  <span>{errorMsg}</span>
+                  <div className="flex-1">
+                    <span>{errorMsg}</span>
+                    {errorMsg.toLowerCase().includes('timed out') && (
+                      <p className="mt-1.5 text-[11px] font-medium text-red-600 dark:text-red-400">
+                        💡 Free Render instances sleep when inactive. Now that the server has been pinged, clicking <strong>Sign In</strong> again will connect right away!
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -1008,7 +1038,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     disabled={isLoading}
                     className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
                   >
-                    <span>{isLoading ? 'Signing In...' : 'Log In to Member Dashboard'}</span>
+                    <span>
+                      {isLoading
+                        ? (loadingDuration >= 3 ? 'Waking Cloud Server...' : 'Signing In...')
+                        : 'Log In to Member Dashboard'}
+                    </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -1079,7 +1113,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 disabled={isLoading}
                 className="w-full py-3.5 rounded-xl btn-primary-green text-sm uppercase tracking-wide flex items-center justify-center gap-2 mt-2"
               >
-                <span>{isLoading ? 'Authenticating...' : 'Sign In as Owner / Staff'}</span>
+                <span>
+                  {isLoading
+                    ? (loadingDuration >= 3 ? 'Waking Cloud Server...' : 'Authenticating...')
+                    : 'Sign In as Owner / Staff'}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
