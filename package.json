@@ -8,7 +8,10 @@
     "fix:git": "bash fix-git.sh",
     "client:dev": "npm run dev --prefix client",
     "server:dev": "npm run dev --prefix server",
-    "server:build": "npm run build --prefix server"
+    "server:build": "npm run build --prefix server",
+    "mobile:sync": "cd client && npm run cap:sync",
+    "mobile:ios": "cd client && npm run cap:open:ios",
+    "mobile:android": "cd client && npm run cap:open:android"
   },
   "dependencies": {
     "nodemailer": "^6.9.16"

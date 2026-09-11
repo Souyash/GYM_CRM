@@ -1420,6 +1420,35 @@ export const MemberOnboardingForm: React.FC<MemberOnboardingFormProps> = ({
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
+
+                {/* Visual Bodybuilding Measurement Guide Card */}
+                <div className="sm:col-span-4 p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 flex flex-col sm:flex-row items-center gap-4 text-xs">
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                      <Ruler className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider block">
+                        Athletic Measurement Standard
+                      </span>
+                      <span className="font-bold text-white">Classic Physique Calibration</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 text-[11px] text-zinc-400">
+                    <div className="p-2 rounded-lg bg-black/40 border border-zinc-800/80">
+                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Chest</span>
+                      <span className="text-zinc-300 font-medium">Across nipples at normal breath</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-black/40 border border-zinc-800/80">
+                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Waist</span>
+                      <span className="text-zinc-300 font-medium">Narrowest level above navel</span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-black/40 border border-zinc-800/80">
+                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Hips</span>
+                      <span className="text-zinc-300 font-medium">Widest gluteal circumference</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

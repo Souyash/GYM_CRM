@@ -23,7 +23,11 @@ import {
   Scale,
   Target,
   Ruler,
-  Edit2
+  Edit2,
+  Dumbbell,
+  Trophy,
+  Award,
+  Droplets
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -69,6 +73,12 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [editGoal, setEditGoal] = useState('Weight Loss & Fat Burn');
   const [editTimeline, setEditTimeline] = useState('3 Months');
   const [isSavingHealth, setIsSavingHealth] = useState(false);
+
+  // Daily Bodybuilding & Athletic Split Tracker
+  const [dailyMuscleSplit, setDailyMuscleSplit] = useState<'Push Day' | 'Pull Day' | 'Leg Day' | 'Arms & Delts' | 'Rest Day'>('Push Day');
+  const [proteinGrams, setProteinGrams] = useState<number>(165);
+  const [creatineChecked, setCreatineChecked] = useState<boolean>(true);
+  const [waterLiters, setWaterLiters] = useState<number>(3.2);
 
   const activeSub = user?.subscriptions?.[0];
   const isSubActive =
@@ -742,6 +752,239 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                 Location: {healthProfile.city}{healthProfile.state ? `, ${healthProfile.state}` : ''}
               </span>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🦾 PRO PHYSIQUE ARCHITECTURE & DAILY FUEL TRACKER                          */}
+      {/* ========================================================================= */}
+      {healthProfile && (
+        <div className="community-card p-5 sm:p-7 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black border-2 border-emerald-500/30 rounded-3xl shadow-2xl relative overflow-hidden space-y-6">
+          {/* Subtle Ambient Lighting */}
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4 relative z-10">
+            <div className="flex items-center gap-3">
+              <span className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <Dumbbell className="w-5 h-5" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                    Pro Physique Architecture
+                  </span>
+                  <span className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
+                    <Trophy className="w-3.5 h-3.5" />
+                    Gold Tier Lifter
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">
+                  Bodybuilding Targets & Daily Gym Fuel
+                </h3>
+              </div>
+            </div>
+
+            {/* Split Day Badge */}
+            <div className="px-3.5 py-1.5 rounded-xl bg-black/60 border border-zinc-800 flex items-center gap-2 self-start sm:self-auto">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                Today: {dailyMuscleSplit}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
+            {/* Left: Anatomical Physique Silhouette with Callouts */}
+            <div className="lg:col-span-5 p-5 rounded-2xl bg-black/50 border border-zinc-800/80 flex flex-col items-center justify-center relative">
+              <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest absolute top-3 left-3">
+                Physique Map
+              </span>
+
+              <div className="relative w-full max-w-[260px] h-[320px] flex items-center justify-center my-2">
+                <svg viewBox="0 0 240 380" className="w-full h-full drop-shadow-[0_4px_20px_rgba(16,185,129,0.2)]">
+                  <defs>
+                    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#047857" stopOpacity="0.4" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Muscular Head & Neck */}
+                  <circle cx="120" cy="40" r="18" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
+                  <path d="M112,56 L108,76 L132,76 L128,56 Z" fill="#1e293b" />
+
+                  {/* Shoulders & Arms */}
+                  <path d="M75,90 C68,100 65,135 75,160 C80,165 88,155 88,135 C88,110 82,90 75,90 Z" fill="#1e293b" stroke="#334155" />
+                  <path d="M165,90 C172,100 175,135 165,160 C160,165 152,155 152,135 C152,110 158,90 165,90 Z" fill="#1e293b" stroke="#334155" />
+
+                  {/* Chest */}
+                  <path d="M96,88 C108,86 120,90 120,95 C120,90 132,86 144,88 C154,96 156,122 142,134 C132,142 122,138 120,140 C118,138 108,142 98,134 C84,122 86,96 96,88 Z" fill="url(#bodyGrad)" stroke="#34d399" strokeWidth="1.5" />
+
+                  {/* Core / Waist */}
+                  <path d="M104,142 L136,142 L132,198 C128,206 120,212 120,212 C120,212 112,206 108,198 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
+                  <line x1="120" y1="144" x2="120" y2="198" stroke="#334155" strokeWidth="1" />
+                  <line x1="108" y1="162" x2="132" y2="162" stroke="#334155" strokeWidth="1" />
+                  <line x1="110" y1="180" x2="130" y2="180" stroke="#334155" strokeWidth="1" />
+
+                  {/* Hips & Quads */}
+                  <path d="M96,215 C85,230 82,270 92,310 C100,318 114,318 116,302 C118,270 116,240 110,215 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
+                  <path d="M144,215 C155,230 158,270 148,310 C140,318 126,318 124,302 C122,270 124,240 130,215 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
+
+                  {/* Calves */}
+                  <path d="M94,320 L108,320 L104,370 L96,370 Z" fill="#1e293b" stroke="#334155" />
+                  <path d="M146,320 L132,320 L136,370 L144,370 Z" fill="#1e293b" stroke="#334155" />
+
+                  {/* Chest Callout Pin */}
+                  <line x1="142" y1="110" x2="200" y2="110" stroke="#34d399" strokeWidth="1.5" strokeDasharray="2,2" />
+                  <circle cx="142" cy="110" r="3" fill="#34d399" />
+
+                  {/* Waist Callout Pin */}
+                  <line x1="106" y1="170" x2="40" y2="170" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="2,2" />
+                  <circle cx="106" cy="170" r="3" fill="#f59e0b" />
+
+                  {/* Hip Callout Pin */}
+                  <line x1="144" y1="225" x2="200" y2="225" stroke="#34d399" strokeWidth="1.5" strokeDasharray="2,2" />
+                  <circle cx="144" cy="225" r="3" fill="#34d399" />
+                </svg>
+
+                {/* Floating Measurement Callout Badges */}
+                <div className="absolute top-[80px] -right-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-md">
+                  Chest: {healthProfile.chestCm ? `${healthProfile.chestCm} cm` : '104 cm'}
+                </div>
+
+                <div className="absolute top-[138px] -left-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-md">
+                  Waist: {healthProfile.waistCm ? `${healthProfile.waistCm} cm` : '82 cm'}
+                </div>
+
+                <div className="absolute top-[186px] -right-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-md">
+                  Hips: {healthProfile.hipCm ? `${healthProfile.hipCm} cm` : '96 cm'}
+                </div>
+              </div>
+
+              <span className="text-[11px] text-zinc-400 text-center font-medium mt-1">
+                Calibrated to IPF & Classic Bodybuilding Proportions
+              </span>
+            </div>
+
+            {/* Right: Muscle Split Selector & Daily Fuel Tracker */}
+            <div className="lg:col-span-7 space-y-5">
+              {/* Muscle Split Selector */}
+              <div>
+                <span className="text-xs font-black uppercase text-zinc-400 tracking-wider block mb-2">
+                  Select Today's Training Split
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {(['Push Day', 'Pull Day', 'Leg Day', 'Arms & Delts', 'Rest Day'] as const).map((split) => (
+                    <button
+                      key={split}
+                      type="button"
+                      onClick={() => setDailyMuscleSplit(split)}
+                      className={`p-2.5 rounded-xl text-xs font-bold text-left transition border ${
+                        dailyMuscleSplit === split
+                          ? 'bg-emerald-500 text-black border-emerald-500 shadow-md font-black'
+                          : 'bg-zinc-900/80 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                      }`}
+                    >
+                      {split}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Daily Fuel & Supplement Tracker Grid */}
+              <div className="space-y-3 pt-2 border-t border-zinc-800">
+                <span className="text-xs font-black uppercase text-zinc-400 tracking-wider block">
+                  Daily Athlete Fuel & Supplements
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Protein */}
+                  <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase text-zinc-400">Protein Intake</span>
+                        <span className="text-xs font-mono font-black text-emerald-400">{proteinGrams}g / 200g</span>
+                      </div>
+                      <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden mt-2">
+                        <div
+                          className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, (proteinGrams / 200) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setProteinGrams((p) => Math.max(0, p - 10))}
+                        className="flex-1 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] font-bold text-zinc-300"
+                      >
+                        -10g
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProteinGrams((p) => p + 25)}
+                        className="flex-1 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[10px] font-black"
+                      >
+                        +25g Shake
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Water Hydration */}
+                  <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase text-zinc-400">Hydration</span>
+                        <span className="text-xs font-mono font-black text-cyan-400">{waterLiters}L / 4.0L</span>
+                      </div>
+                      <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden mt-2">
+                        <div
+                          className="bg-cyan-500 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, (waterLiters / 4) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setWaterLiters((w) => parseFloat(Math.min(6, w + 0.5).toFixed(1)))}
+                        className="w-full py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[10px] font-black flex items-center justify-center gap-1"
+                      >
+                        <Droplets className="w-3 h-3" />
+                        <span>+500 ml</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Creatine & Multivitamin */}
+                  <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase text-zinc-400 block">Supplements</span>
+                      <div className="mt-2 space-y-1.5">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-300">
+                          <input
+                            type="checkbox"
+                            checked={creatineChecked}
+                            onChange={(e) => setCreatineChecked(e.target.checked)}
+                            className="rounded text-amber-500 focus:ring-amber-500"
+                          />
+                          <span>5g Creapure Creatine</span>
+                        </label>
+                        <span className="text-[10px] text-zinc-500 block">
+                          Phosphocreatine saturation active
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono text-amber-400 font-bold mt-2">
+                      {creatineChecked ? '✓ Saturation On Track' : '⚠️ Take with carb meal'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
