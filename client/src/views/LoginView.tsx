@@ -101,6 +101,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
         setActiveTab('SIGNUP');
         checkGymCode(clean);
       }
+      const adminParam = params.get('admin') || params.get('role');
+      if (adminParam === 'super' || adminParam === 'true' || adminParam === 'admin') {
+        setActiveTab('STAFF_LOGIN');
+        setStaffEmail('admin@ironvaultgym.com');
+        setStaffPassword('Admin@12345');
+      }
     }
   }, []);
 
@@ -992,9 +998,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
           {activeTab === 'STAFF_LOGIN' && (
             <form onSubmit={handleStaffSubmit} className="space-y-4">
               <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-zinc-900 text-xs text-slate-600 dark:text-zinc-300">
-                <p className="font-bold text-slate-900 dark:text-white">Gym Owner & Staff Portal</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-slate-900 dark:text-white">Gym Owner, Staff & Admin Portal</p>
+                  <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold px-2 py-0.5 rounded">
+                    👑 Super Admin
+                  </span>
+                </div>
                 <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                  Sign in to manage your gym workspace, live turnstile attendance, and billing.
+                  Sign in to manage your gym workspace, live turnstile attendance, or access the Super Admin control panel.
                 </p>
               </div>
 

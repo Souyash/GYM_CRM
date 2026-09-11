@@ -260,6 +260,50 @@ Portal URL: ${window.location.origin}`;
         </div>
       )}
 
+      {/* Super Admin & Developer Command Center Header */}
+      <div className="p-6 rounded-3xl app-card border border-slate-200/80 dark:border-zinc-800 bg-gradient-to-r from-emerald-500/10 via-zinc-900/10 to-teal-500/5 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-lg">
+              <ShieldAlert className="w-6 h-6 stroke-[2.5]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Super Admin & Developer Panel
+                </h1>
+                <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2.5 py-0.5 rounded-full shadow-sm">
+                  ROOT ADMIN
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                Central control plane for managing multi-tenant gym workspaces, provisioning gym owner accounts, and platform infrastructure.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenCreateGymModal}
+              className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black text-xs font-black transition flex items-center gap-2 shadow-md active:scale-95"
+            >
+              <Building2 className="w-4 h-4" />
+              <span>➕ Provision Gym & Owner</span>
+            </button>
+            <button
+              type="button"
+              onClick={loadData}
+              disabled={isLoading}
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-600 dark:text-zinc-300 transition"
+              title="Refresh Platform Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* 0. MULTI-TENANT SAAS WORKSPACE MANAGEMENT */}
       <div className="app-card p-6 space-y-5 rounded-3xl border-2 border-emerald-500/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

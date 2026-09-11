@@ -116,8 +116,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                         : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-800'
                     }`}
                   >
-                    <Activity className="w-3.5 h-3.5" />
-                    SaaS Tenants
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>👑 Super Admin Panel</span>
                   </button>
                 )}
 
