@@ -4,6 +4,7 @@ import { Shield, Lock, Smartphone, Wifi, Sparkles, CheckCircle2 } from 'lucide-r
 interface PreloaderScreenProps {
   statusMessage?: string;
   minDurationMs?: number;
+  onFinish?: () => void;
 }
 
 const BOOT_STAGES = [
@@ -15,7 +16,8 @@ const BOOT_STAGES = [
 
 export const PreloaderScreen: React.FC<PreloaderScreenProps> = ({
   statusMessage,
-  minDurationMs = 1000
+  minDurationMs = 800,
+  onFinish
 }) => {
   const [stageIndex, setStageIndex] = useState(0);
   const [progress, setProgress] = useState(15);
@@ -32,13 +34,16 @@ export const PreloaderScreen: React.FC<PreloaderScreenProps> = ({
         } else {
           setIsDone(true);
           clearInterval(interval);
+          if (onFinish) {
+            setTimeout(onFinish, 150);
+          }
           return prev;
         }
       });
     }, minDurationMs / BOOT_STAGES.length);
 
     return () => clearInterval(interval);
-  }, [minDurationMs]);
+  }, [minDurationMs, onFinish]);
 
   const currentStage = BOOT_STAGES[stageIndex];
   const displayMsg = statusMessage || currentStage.text;
@@ -127,3 +132,4 @@ export const PreloaderScreen: React.FC<PreloaderScreenProps> = ({
     </div>
   );
 };
+

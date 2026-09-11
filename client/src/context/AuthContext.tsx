@@ -36,11 +36,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearLogoutNotice = () => setLogoutNotice(null);
 
   const refreshProfile = async () => {
+    // 2-second hard safety timeout to guarantee the app never hangs on the splash/preloader screen
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
     try {
       const storedToken = localStorage.getItem('ironvault_jwt_token');
       if (!storedToken) {
         setUser(null);
-        setIsLoading(false);
         return;
       }
       const data = await api.getMe();
@@ -59,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLogoutNotice('⛔ Your account has been removed from this gym\'s database. Please contact gym administration.');
       }
     } finally {
+      clearTimeout(safetyTimer);
       setIsLoading(false);
     }
   };

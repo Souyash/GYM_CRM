@@ -2,6 +2,17 @@ import { getOrCreateDeviceId } from './device';
 
 export const DEFAULT_RENDER_BACKEND = 'https://gym-crm-ejgf.onrender.com';
 
+export function isCapacitorNative(): boolean {
+  if (typeof window === 'undefined') return false;
+  if ((window as any).Capacitor?.isNativePlatform?.() || (window as any).Capacitor?.platform === 'ios' || (window as any).Capacitor?.platform === 'android') {
+    return true;
+  }
+  if (window.location.protocol === 'capacitor:' || (window.location.protocol === 'http:' && !window.location.port && window.location.hostname === 'localhost')) {
+    return true;
+  }
+  return false;
+}
+
 export function getApiBase(): string {
   const customUrl = localStorage.getItem('ironvault_backend_url');
   if (customUrl && customUrl.trim()) {
@@ -13,9 +24,17 @@ export function getApiBase(): string {
     const clean = rawEnv.replace(/\/+$/, '');
     return clean.endsWith('/api') ? clean : `${clean}/api`;
   }
-  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || !window.location.hostname.includes('localhost'))) {
+
+  // Capacitor Native iOS Simulator / Android Device:
+  if (isCapacitorNative()) {
     return `${DEFAULT_RENDER_BACKEND}/api`;
   }
+
+  // Web deployed on Vercel or custom domain:
+  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')))) {
+    return `${DEFAULT_RENDER_BACKEND}/api`;
+  }
+
   return '/api';
 }
 
@@ -73,17 +92,26 @@ export async function apiRequest<T = any>(
   }
 
   let response: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
   try {
     response = await fetch(`${apiBase}${endpoint}`, {
       ...options,
-      headers
+      headers,
+      signal: options.signal || controller.signal
     });
   } catch (networkErr: any) {
+    const isTimeout = networkErr.name === 'AbortError';
     const error: any = new Error(
-      `Unable to connect to backend server (${apiBase}). Please check your Render backend URL.`
+      isTimeout
+        ? `Request timed out connecting to backend (${apiBase}).`
+        : `Unable to connect to backend server (${apiBase}). Please check your Render backend URL.`
     );
-    error.status = 0;
+    error.status = isTimeout ? 408 : 0;
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   // Safe parsing to avoid WebKit / Safari "The string did not match the expected pattern" error
