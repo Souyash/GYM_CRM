@@ -300,6 +300,37 @@ export async function updateGym(req: AuthenticatedRequest, res: Response): Promi
       }
     });
 
+    // Mirror updates to prisma.facility to guarantee turnstile scanning matches
+    try {
+      await prisma.facility.upsert({
+        where: { id: updated.id },
+        update: {
+          name: updated.name,
+          address: updated.address,
+          latitude: updated.latitude,
+          longitude: updated.longitude,
+          geofenceRadiusMeters: updated.geofenceRadiusMeters,
+          staticQrCodeHash: updated.staticQrCodeHash,
+          exitQrCodeHash: updated.exitQrCodeHash
+        },
+        create: {
+          id: updated.id,
+          gymId: updated.id,
+          name: updated.name,
+          address: updated.address,
+          latitude: updated.latitude,
+          longitude: updated.longitude,
+          geofenceRadiusMeters: updated.geofenceRadiusMeters,
+          staticQrCodeHash: updated.staticQrCodeHash,
+          exitQrCodeHash: updated.exitQrCodeHash,
+          ownerContactEmail: updated.ownerContactEmail || 'owner@gym.com',
+          ownerContactPhone: updated.ownerContactPhone || ''
+        }
+      });
+    } catch (facilityErr) {
+      console.warn('[Facility Mirror] Note updating facility table:', facilityErr);
+    }
+
     res.json({
       success: true,
       message: 'Gym settings updated successfully.',

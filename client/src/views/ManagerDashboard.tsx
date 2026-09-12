@@ -21,6 +21,7 @@ import { api } from '../services/api';
 import { getSocket } from '../services/socket';
 import { LiveAttendanceEntry } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { GymLocationModal } from '../components/GymLocationModal';
 
 interface ManagerDashboardProps {
   onOpenOnboarding: () => void;
@@ -33,6 +34,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
 }) => {
   const { user } = useAuth();
   const [gymDetails, setGymDetails] = useState<any>(user?.gym || null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [activeOnFloor, setActiveOnFloor] = useState<any[]>([]);
   const [departedToday, setDepartedToday] = useState<any[]>([]);
@@ -63,6 +65,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
 
   useEffect(() => {
     loadAttendance();
+
+    api.getMyGym().then((res) => {
+      if (res?.gym) {
+        setGymDetails(res.gym);
+      }
+    }).catch((err) => {
+      console.log('Note: could not load gym details in manager dashboard', err);
+    });
 
     const socket = getSocket();
 
@@ -230,7 +240,21 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsLocationModalOpen(true)}
+            className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
+            title="Configure physical GPS coordinates and turnstile geofence radius"
+          >
+            <MapPin className={`w-4 h-4 ${gymDetails?.latitude && gymDetails.latitude !== 0 ? 'text-emerald-500' : 'text-amber-500 animate-pulse'}`} />
+            <span>
+              {gymDetails?.latitude && gymDetails.latitude !== 0
+                ? `📍 GPS Active (${gymDetails.geofenceRadiusMeters || 100}m)`
+                : '⚠️ Set Gym GPS Location'}
+            </span>
+          </button>
+
           <button
             onClick={copyInviteLink}
             className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
@@ -250,6 +274,31 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Unconfigured GPS Location Warning Alert */}
+      {(!gymDetails?.latitude || gymDetails.latitude === 0) && (
+        <div className="p-4 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="p-2 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+              <MapPin className="w-5 h-5" />
+            </span>
+            <div>
+              <span className="font-black text-slate-900 dark:text-white text-sm block">Gym GPS Location Not Set</span>
+              <span className="block text-xs opacity-90 mt-0.5">
+                Turnstile QR codes will allow check-ins without GPS distance enforcement until you anchor your building coordinates.
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsLocationModalOpen(true)}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs shrink-0 shadow-md transition active:scale-95 flex items-center gap-1.5"
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            <span>Configure Gym GPS</span>
+          </button>
+        </div>
+      )}
 
       {/* Quick Action Header */}
       <div className="p-5 sm:p-6 rounded-3xl app-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
@@ -534,6 +583,18 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Gym Location & Geofence Configuration Modal */}
+      <GymLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        gym={gymDetails}
+        onGymUpdated={(updatedGym) => {
+          setGymDetails(updatedGym);
+          setActionNotice('Gym GPS location and geofence updated successfully.');
+          setTimeout(() => setActionNotice(null), 4000);
+        }}
+      />
     </div>
   );
 };

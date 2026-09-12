@@ -74,6 +74,49 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     }
   });
 
+  // If not found in legacy Facility table, look up in modern Gym table!
+  if (!facility) {
+    const gym = await prisma.gym.findFirst({
+      where: {
+        OR: [
+          { id: gym_id },
+          { staticQrCodeHash: gym_id },
+          { exitQrCodeHash: gym_id },
+          { inviteCode: gym_id },
+          { name: { contains: gym_id } }
+        ]
+      }
+    });
+
+    if (gym) {
+      facility = await prisma.facility.upsert({
+        where: { id: gym.id },
+        update: {
+          name: gym.name,
+          address: gym.address,
+          latitude: gym.latitude,
+          longitude: gym.longitude,
+          geofenceRadiusMeters: gym.geofenceRadiusMeters,
+          staticQrCodeHash: gym.staticQrCodeHash,
+          exitQrCodeHash: gym.exitQrCodeHash
+        },
+        create: {
+          id: gym.id,
+          gymId: gym.id,
+          name: gym.name,
+          address: gym.address,
+          latitude: gym.latitude,
+          longitude: gym.longitude,
+          geofenceRadiusMeters: gym.geofenceRadiusMeters,
+          staticQrCodeHash: gym.staticQrCodeHash,
+          exitQrCodeHash: gym.exitQrCodeHash,
+          ownerContactEmail: gym.ownerContactEmail || 'owner@gym.com',
+          ownerContactPhone: gym.ownerContactPhone || ''
+        }
+      });
+    }
+  }
+
   if (!facility) {
     const failedLog = await prisma.failedAccessLog.create({
       data: {
@@ -136,14 +179,42 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   const clientLat = !isNaN(parseFloat(latitude)) ? parseFloat(latitude) : facility.latitude;
   const clientLng = !isNaN(parseFloat(longitude)) ? parseFloat(longitude) : facility.longitude;
 
-  const geoValidation = isWithinGeofence(
-    { latitude: clientLat, longitude: clientLng },
-    { latitude: facility.latitude, longitude: facility.longitude },
-    facility.geofenceRadiusMeters
-  );
+  // Check if gym has a valid configured physical location (not default 0,0)
+  const isGymLocationConfigured = !(facility.latitude === 0 && facility.longitude === 0);
 
-  if (!geoValidation.withinGeofence) {
-    const failureReason = `GPS Geofence Breach: Device is ${geoValidation.distanceMeters}m away from gym (Limit: ${facility.geofenceRadiusMeters}m). Access rejected.`;
+  let withinGeofence = true;
+  let distanceMeters = 0;
+  let geoValidation = { withinGeofence: true, distanceMeters: 0 };
+
+  if (isGymLocationConfigured) {
+    geoValidation = isWithinGeofence(
+      { latitude: clientLat, longitude: clientLng },
+      { latitude: facility.latitude, longitude: facility.longitude },
+      facility.geofenceRadiusMeters || 100
+    );
+    withinGeofence = geoValidation.withinGeofence;
+    distanceMeters = geoValidation.distanceMeters;
+  } else {
+    // Gym coordinates are not set yet (0,0).
+    // Auto-anchor gym to this device's coordinates if valid, preventing spurious geofence breaches!
+    if (clientLat !== 0 && clientLng !== 0 && !isNaN(clientLat) && !isNaN(clientLng)) {
+      console.log(`[Auto-Anchor Location] Gym ${facility.name} coordinates were (0,0). Auto-anchoring to (${clientLat}, ${clientLng})`);
+      await prisma.gym.update({
+        where: { id: facility.id },
+        data: { latitude: clientLat, longitude: clientLng }
+      }).catch(() => {});
+      await prisma.facility.update({
+        where: { id: facility.id },
+        data: { latitude: clientLat, longitude: clientLng }
+      }).catch(() => {});
+      facility.latitude = clientLat;
+      facility.longitude = clientLng;
+    }
+    withinGeofence = true;
+  }
+
+  if (!withinGeofence) {
+    const failureReason = `GPS Geofence Breach: Device is ${distanceMeters}m away from gym (Limit: ${facility.geofenceRadiusMeters}m). Access rejected.`;
     console.warn(`[Anti-Fraud Security] ${failureReason}`);
 
     const failedLog = await prisma.failedAccessLog.create({

@@ -396,8 +396,37 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         return;
       }
 
-      const lat = facility?.latitude || 37.774929;
-      const lng = facility?.longitude || -122.419416;
+      // Retrieve real device GPS coordinates with quick timeout, falling back gracefully
+      const getDeviceCoordinates = async (): Promise<{ lat: number; lng: number }> => {
+        return new Promise((resolve) => {
+          if (typeof navigator !== 'undefined' && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                resolve({
+                  lat: pos.coords.latitude,
+                  lng: pos.coords.longitude
+                });
+              },
+              () => {
+                resolve({
+                  lat: facility?.latitude !== undefined && facility.latitude !== 0 ? facility.latitude : 0,
+                  lng: facility?.longitude !== undefined && facility.longitude !== 0 ? facility.longitude : 0
+                });
+              },
+              { enableHighAccuracy: true, timeout: 2000, maximumAge: 10000 }
+            );
+          } else {
+            resolve({
+              lat: facility?.latitude !== undefined && facility.latitude !== 0 ? facility.latitude : 0,
+              lng: facility?.longitude !== undefined && facility.longitude !== 0 ? facility.longitude : 0
+            });
+          }
+        });
+      };
+
+      const deviceCoords = await getDeviceCoordinates();
+      const lat = deviceCoords.lat;
+      const lng = deviceCoords.lng;
 
       let response: any;
 

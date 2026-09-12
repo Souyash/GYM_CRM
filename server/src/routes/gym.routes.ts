@@ -17,7 +17,7 @@ router.get('/lookup/:code', lookupGymByCode);
 router.get('/me', authenticateJWT, getMyGym);
 router.get('/', authenticateJWT, requireRole('SUPER_ADMIN'), getAllGyms);
 router.get('/:id', authenticateJWT, getGymById);
-router.put('/:id', authenticateJWT, requireRole('SUPER_ADMIN', 'GYM_OWNER'), updateGym);
+router.put('/:id', authenticateJWT, requireRole('SUPER_ADMIN', 'GYM_OWNER', 'MANAGER'), updateGym);
 
 export default router;
 
