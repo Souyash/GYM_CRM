@@ -22,14 +22,15 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   const { gym_id, latitude, longitude, device_id, action } = req.body;
   const incomingDeviceId = (req.deviceId || device_id || req.headers['x-device-id'] || '').toString().trim();
 
-  // Retrieve member profile
+  // Retrieve member profile with multi-tenant gym context
   const user = userId
     ? await prisma.user.findUnique({
         where: { id: userId },
         include: {
+          gym: true,
+          facility: true,
           subscriptions: {
-            orderBy: { endDate: 'desc' },
-            take: 1
+            orderBy: { endDate: 'desc' }
           }
         }
       })
@@ -302,6 +303,79 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   }
 
   // ---------------------------------------------------------------------------------
+  // Phase 1.5: Multi-Tenant Cross-Gym Isolation Check
+  // Guarantee that a member of Gym A CANNOT enter Gym B using Gym B's QR code
+  // ---------------------------------------------------------------------------------
+  const targetGymId = facility.gymId || facility.id;
+  const userGymId = user.gymId || user.facilityId;
+
+  if (user.role === 'MEMBER') {
+    // Check if member is registered at this gym
+    const isRegisteredAtThisGym = (userGymId && userGymId === targetGymId) || (user.facilityId && user.facilityId === facility.id);
+
+    // Check if member holds an active subscription specifically for this gym
+    const hasActiveSubAtThisGym = user.subscriptions?.some(
+      (sub: any) =>
+        (sub.gymId === targetGymId || (!sub.gymId && userGymId === targetGymId)) &&
+        sub.status === 'ACTIVE' &&
+        new Date(sub.endDate) > timestamp
+    );
+
+    if (!isRegisteredAtThisGym && !hasActiveSubAtThisGym) {
+      const userGymName = user.gym?.name || user.facility?.name || 'another gym';
+      const failureReason = `Cross-Gym Breach Blocked: Member ${user.fullName} is registered with '${userGymName}', but attempted turnstile scan at '${facility.name}'. Members cannot scan another gym's QR code.`;
+      console.warn(`[Multi-Tenant Security] ${failureReason}`);
+
+      const failedLog = await prisma.failedAccessLog.create({
+        data: {
+          userId: user.id,
+          facilityId: facility.id,
+          gymId: targetGymId,
+          attemptedDeviceId: incomingDeviceId || null,
+          attemptType: 'CROSS_GYM_BREACH',
+          failureReason,
+          gpsLat: clientLat,
+          gpsLng: clientLng,
+          distanceMeters: geoValidation.distanceMeters,
+          payloadDetails: JSON.stringify({
+            memberGymId: userGymId,
+            memberGymName: userGymName,
+            attemptedGymId: targetGymId,
+            attemptedGymName: facility.name
+          })
+        }
+      });
+
+      emitFailedAccessAlert({
+        id: failedLog.id,
+        attemptType: 'CROSS_GYM_BREACH',
+        memberName: user.fullName,
+        reason: failureReason,
+        timestamp
+      });
+
+      res.status(403).json({
+        error: `Access Denied (Gym Mismatch): You are registered with "${userGymName}". Your membership is not valid at "${facility.name}".`,
+        gymMismatch: true,
+        registeredGym: userGymName,
+        scannedGym: facility.name
+      });
+      return;
+    }
+  } else if (user.role === 'GYM_OWNER' || user.role === 'MANAGER') {
+    if (userGymId && userGymId !== targetGymId) {
+      const userGymName = user.gym?.name || 'your assigned gym';
+      res.status(403).json({
+        error: `Access Denied: You are a manager of "${userGymName}". You cannot check into "${facility.name}".`,
+        gymMismatch: true,
+        registeredGym: userGymName,
+        scannedGym: facility.name
+      });
+      return;
+    }
+  }
+
+  // ---------------------------------------------------------------------------------
   // Phase 2: Hardware Device Binding & Anti-Account Sharing Verification
   // ---------------------------------------------------------------------------------
   if (user.role === 'MEMBER' && incomingDeviceId && incomingDeviceId !== 'MEMBER_APP') {
@@ -570,18 +644,25 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   }
 
   // ---------------------------------------------------------------------------------
-  // Phase 4 Check: Subscription Status Verification (Active vs Expired)
+  // Phase 4 Check: Subscription Status Verification (Active vs Expired for THIS gym)
   // ---------------------------------------------------------------------------------
-  const latestSub = user.subscriptions[0];
+  const activeGymSub = user.subscriptions?.find(
+    (sub: any) =>
+      (sub.gymId === targetGymId || (!sub.gymId && userGymId === targetGymId)) &&
+      sub.status === 'ACTIVE' &&
+      new Date(sub.endDate) > timestamp
+  ) || user.subscriptions?.[0];
+
   const isSubActive =
-    latestSub &&
-    latestSub.status === 'ACTIVE' &&
-    new Date(latestSub.endDate) > timestamp;
+    activeGymSub &&
+    activeGymSub.status === 'ACTIVE' &&
+    new Date(activeGymSub.endDate) > timestamp &&
+    (activeGymSub.gymId === targetGymId || (!activeGymSub.gymId && userGymId === targetGymId));
 
   if (!isSubActive) {
-    const expiryReason = latestSub
-      ? `Expired Membership: Plan '${latestSub.planName}' expired on ${new Date(latestSub.endDate).toLocaleDateString()}.`
-      : 'No active membership plan found on record.';
+    const expiryReason = activeGymSub
+      ? `Expired Membership: Plan '${activeGymSub.planName}' expired on ${new Date(activeGymSub.endDate).toLocaleDateString()}.`
+      : `No active membership plan found on record for ${facility.name}.`;
     
     console.warn(`[Anti-Fraud Security] ${expiryReason}`);
 
@@ -596,8 +677,8 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
         gpsLng: clientLng,
         distanceMeters: geoValidation.distanceMeters,
         payloadDetails: JSON.stringify({
-          planName: latestSub?.planName || 'None',
-          endDate: latestSub?.endDate || null
+          planName: activeGymSub?.planName || 'None',
+          endDate: activeGymSub?.endDate || null
         })
       }
     });
@@ -621,16 +702,16 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
       attemptType: 'EXPIRED_MEMBERSHIP',
       timestamp,
       details: {
-        lastPlan: latestSub?.planName || 'None',
-        expiredOn: latestSub?.endDate || 'Never'
+        lastPlan: activeGymSub?.planName || 'None',
+        expiredOn: activeGymSub?.endDate || 'Never'
       }
     });
 
     res.status(403).json({
-      error: 'Access Denied: Your membership subscription has expired or is inactive. Please renew at the front desk.',
+      error: `Access Denied: Your membership subscription for ${facility.name} has expired or is inactive. Please renew at the front desk.`,
       subscriptionStatus: 'EXPIRED',
-      lastPlan: latestSub?.planName || null,
-      expiredAt: latestSub?.endDate || null
+      lastPlan: activeGymSub?.planName || null,
+      expiredAt: activeGymSub?.endDate || null
     });
     return;
   }
@@ -686,8 +767,8 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     phone: user.phone,
     avatarUrl: user.avatarUrl,
     facilityName: facility.name,
-    planName: latestSub.planName,
-    subscriptionExpiry: latestSub.endDate,
+    planName: activeGymSub?.planName || 'Standard Pass',
+    subscriptionExpiry: activeGymSub?.endDate || new Date(),
     scannedAt: entry.scannedAt,
     distanceMeters: entry.distanceFromFacility,
     cooldownExpiresAt: entry.cooldownExpiresAt
@@ -874,6 +955,19 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
         });
         return;
       }
+
+      // Multi-tenant check: Prevent checking out from a different gym
+      if (validExitGate && activeEntry?.facility) {
+        const activeGymId = activeEntry.gymId || activeEntry.facilityId;
+        const exitGymId = validExitGate.gymId || validExitGate.id;
+        if (activeGymId && exitGymId && activeGymId !== exitGymId) {
+          res.status(403).json({
+            error: `Cross-Gym Mismatch: You are checked into "${activeEntry.facility.name}". You cannot check out from "${validExitGate.name}".`,
+            gymMismatch: true
+          });
+          return;
+        }
+      }
     }
 
     if (!activeEntry) {
@@ -1006,12 +1100,47 @@ export async function scanAndLogin(req: AuthenticatedRequest, res: Response): Pr
           { id: lookup }
         ]
       },
-      include: { facility: true }
+      include: { facility: true, gym: true }
     });
 
     if (!user) {
       res.status(404).json({ error: 'Member profile not found with that email/phone. Please sign up or contact the front desk.' });
       return;
+    }
+
+    // Resolve facility / gym from scanned gym_id
+    const targetFacility = await prisma.facility.findFirst({
+      where: {
+        OR: [
+          { id: gym_id },
+          { staticQrCodeHash: gym_id },
+          { exitQrCodeHash: gym_id }
+        ]
+      }
+    }) || await prisma.gym.findFirst({
+      where: {
+        OR: [
+          { id: gym_id },
+          { staticQrCodeHash: gym_id },
+          { exitQrCodeHash: gym_id }
+        ]
+      }
+    });
+
+    // Multi-tenant check: Block members of Gym A from checking into Gym B
+    if (targetFacility && user.role === 'MEMBER') {
+      const targetGymId = (targetFacility as any).gymId || targetFacility.id;
+      const userGymId = user.gymId || user.facilityId;
+      if (userGymId && userGymId !== targetGymId) {
+        const userGymName = user.gym?.name || user.facility?.name || 'another gym';
+        res.status(403).json({
+          error: `Access Denied (Gym Mismatch): You are registered as an athlete at "${userGymName}". Your membership is not valid at "${targetFacility.name}".`,
+          gymMismatch: true,
+          registeredGym: userGymName,
+          scannedGym: targetFacility.name
+        });
+        return;
+      }
     }
 
     // Only staff and admin require passwords for authentication; members get access upon scanning the gym QR
@@ -1032,6 +1161,7 @@ export async function scanAndLogin(req: AuthenticatedRequest, res: Response): Pr
         userId: user.id,
         email: user.email,
         role: user.role as any,
+        gymId: user.gymId || user.facilityId,
         facilityId: user.facilityId
       },
       JWT_SECRET,
@@ -1042,12 +1172,13 @@ export async function scanAndLogin(req: AuthenticatedRequest, res: Response): Pr
       userId: user.id,
       email: user.email,
       role: user.role as any,
+      gymId: user.gymId || user.facilityId,
       facilityId: user.facilityId
     };
     (req as any).generatedToken = token;
 
     // Check if the scan is targeting exit gate or action is EXIT
-    const facility = user.facility || (await prisma.facility.findFirst());
+    const facility = targetFacility || user.facility || (await prisma.facility.findFirst());
     if (facility && (action === 'EXIT' || gym_id === facility.exitQrCodeHash)) {
       return processExitScan(req, res);
     }
