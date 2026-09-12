@@ -67,7 +67,7 @@ export async function getFacilities(req: AuthenticatedRequest, res: Response): P
     }
 
     // 3. Query facilities, strictly scoped by tenant if user is not Super Admin
-    const facilities = await prisma.facility.findMany({
+    const rawFacilities = await prisma.facility.findMany({
       where: (!isSuperAdmin && callerGymId) ? {
         OR: [
           { id: callerGymId },
@@ -75,6 +75,11 @@ export async function getFacilities(req: AuthenticatedRequest, res: Response): P
         ]
       } : undefined,
       include: {
+        gym: {
+          select: {
+            inviteCode: true
+          }
+        },
         _count: {
           select: {
             users: true,
@@ -85,6 +90,11 @@ export async function getFacilities(req: AuthenticatedRequest, res: Response): P
       },
       orderBy: { createdAt: 'desc' }
     });
+
+    const facilities = rawFacilities.map((f) => ({
+      ...f,
+      inviteCode: f.gym?.inviteCode || ''
+    }));
 
     res.json({ facilities });
   } catch (error: any) {

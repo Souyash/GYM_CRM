@@ -38,6 +38,7 @@ export interface Gym {
 export interface Facility {
   id: string;
   gymId?: string;
+  inviteCode?: string;
   name: string;
   address: string;
   latitude: number;

@@ -51,6 +51,7 @@ export const PrintableFacilityQR: React.FC = () => {
         type: isExit ? 'GYM_EXIT_GATE' : 'GYM_FACILITY_ACCESS',
         action: isExit ? 'EXIT' : 'ENTER',
         gym_id: isExit ? uniqueExitHash : targetGymId,
+        invite_code: fac.inviteCode || undefined,
         hash: isExit ? uniqueExitHash : uniqueStaticHash,
         facility_name: fac.name
       });
@@ -222,8 +223,13 @@ export const PrintableFacilityQR: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             {selectedFacility.name}
           </h1>
+          {selectedFacility.inviteCode && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-xs font-black tracking-widest text-emerald-600 dark:text-emerald-400 mt-2">
+              GYM ACCESS CODE: #{selectedFacility.inviteCode}
+            </div>
+          )}
           <p
-            className={`text-xs tracking-widest uppercase font-black mt-1 ${
+            className={`text-xs tracking-widest uppercase font-black mt-2 ${
               isExit ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
             }`}
           >
