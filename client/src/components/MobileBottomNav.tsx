@@ -108,6 +108,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               <HeartPulse className="w-5 h-5" />
               <span className="text-[10px]">Health</span>
             </button>
+            <button
+              onClick={() => setCurrentTab('facility_qr')}
+              className={`flex flex-col items-center gap-1 p-1.5 transition ${
+                currentTab === 'facility_qr'
+                  ? 'text-emerald-600 dark:text-emerald-400 font-bold'
+                  : 'text-slate-500 dark:text-zinc-400 font-medium'
+              }`}
+            >
+              <QrCode className="w-5 h-5" />
+              <span className="text-[10px]">Poster</span>
+            </button>
           </>
         )}
       </div>

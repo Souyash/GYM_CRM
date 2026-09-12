@@ -81,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
                 IRON<span className="text-emerald-600 dark:text-emerald-400">VAULT</span>
               </span>
-              <span className="text-[10px] block font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 -mt-1">
+              <span className="text-[10px] hidden sm:block font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 -mt-1">
                 FITNESS & HEALTH CLUB
               </span>
             </div>

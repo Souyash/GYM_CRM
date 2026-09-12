@@ -35,7 +35,9 @@ import {
   ChevronDown,
   ExternalLink,
   Sliders,
-  DollarSign
+  DollarSign,
+  Menu,
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { BodybuildingAnatomyMap } from '../components/BodybuildingAnatomyMap';
@@ -78,6 +80,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   // Interactive Hero Preview Tab: 'MEMBER_APP' | 'OWNER_RADAR' | 'ANTI_FRAUD'
   const [heroTab, setHeroTab] = useState<'MEMBER_APP' | 'OWNER_RADAR' | 'ANTI_FRAUD'>('MEMBER_APP');
   const [simulatedDoorOpen, setSimulatedDoorOpen] = useState(false);
+
+  // Mobile Navigation Drawer Toggle
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // PWA Install prompt state
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -132,31 +137,31 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-white font-poppins selection:bg-emerald-500 selection:text-black transition-colors duration-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070709] text-slate-900 dark:text-white font-poppins selection:bg-emerald-500 selection:text-black transition-colors duration-200 pb-20 sm:pb-0">
       
       {/* ========================================================================= */}
       {/* 1. PUBLIC BRAND NAVIGATION BAR                                            */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-[#070709]/80 border-b border-slate-200/80 dark:border-zinc-800/80 transition-colors navbar-notch-safe">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/85 dark:bg-[#070709]/85 border-b border-slate-200/80 dark:border-zinc-800/80 transition-colors navbar-notch-safe">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           {/* Logo */}
           <div
-            className="flex items-center gap-3 cursor-pointer select-none"
+            className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Shield className="w-6 h-6 text-black" />
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-black text-xl tracking-wider text-slate-900 dark:text-white">
+                <span className="font-black text-lg sm:text-xl tracking-wider text-slate-900 dark:text-white">
                   IRON<span className="text-emerald-500">VAULT</span>
                 </span>
                 <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   CRM OS
                 </span>
               </div>
-              <p className="text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">
+              <p className="hidden sm:block text-[10px] font-bold tracking-widest text-slate-400 dark:text-zinc-500 uppercase">
                 Zero-Hardware Smart Gym Platform
               </p>
             </div>
@@ -198,11 +203,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               onClick={toggleTheme}
               className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 transition"
               title="Toggle Theme"
+              aria-label="Toggle Theme"
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
             </button>
 
-            {/* Install App CTA */}
+            {/* Install App CTA (Tablet & Desktop) */}
             <button
               onClick={handleInstallClick}
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 transition active:scale-95"
@@ -214,30 +220,121 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             {isLoggedIn ? (
               <button
                 onClick={onGoToDashboard}
-                className="btn-primary-green px-4 py-2 text-xs rounded-xl shadow-lg shadow-emerald-500/20"
+                className="btn-primary-green px-3.5 sm:px-4 py-2 text-xs rounded-xl shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
               >
                 <span>Launch App</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={() => onOpenAuth('MEMBER_LOGIN')}
-                  className="px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-500 transition"
+                  className="px-3 py-2 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-500 transition rounded-xl"
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => onOpenAuth('REGISTER_BUSINESS')}
-                  className="btn-primary-green px-4 py-2 text-xs rounded-xl shadow-lg shadow-emerald-500/20 whitespace-nowrap"
+                  className="hidden md:inline-flex btn-primary-green px-4 py-2 text-xs rounded-xl shadow-lg shadow-emerald-500/20 whitespace-nowrap items-center gap-1.5"
                 >
                   <Building2 className="w-3.5 h-3.5" />
                   <span>Start Gym Workspace</span>
                 </button>
               </div>
             )}
+
+            {/* Mobile Hamburger Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="lg:hidden p-2 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition border border-slate-200/80 dark:border-zinc-800"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4 text-emerald-500" /> : <Menu className="w-4 h-4" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-slate-200/80 dark:border-zinc-800 bg-white/95 dark:bg-[#070709]/95 backdrop-blur-2xl px-4 py-4 space-y-3 animate-in slide-in-from-top-2 duration-200 shadow-2xl">
+            <nav className="flex flex-col space-y-1 text-xs font-bold text-slate-700 dark:text-zinc-200">
+              <a
+                href="#mobile-app"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Smartphone className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <span>Mobile App Experience</span>
+              </a>
+              <a
+                href="#how-it-works"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Zap className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <span>How It Works</span>
+              </a>
+              <a
+                href="#turnstiles"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+              >
+                <QrCode className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <span>Zero-Hardware Turnstiles</span>
+              </a>
+              <a
+                href="#roi-calculator"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+              >
+                <DollarSign className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <span>ROI & Revenue Calculator</span>
+              </a>
+              <a
+                href="#pricing"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+              >
+                <CreditCard className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                <span>Gym SaaS Pricing</span>
+              </a>
+              <a
+                href="/onboarding-presentation.html"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 p-2.5 rounded-xl text-amber-500 hover:bg-amber-500/10 transition font-black"
+              >
+                <Play className="w-4 h-4 fill-current flex-shrink-0" />
+                <span>Video Deck & Walkthrough</span>
+              </a>
+            </nav>
+
+            <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth('MEMBER_LOGIN');
+                }}
+                className="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-bold text-center text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 transition"
+              >
+                Athlete Sign-In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth('REGISTER_BUSINESS');
+                }}
+                className="py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black text-center shadow-lg shadow-emerald-500/20 transition"
+              >
+                Start Gym
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* ========================================================================= */}
@@ -1093,19 +1190,19 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* ========================================================================= */}
       {/* 9. MOBILE STICKY FLOATING BOTTOM BAR (For Mobile Screens)                 */}
       {/* ========================================================================= */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bottom-notch-safe bg-black/95 backdrop-blur-lg border-t border-zinc-800 flex items-center gap-2">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 p-3 bottom-notch-safe bg-white/95 dark:bg-[#070709]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-zinc-800/90 shadow-2xl flex items-center gap-2">
         <button
           type="button"
           onClick={handleInstallClick}
-          className="flex-1 py-3 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-zinc-800"
+          className="flex-1 py-3 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-slate-800 dark:text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-200 dark:border-zinc-800 transition active:scale-95"
         >
-          <Download className="w-3.5 h-3.5 text-emerald-400" />
+          <Download className="w-3.5 h-3.5 text-emerald-500" />
           <span>Install App</span>
         </button>
         <button
           type="button"
           onClick={() => onOpenAuth('REGISTER_BUSINESS')}
-          className="flex-1 py-3 px-2 rounded-xl bg-emerald-500 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20"
+          className="flex-1 py-3 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 transition active:scale-95"
         >
           <Building2 className="w-3.5 h-3.5" />
           <span>Gym Owner</span>
@@ -1113,8 +1210,9 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <button
           type="button"
           onClick={() => onOpenAuth('MEMBER_LOGIN')}
-          className="py-3 px-3 rounded-xl bg-zinc-800 text-zinc-300 font-bold text-xs flex items-center justify-center"
+          className="py-3 px-3 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-zinc-700/60 transition active:scale-95"
           title="Athlete Login"
+          aria-label="Athlete Login"
         >
           <LogIn className="w-4 h-4" />
         </button>
