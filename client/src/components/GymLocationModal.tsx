@@ -9,7 +9,8 @@ import {
   Sliders,
   Building2,
   Navigation,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -45,13 +46,18 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
       setRadius(currentRadius);
       setStatusMessage(null);
       setGpsAccuracy(null);
+
+      // Auto-fetch GPS immediately when modal opens if coordinates are not yet set
+      if (!currentLat || !currentLng || currentLat === '0' || currentLng === '0') {
+        handleDetectCurrentLocation(false);
+      }
     }
   }, [gym, isOpen]);
 
   if (!isOpen) return null;
 
   // Auto-Detect Current GPS Coordinates using browser/device GPS
-  const handleDetectCurrentLocation = () => {
+  const handleDetectCurrentLocation = (autoSaveOnLock: boolean = false) => {
     if (!navigator.geolocation) {
       setStatusMessage({
         type: 'error',
@@ -63,11 +69,13 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
     setIsDetecting(true);
     setStatusMessage({
       type: 'info',
-      text: 'Acquiring high-accuracy GPS coordinates from your device...'
+      text: autoSaveOnLock
+        ? '📡 Contacting GPS satellites... Fetching high-precision coordinates to auto-save.'
+        : '📡 Contacting GPS satellites... Acquiring high-precision coordinates.'
     });
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const detectedLat = position.coords.latitude.toFixed(6);
         const detectedLng = position.coords.longitude.toFixed(6);
         const accuracy = Math.round(position.coords.accuracy);
@@ -76,10 +84,42 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
         setLng(detectedLng);
         setGpsAccuracy(accuracy);
         setIsDetecting(false);
-        setStatusMessage({
-          type: 'success',
-          text: `GPS locked! Accuracy: ±${accuracy}m. Click 'Save Gym Location' to apply.`
-        });
+
+        if (autoSaveOnLock) {
+          try {
+            setIsSaving(true);
+            const res = await api.updateGym(gym.id, {
+              latitude: parseFloat(detectedLat),
+              longitude: parseFloat(detectedLng),
+              geofenceRadiusMeters: radius
+            });
+
+            setStatusMessage({
+              type: 'success',
+              text: `✅ GPS locked (±${accuracy}m) & saved! Turnstile geofence is now ACTIVE.`
+            });
+
+            if (onGymUpdated && res.gym) {
+              onGymUpdated(res.gym);
+            }
+
+            setTimeout(() => {
+              onClose();
+            }, 1200);
+          } catch (saveErr: any) {
+            setStatusMessage({
+              type: 'error',
+              text: saveErr.message || 'Failed to auto-save coordinates.'
+            });
+          } finally {
+            setIsSaving(false);
+          }
+        } else {
+          setStatusMessage({
+            type: 'success',
+            text: `GPS locked! Accuracy: ±${accuracy}m. Click 'Save Gym Location' to apply.`
+          });
+        }
       },
       (error) => {
         setIsDetecting(false);
@@ -229,24 +269,37 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={handleDetectCurrentLocation}
-            disabled={isDetecting}
-            className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white dark:text-black font-black text-xs transition flex items-center justify-center gap-2 shadow-sm active:scale-95 disabled:opacity-50"
-          >
-            {isDetecting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Detecting GPS Coordinates...</span>
-              </>
-            ) : (
-              <>
-                <Navigation className="w-4 h-4" />
-                <span>📍 Auto-Detect My Current GPS Location</span>
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => handleDetectCurrentLocation(true)}
+              disabled={isDetecting || isSaving}
+              className="py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+              title="Auto-fetch GPS from your phone/computer and immediately save and activate geofence"
+            >
+              {isDetecting || isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Connecting to Satellites...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>⚡ Auto-Fetch & Save Now</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDetectCurrentLocation(false)}
+              disabled={isDetecting || isSaving}
+              className="py-2.5 px-3.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-slate-800 dark:text-zinc-200 font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+            >
+              <Navigation className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Fetch & Review First</span>
+            </button>
+          </div>
         </div>
 
         {/* Manual Coordinates Form */}
@@ -347,3 +400,4 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
     </div>
   );
 };
+

@@ -55,6 +55,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   const isScanningRef = useRef<boolean>(false);
   const isProcessingRef = useRef<boolean>(false);
   const scanTimerRef = useRef<any>(null);
+  const cachedGpsRef = useRef<{ lat: number; lng: number } | null>(null);
 
   // Sound effects generator using Web Audio API
   const playFeedbackAudio = (type: 'success' | 'denied' | 'info') => {
@@ -142,6 +143,20 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           setFacility(data.facilities[0]);
         }
       }).catch(console.error);
+
+      // Pre-fetch device GPS coordinates in background for instantaneous turnstile verification
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            cachedGpsRef.current = {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            };
+          },
+          () => {},
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+        );
+      }
 
       // Auto-start back camera
       const timer = setTimeout(() => {
@@ -398,6 +413,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
       // Retrieve real device GPS coordinates with quick timeout, falling back gracefully
       const getDeviceCoordinates = async (): Promise<{ lat: number; lng: number }> => {
+        if (cachedGpsRef.current) {
+          return cachedGpsRef.current;
+        }
+
         return new Promise((resolve) => {
           if (typeof navigator !== 'undefined' && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(

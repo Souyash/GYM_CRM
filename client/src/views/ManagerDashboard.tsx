@@ -128,6 +128,76 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
     }
   }, [user]);
 
+  const [isAutoFetchingGps, setIsAutoFetchingGps] = useState<boolean>(false);
+
+  // Instant 1-Click Auto-Fetch & Save GPS from Device
+  const handleInstantAutoGps = () => {
+    if (!navigator.geolocation) {
+      setActionNotice('Geolocation is not supported by your browser or device.');
+      return;
+    }
+
+    if (!gymDetails?.id) {
+      setActionNotice('No gym workspace found to anchor.');
+      return;
+    }
+
+    setIsAutoFetchingGps(true);
+    setActionNotice('📡 Contacting GPS satellites... Acquiring high-precision coordinates for your gym.');
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const detectedLat = Number(pos.coords.latitude.toFixed(6));
+        const detectedLng = Number(pos.coords.longitude.toFixed(6));
+        const accuracy = Math.round(pos.coords.accuracy);
+
+        try {
+          const res = await api.updateGym(gymDetails.id, {
+            latitude: detectedLat,
+            longitude: detectedLng,
+            geofenceRadiusMeters: gymDetails.geofenceRadiusMeters || 100
+          });
+
+          if (res?.gym) {
+            setGymDetails(res.gym);
+          } else {
+            setGymDetails((prev: any) => ({
+              ...prev,
+              latitude: detectedLat,
+              longitude: detectedLng
+            }));
+          }
+
+          setActionNotice(`✅ GPS auto-locked to (${detectedLat}, ${detectedLng}) with ±${accuracy}m accuracy! Turnstile geofence is now ACTIVE.`);
+          setTimeout(() => setActionNotice(null), 6000);
+        } catch (err: any) {
+          console.error('Failed to auto-save GPS:', err);
+          setActionNotice(err.message || 'Failed to auto-save GPS coordinates to server.');
+        } finally {
+          setIsAutoFetchingGps(false);
+        }
+      },
+      (err) => {
+        setIsAutoFetchingGps(false);
+        let msg = 'Could not fetch device GPS.';
+        if (err.code === err.PERMISSION_DENIED) {
+          msg = '⚠️ Location permission was denied. Please allow location access in your browser or phone settings.';
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          msg = '⚠️ GPS location is currently unavailable on your device.';
+        } else if (err.code === err.TIMEOUT) {
+          msg = '⚠️ GPS request timed out. Please try again.';
+        }
+        setActionNotice(msg);
+        setTimeout(() => setActionNotice(null), 6000);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0
+      }
+    );
+  };
+
   const copyInviteLink = () => {
     const code = gymDetails?.inviteCode || '100001';
     const link = `${window.location.origin}/?invite=${code}`;
@@ -289,14 +359,36 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
               </span>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsLocationModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs shrink-0 shadow-md transition active:scale-95 flex items-center gap-1.5"
-          >
-            <MapPin className="w-3.5 h-3.5" />
-            <span>Configure Gym GPS</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleInstantAutoGps}
+              disabled={isAutoFetchingGps}
+              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs shrink-0 shadow-lg shadow-emerald-500/20 transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+              title="Auto-detect high-accuracy GPS and activate geofencing immediately"
+            >
+              {isAutoFetchingGps ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Locking GPS...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>⚡ 1-Click Auto-Fetch GPS</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsLocationModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs shrink-0 shadow-sm transition active:scale-95 flex items-center gap-1.5"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Manual / Adjust</span>
+            </button>
+          </div>
         </div>
       )}
 
