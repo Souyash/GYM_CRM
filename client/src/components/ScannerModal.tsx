@@ -11,7 +11,11 @@ import {
   SwitchCamera,
   Upload,
   Zap,
-  ZapOff
+  ZapOff,
+  ShieldAlert,
+  MapPin,
+  Clock,
+  Building2
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +50,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   // Status & verification state
   const [verificationState, setVerificationState] = useState<'IDLE' | 'VERIFYING' | 'SUCCESS' | 'DENIED'>('IDLE');
   const [resultMessage, setResultMessage] = useState<string>('');
+  const [denialType, setDenialType] = useState<'GENERIC' | 'CROSS_GYM' | 'GEOFENCE' | 'COOLDOWN' | 'SECURITY'>('GENERIC');
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -567,8 +572,22 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       playFeedbackAudio('denied');
       triggerHaptic(false);
       setVerificationState('DENIED');
+
+      const msg = (err.message || '').toString();
+      let detectedType: 'GENERIC' | 'CROSS_GYM' | 'GEOFENCE' | 'COOLDOWN' | 'SECURITY' = 'GENERIC';
+      if (msg.toLowerCase().includes('mismatch') || msg.toLowerCase().includes('cross-gym') || msg.toLowerCase().includes('cannot check out from') || msg.toLowerCase().includes('cannot check into') || msg.toLowerCase().includes('belong')) {
+        detectedType = 'CROSS_GYM';
+      } else if (msg.toLowerCase().includes('geofence') || msg.toLowerCase().includes('distance') || msg.toLowerCase().includes('door') || msg.toLowerCase().includes('entrance')) {
+        detectedType = 'GEOFENCE';
+      } else if (msg.toLowerCase().includes('cooldown') || msg.toLowerCase().includes('recent check-in') || msg.toLowerCase().includes('anti-passback')) {
+        detectedType = 'COOLDOWN';
+      } else if (msg.toLowerCase().includes('device') || msg.toLowerCase().includes('daily') || msg.toLowerCase().includes('security') || msg.toLowerCase().includes('hold') || msg.toLowerCase().includes('suspended')) {
+        detectedType = 'SECURITY';
+      }
+      setDenialType(detectedType);
+
       setResultMessage(
-        err.message || 'Access notice: Scanned QR code was not recognized. Please scan the official gate poster.'
+        msg || 'Access notice: Scanned QR code was not recognized. Please scan the official gate poster.'
       );
 
       // Auto-resume camera scanning after 3.2 seconds
@@ -625,8 +644,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 dark:bg-black/85 backdrop-blur-md animate-fade-in font-poppins pt-safe pb-safe">
-      <div className="app-card w-full max-w-md overflow-hidden shadow-2xl flex flex-col relative border border-slate-200 dark:border-zinc-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 dark:bg-black/90 backdrop-blur-md animate-fade-in font-sans pt-safe pb-safe">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-carbon-700/80 bg-white dark:bg-carbon-900">
         {/* Hidden Canvas and File Input for scanning */}
         <canvas ref={canvasRef} className="hidden" />
         <input
@@ -638,29 +657,29 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         />
 
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50/80 dark:bg-zinc-900/80">
+        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-carbon-700/80 flex items-center justify-between bg-slate-50/80 dark:bg-carbon-850">
           <div className="flex items-center gap-3">
             <div
               className={`p-2.5 rounded-2xl ${
                 gateMode === 'ENTER'
-                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
-                  : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400'
+                  ? 'bg-volt-500/10 text-volt-400 border border-volt-500/20'
+                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
               }`}
             >
               {gateMode === 'ENTER' ? <LogIn className="w-5 h-5" /> : <LogOut className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">
-                {gateMode === 'ENTER' ? 'Scan Entrance Turnstile' : 'Scan Exit Turnstile'}
+              <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-carbon-50 tracking-tight">
+                {gateMode === 'ENTER' ? 'Scan Entrance Gate' : 'Scan Exit Gate'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
-                Point your back camera at the physical gate poster
+              <p className="text-xs text-slate-500 dark:text-carbon-400">
+                Point camera at the official turnstile poster
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-carbon-50 hover:bg-slate-100 dark:hover:bg-carbon-800 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -668,7 +687,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
         {/* Gate Mode Selector Tab */}
         <div className="px-4 sm:px-6 pt-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-zinc-800 rounded-2xl">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-carbon-800 rounded-2xl border border-transparent dark:border-carbon-700/50">
             <button
               onClick={() => {
                 setGateMode('ENTER');
@@ -677,12 +696,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               }}
               className={`py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
                 gateMode === 'ENTER'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-volt-500 text-black font-extrabold shadow-sm'
+                  : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50'
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
-              <span>🟢 Entrance Gate</span>
+              <span>Entrance Gate</span>
             </button>
             <button
               onClick={() => {
@@ -692,12 +711,12 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               }}
               className={`py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
                 gateMode === 'EXIT'
-                  ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-volt-500 text-black font-extrabold shadow-sm'
+                  : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50'
               }`}
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>🏁 Exit Gate</span>
+              <span>Exit Gate</span>
             </button>
           </div>
         </div>
@@ -718,29 +737,89 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           )}
 
           {verificationState === 'SUCCESS' && (
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-500/40 flex items-start gap-3 animate-fade-in">
-              <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-volt-500/10 border-2 border-volt-500/50 shadow-volt-glow flex items-start gap-3 animate-fade-in">
+              <div className="p-2 rounded-xl bg-volt-500/20 text-volt-400 flex-shrink-0">
+                <CheckCircle className="w-6 h-6" />
+              </div>
               <div className="space-y-1">
-                <p className="font-black text-base text-emerald-800 dark:text-emerald-300">
-                  {gateMode === 'ENTER' ? 'Check-In Confirmed!' : 'Workout Complete & Checked Out!'}
-                </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-200">{resultMessage}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-base text-volt-400">
+                    {gateMode === 'ENTER' ? 'Access Granted' : 'Workout Completed'}
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-volt-500/20 text-volt-300 border border-volt-500/30">
+                    VERIFIED
+                  </span>
+                </div>
+                <p className="text-xs text-carbon-200 font-medium">{resultMessage}</p>
               </div>
             </div>
           )}
 
           {verificationState === 'DENIED' && (
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 flex items-start gap-3 animate-fade-in">
-              <AlertOctagon className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <div
+              className={`p-4 rounded-2xl border-2 animate-fade-in flex items-start gap-3 shadow-lg ${
+                denialType === 'CROSS_GYM'
+                  ? 'bg-amber-500/10 border-amber-500/60 shadow-amber-glow text-amber-300'
+                  : denialType === 'GEOFENCE'
+                  ? 'bg-orange-500/10 border-orange-500/60 text-orange-300'
+                  : denialType === 'COOLDOWN'
+                  ? 'bg-cyan-500/10 border-cyan-500/60 text-cyan-300'
+                  : denialType === 'SECURITY'
+                  ? 'bg-red-500/10 border-red-500/60 shadow-crimson-glow text-red-300'
+                  : 'bg-amber-500/10 border-amber-500/50 text-amber-300'
+              }`}
+            >
+              <div className="p-2 rounded-xl bg-black/40 flex-shrink-0">
+                {denialType === 'CROSS_GYM' ? (
+                  <Building2 className="w-6 h-6 text-amber-400" />
+                ) : denialType === 'GEOFENCE' ? (
+                  <MapPin className="w-6 h-6 text-orange-400" />
+                ) : denialType === 'COOLDOWN' ? (
+                  <Clock className="w-6 h-6 text-cyan-400" />
+                ) : denialType === 'SECURITY' ? (
+                  <ShieldAlert className="w-6 h-6 text-red-400" />
+                ) : (
+                  <AlertOctagon className="w-6 h-6 text-amber-400" />
+                )}
+              </div>
               <div className="space-y-1">
-                <p className="font-black text-base text-amber-800 dark:text-amber-300">Verification Notice</p>
-                <p className="text-xs text-amber-900 dark:text-amber-100 font-medium">{resultMessage}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-base">
+                    {denialType === 'CROSS_GYM'
+                      ? 'Cross-Gym Mismatch'
+                      : denialType === 'GEOFENCE'
+                      ? 'Geofence Boundary Breach'
+                      : denialType === 'COOLDOWN'
+                      ? 'Anti-Passback Cooldown'
+                      : denialType === 'SECURITY'
+                      ? 'Security Flag Active'
+                      : 'Verification Notice'}
+                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/50 border border-current">
+                    REJECTED
+                  </span>
+                </div>
+                <p className="text-xs text-carbon-200 font-medium leading-relaxed">{resultMessage}</p>
               </div>
             </div>
           )}
 
           {/* Real-time Back Camera Viewfinder with Native Video Stream */}
-          <div className="relative rounded-3xl overflow-hidden bg-black border-2 border-emerald-500/40 aspect-square max-h-72 mx-auto flex items-center justify-center shadow-inner">
+          <div
+            className={`relative rounded-3xl overflow-hidden bg-black border-2 aspect-square max-h-72 mx-auto flex items-center justify-center shadow-2xl transition-all duration-300 ${
+              verificationState === 'SUCCESS'
+                ? 'border-volt-500 shadow-volt-glow'
+                : verificationState === 'DENIED'
+                ? denialType === 'CROSS_GYM'
+                  ? 'border-amber-500 shadow-amber-glow'
+                  : denialType === 'SECURITY'
+                  ? 'border-red-500 shadow-crimson-glow'
+                  : 'border-amber-500'
+                : verificationState === 'VERIFYING'
+                ? 'border-volt-400 animate-pulse'
+                : 'border-carbon-700/80 hover:border-volt-500/50'
+            }`}
+          >
             <video
               ref={videoRef}
               playsInline

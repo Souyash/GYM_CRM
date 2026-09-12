@@ -46,6 +46,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [checkingOutId, setCheckingOutId] = useState<string | null>(null);
+  const [isSocketConnected, setIsSocketConnected] = useState<boolean>(true);
 
   const loadAttendance = async () => {
     try {
@@ -89,12 +90,21 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
       setTimeout(() => setActionNotice(null), 4000);
     };
 
+    const onConnect = () => setIsSocketConnected(true);
+    const onDisconnect = () => setIsSocketConnected(false);
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
     socket.on('attendance:new_entry', handleNewEntry);
     socket.on('attendance:live_feed', handleNewEntry);
     socket.on('attendance:member_exited', handleMemberExited);
     socket.on('attendance:live_feed_exit', handleMemberExited);
 
+    setIsSocketConnected(socket.connected);
+
     return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
       socket.off('attendance:new_entry', handleNewEntry);
       socket.off('attendance:live_feed', handleNewEntry);
       socket.off('attendance:member_exited', handleMemberExited);
@@ -392,17 +402,37 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         </div>
       )}
 
+      {/* Offline / Reconnecting Stream Status Banner */}
+      {!isSocketConnected && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in shadow-lg shadow-amber-500/5">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping shrink-0" />
+            <span className="font-bold">⚠️ Floor Sync Paused — Reconnecting to gate turnstiles...</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              getSocket().connect();
+              loadAttendance();
+            }}
+            className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition shadow-sm"
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
+
       {/* Quick Action Header */}
-      <div className="p-5 sm:p-6 rounded-3xl app-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl border border-slate-200/90 dark:border-carbon-700/80 bg-white dark:bg-carbon-900 shadow-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-volt-500/10 text-volt-400 border border-volt-500/20 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-volt-400 animate-pulse"></span>
             Front Desk Operations
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-carbon-50 tracking-tight">
             Live Attendance & Floor Management
           </h1>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-carbon-400 mt-0.5">
             Real-time gym floor headcount, duration timers, and 1-click desk checkout
           </p>
         </div>
@@ -410,76 +440,77 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5">
           <button
             onClick={onOpenOnboarding}
-            className="py-2.5 px-4 rounded-xl btn-primary-green text-xs flex items-center justify-center gap-2"
+            className="py-2.5 px-4 rounded-xl bg-volt-500 hover:bg-volt-400 text-black font-extrabold text-xs flex items-center justify-center gap-2 transition shadow-volt-glow active:scale-95"
           >
             <UserPlus className="w-4 h-4" />
             <span>Register Member</span>
           </button>
           <button
             onClick={onOpenBilling}
-            className="py-2.5 px-4 rounded-xl btn-secondary-gym text-xs flex items-center justify-center gap-2"
+            className="py-2.5 px-4 rounded-xl bg-white dark:bg-carbon-800 hover:bg-slate-100 dark:hover:bg-carbon-750 text-slate-700 dark:text-carbon-200 border border-slate-200 dark:border-carbon-700 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95"
           >
-            <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <CreditCard className="w-4 h-4 text-volt-400" />
             <span>Renew Pass</span>
           </button>
         </div>
       </div>
 
       {/* Live Occupancy KPI Banner */}
-      <div className="grid grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         {/* Metric 1: Live on Floor */}
-        <div className="p-5 rounded-2xl app-card border-2 border-emerald-500/20">
+        <div className="p-5 rounded-3xl border-2 border-volt-500/30 dark:border-volt-500/40 bg-white dark:bg-carbon-850 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
-              Live On Floor
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-carbon-400 uppercase tracking-wider">
+              On Gym Floor
             </span>
-            <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
-              <Users className="w-4 h-4" />
-            </div>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-volt-500/10 text-volt-400 border border-volt-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-volt-400 animate-pulse" />
+              LIVE
+            </span>
           </div>
-          <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-2 tracking-tight">
+          <p className="text-4xl font-mono tabular-nums font-black text-volt-500 dark:text-volt-400 mt-2 tracking-tight">
             {activeCount}
           </p>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1 mt-1">
-            <Activity className="w-3 h-3" /> Inside gym now
+          <span className="text-[11px] text-volt-600 dark:text-volt-400 font-bold inline-flex items-center gap-1.5 mt-2">
+            <Activity className="w-3.5 h-3.5" /> Checked into facility now
           </span>
         </div>
 
         {/* Metric 2: Departed Today */}
-        <div className="p-5 rounded-2xl app-card">
+        <div className="p-5 rounded-3xl border border-slate-200/90 dark:border-carbon-700/80 bg-white dark:bg-carbon-850 shadow-xl">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
-              Completed Workouts
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-carbon-400 uppercase tracking-wider">
+              Workouts Completed
             </span>
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400">
-              <CheckCircle2 className="w-4 h-4" />
+            <div className="p-2 rounded-xl bg-slate-100 dark:bg-carbon-800 text-slate-700 dark:text-carbon-200">
+              <CheckCircle2 className="w-4 h-4 text-volt-400" />
             </div>
           </div>
-          <p className="text-3xl font-black text-slate-900 dark:text-white mt-2 tracking-tight">
+          <p className="text-4xl font-mono tabular-nums font-black text-slate-900 dark:text-carbon-50 mt-2 tracking-tight">
             {departedCount}
           </p>
-          <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold inline-flex items-center gap-1 mt-1">
+          <span className="text-[11px] text-slate-500 dark:text-carbon-400 font-medium inline-flex items-center gap-1 mt-2">
             Checked out today
           </span>
         </div>
 
         {/* Metric 3: Total Arrivals */}
-        <div className="p-5 rounded-2xl app-card flex items-center justify-between">
+        <div className="p-5 rounded-3xl border border-slate-200/90 dark:border-carbon-700/80 bg-white dark:bg-carbon-850 shadow-xl flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+            <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-carbon-400 uppercase tracking-wider">
               Total Arrivals
             </span>
-            <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+            <p className="text-4xl font-mono tabular-nums font-black text-slate-900 dark:text-carbon-50 mt-2 tracking-tight">
               {todayCount}
             </p>
-            <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-medium">
+            <span className="text-[11px] text-slate-400 dark:text-carbon-400 font-medium block mt-2">
               Entrance scans today
             </span>
           </div>
           <button
             onClick={loadAttendance}
             title="Refresh stream"
-            className="p-3 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 transition active:scale-95"
+            className="p-3.5 rounded-2xl bg-slate-100 dark:bg-carbon-800 hover:bg-slate-200 dark:hover:bg-carbon-750 text-slate-700 dark:text-carbon-200 transition active:scale-95 border border-slate-200 dark:border-carbon-700/80 cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>

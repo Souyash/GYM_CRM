@@ -351,97 +351,120 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       )}
 
-      {/* 1. HERO GREETING & PERSONAL STATUS CARD */}
-      <div className="community-card relative overflow-hidden bg-gradient-to-br from-white via-white to-emerald-50/40 dark:from-[#0d0d10] dark:via-[#09090b] dark:to-emerald-950/20">
+      {/* 1. HERO GREETING & ATHLETIC PASS STATUS CARD */}
+      <div className="rounded-3xl p-5 sm:p-6 border border-slate-200/90 dark:border-carbon-700/80 bg-gradient-to-br from-white via-white to-volt-50/30 dark:from-carbon-900 dark:via-carbon-850 dark:to-volt-500/5 shadow-xl relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Member Greeting & Streak */}
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="badge-active-green text-[10px]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-volt-500/10 text-volt-400 border border-volt-500/20">
                 <Sparkles className="w-3 h-3" />
-                Athlete Member
+                Athlete Pass
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                 <Flame className="w-3.5 h-3.5 fill-current text-amber-500" />
                 4-Day Streak 🔥
               </span>
+              {/* Bound Device Transparency Badge */}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-carbon-800 text-slate-600 dark:text-carbon-200 border border-slate-200 dark:border-carbon-700/80">
+                <ShieldCheck className="w-3.5 h-3.5 text-volt-400" />
+                <span>{user?.boundDeviceName ? 'Phone Bound' : 'Device Verified'}</span>
+              </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Welcome back, {user?.fullName || 'Alex'}!
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-carbon-50 tracking-tight">
+              Welcome back, {user?.fullName || 'Athlete'}!
             </h2>
 
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
+            <p className="text-xs text-slate-500 dark:text-carbon-400">
               {activeSession
                 ? 'Your session is actively being timed above. Stay hydrated and crush it!'
                 : completedToday
                 ? `Great job today! Completed a ${completedToday.sessionDurationMinutes || 45}m workout session.`
-                : 'Ready to crush today’s session? Check in at the entrance or connect with the community below.'}
+                : 'Ready to crush today’s session? Tap quick-scan or check turnstile entrance below.'}
             </p>
           </div>
 
-          {/* Today's Access Status Pill */}
-          <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-zinc-800">
-            <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
-              Today's Entrance Status
+          {/* Today's Access Status Pill / Quick Scan CTA */}
+          <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-carbon-700/60">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-carbon-400 font-bold">
+              Turnstile Access
             </span>
             {activeSession ? (
-              <span className="badge-active-green text-xs font-black py-1 px-3 animate-pulse">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-volt-500/20 text-volt-400 border border-volt-500/40 animate-pulse shadow-volt-glow">
                 <Activity className="w-3.5 h-3.5" />
                 Inside Gym Now
               </span>
             ) : completedToday ? (
-              <span className="badge-active-green text-xs font-black py-1 px-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-volt-500/10 text-volt-400 border border-volt-500/20">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Session Completed Today ✓
+                Completed Today ✓
               </span>
             ) : (
               <button
                 onClick={() => onOpenScanner('ENTER')}
-                className="py-1.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black font-black text-xs transition shadow-sm flex items-center gap-1.5 active:scale-95"
+                className="py-2 px-4 rounded-xl bg-volt-500 hover:bg-volt-400 text-black font-extrabold text-xs transition shadow-volt-glow flex items-center gap-2 active:scale-95 cursor-pointer"
               >
-                <QrCode className="w-3.5 h-3.5 stroke-[2.5]" />
-                Check In Now
+                <QrCode className="w-4 h-4 stroke-[2.5]" />
+                <span>⚡ Quick Scan Gate</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Membership Pass Details Strip */}
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-zinc-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-carbon-700/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
-              Active Pass
+            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
+              Gym Workspace
             </span>
-            <span className="font-extrabold text-slate-900 dark:text-white truncate block">
-              {activeSub?.planName || 'Monthly Pro Access'}
+            <span className="font-extrabold text-slate-900 dark:text-carbon-50 truncate block">
+              {user?.gym?.name || 'IronVault Gym'}
             </span>
+            {user?.gym?.inviteCode && (
+              <span className="text-[10px] font-mono text-volt-400">ID: {user.gym.inviteCode}</span>
+            )}
           </div>
 
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
               Pass Status
             </span>
-            <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              {isSubActive ? 'Active & Valid' : 'Renewal Needed'}
+            <span className="font-bold flex items-center gap-1 mt-0.5">
+              {isSubActive ? (
+                <span className="inline-flex items-center gap-1.5 text-volt-400 font-extrabold">
+                  <span className="w-2 h-2 rounded-full bg-volt-400 animate-pulse" />
+                  Active & Valid
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-signal-crimson font-extrabold">
+                  <span className="w-2 h-2 rounded-full bg-signal-crimson" />
+                  Renewal Needed
+                </span>
+              )}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
               Time Remaining
             </span>
-            <span className="font-extrabold text-slate-900 dark:text-white block">
-              {daysRemaining} Days Left
+            <span className="font-extrabold font-mono text-sm block mt-0.5">
+              {!isSubActive ? (
+                <span className="text-carbon-400">Expired</span>
+              ) : daysRemaining <= 7 ? (
+                <span className="text-amber-400 font-bold animate-pulse">{daysRemaining} Days (Expiring Soon)</span>
+              ) : (
+                <span className="text-slate-900 dark:text-carbon-50">{daysRemaining} Days Left</span>
+              )}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
               Workouts Logged
             </span>
-            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 block">
+            <span className="font-extrabold font-mono text-sm text-volt-400 block mt-0.5">
               {loggedWorkoutsCount} Sessions
             </span>
           </div>
@@ -451,14 +474,14 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       {/* ========================================================================= */}
       {/* 2. SUBPART NAVIGATION TABS (Segmented Control)                            */}
       {/* ========================================================================= */}
-      <div className="flex items-center justify-between p-1.5 bg-slate-200/70 dark:bg-zinc-900/90 border border-slate-200/80 dark:border-zinc-800 rounded-2xl gap-1 overflow-x-auto no-scrollbar shadow-sm">
+      <div className="flex items-center justify-between p-1.5 bg-slate-200/70 dark:bg-carbon-900 border border-slate-200/80 dark:border-carbon-700/80 rounded-2xl gap-1 overflow-x-auto no-scrollbar shadow-sm">
         <button
           type="button"
           onClick={() => setActiveSubpart('PASS')}
           className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
             activeSubpart === 'PASS'
-              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
-              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
+              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
           }`}
         >
           <QrCode className="w-3.5 h-3.5" />
@@ -470,12 +493,12 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           onClick={() => setActiveSubpart('FITNESS')}
           className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
             activeSubpart === 'FITNESS'
-              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
-              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
+              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
           }`}
         >
           <Dumbbell className="w-3.5 h-3.5" />
-          <span>Body & Daily Fuel</span>
+          <span>Body & Fuel</span>
         </button>
 
         <button
@@ -483,15 +506,15 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           onClick={() => setActiveSubpart('HISTORY')}
           className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
             activeSubpart === 'HISTORY'
-              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
-              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
+              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
           }`}
         >
           <History className="w-3.5 h-3.5" />
-          <span>Visits Log</span>
+          <span>Visits</span>
           {history.length > 0 && (
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
-              activeSubpart === 'HISTORY' ? 'bg-black/20 text-black' : 'bg-slate-300 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300'
+            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+              activeSubpart === 'HISTORY' ? 'bg-black/20 text-black font-bold' : 'bg-slate-300 dark:bg-carbon-800 text-slate-700 dark:text-carbon-200'
             }`}>
               {history.length}
             </span>
@@ -503,12 +526,12 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           onClick={() => setActiveSubpart('COMMUNITY')}
           className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
             activeSubpart === 'COMMUNITY'
-              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
-              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
+              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
           }`}
         >
           <Users className="w-3.5 h-3.5" />
-          <span>Gym Feed</span>
+          <span>Feed</span>
         </button>
       </div>
 

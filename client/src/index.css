@@ -29,11 +29,15 @@
 @layer components {
   /* Commercial Theme Utility Classes */
   .app-card {
-    @apply bg-white dark:bg-[#09090b] border border-slate-200/90 dark:border-zinc-800 rounded-3xl transition-all duration-200 shadow-sm dark:shadow-2xl;
+    @apply bg-white dark:bg-[#0B0F17] border border-slate-200/90 dark:border-[#28344C]/70 rounded-3xl transition-all duration-200 shadow-sm dark:shadow-2xl;
   }
 
   .app-card-subtle {
-    @apply bg-slate-50 dark:bg-[#121215] border border-slate-200/80 dark:border-zinc-800/80 rounded-2xl transition-all duration-200;
+    @apply bg-slate-50 dark:bg-[#111622] border border-slate-200/80 dark:border-[#28344C]/60 rounded-2xl transition-all duration-200;
+  }
+
+  .card-carbon {
+    @apply bg-white dark:bg-[#111622] border border-slate-200/90 dark:border-[#28344C]/80 rounded-2xl transition-all duration-200;
   }
 
   .btn-primary-green {
@@ -41,7 +45,7 @@
   }
 
   .btn-secondary-gym {
-    @apply bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-zinc-700 font-bold transition-all duration-150 flex items-center justify-center gap-2;
+    @apply bg-white dark:bg-[#171E2E] hover:bg-slate-100 dark:hover:bg-[#1F283C] text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-[#28344C] font-bold transition-all duration-150 flex items-center justify-center gap-2;
   }
 
   .badge-active-green {
@@ -50,6 +54,14 @@
 
   .badge-alert-coral {
     @apply bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30 px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5;
+  }
+
+  .badge-signal-amber {
+    @apply bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5;
+  }
+
+  .badge-signal-cyan {
+    @apply bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/30 px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5;
   }
 
   /* High-energy Community Card */

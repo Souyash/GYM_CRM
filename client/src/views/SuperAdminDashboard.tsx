@@ -455,37 +455,37 @@ Portal URL: ${window.location.origin}`;
       {/* KPI Metrics Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Metric 1: Total Gyms */}
-        <div className="app-card p-5 space-y-2 border-2 border-emerald-500/20">
+        <div className="app-card dark:bg-carbon-900 p-5 space-y-2 border border-volt-500/25 dark:border-volt-500/30 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-carbon-400">
               Gym Workspaces
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-volt-500/10 text-volt-600 dark:text-volt-400 flex items-center justify-center">
               <Building2 className="w-4 h-4 stroke-[2.5]" />
             </div>
           </div>
           <div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900 dark:text-white">
               {gyms.length}
             </span>
-            <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <p className="text-[11px] font-semibold text-volt-600 dark:text-volt-400">
               Active Gym Tenants
             </p>
           </div>
         </div>
 
         {/* Metric 2: Total Members */}
-        <div className="app-card p-5 space-y-2">
+        <div className="app-card dark:bg-carbon-900 p-5 space-y-2 border border-slate-200/80 dark:border-carbon-800 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
-              Total Members
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-carbon-400">
+              Total Athletes
             </span>
             <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <Users className="w-4 h-4 stroke-[2.5]" />
             </div>
           </div>
           <div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900 dark:text-white">
               {members.length}
             </span>
             <p className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
@@ -495,37 +495,37 @@ Portal URL: ${window.location.origin}`;
         </div>
 
         {/* Metric 3: Active Subscriptions */}
-        <div className="app-card p-5 space-y-2">
+        <div className="app-card dark:bg-carbon-900 p-5 space-y-2 border border-volt-500/25 dark:border-volt-500/30 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-carbon-400">
               Active Passes
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-volt-500/10 text-volt-600 dark:text-volt-400 flex items-center justify-center">
               <CreditCard className="w-4 h-4 stroke-[2.5]" />
             </div>
           </div>
           <div>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-volt-600 dark:text-volt-400">
               {totalActivePasses}
             </span>
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
+            <p className="text-[11px] font-semibold text-slate-500 dark:text-carbon-400">
               Currently Valid Passes
             </p>
           </div>
         </div>
 
         {/* Metric 4: Platform Value */}
-        <div className="app-card p-5 space-y-2">
+        <div className="app-card dark:bg-carbon-900 p-5 space-y-2 border border-slate-200/80 dark:border-carbon-800 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500">
-              Platform Recurring Value
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-carbon-400">
+              Platform Value
             </span>
             <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Activity className="w-4 h-4 stroke-[2.5]" />
             </div>
           </div>
           <div>
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-slate-900 dark:text-white">
               ${totalMonthlyValue.toLocaleString()}
             </span>
             <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
@@ -536,18 +536,18 @@ Portal URL: ${window.location.origin}`;
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-carbon-800 pb-2">
         <button
           type="button"
           onClick={() => setActiveTab('GYMS')}
           className={`py-2.5 px-5 rounded-xl font-black text-xs transition flex items-center gap-2 ${
             activeTab === 'GYMS'
-              ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-md'
-              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+              ? 'bg-volt-500 text-black shadow-volt-glow'
+              : 'text-slate-600 dark:text-carbon-400 hover:bg-slate-100 dark:hover:bg-carbon-800'
           }`}
         >
           <Building2 className="w-4 h-4" />
-          <span>🏢 Gyms & Owners Details ({filteredGyms.length})</span>
+          <span>🏢 Gyms & Owners Directory ({filteredGyms.length})</span>
         </button>
 
         <button
@@ -555,12 +555,12 @@ Portal URL: ${window.location.origin}`;
           onClick={() => setActiveTab('MEMBERS')}
           className={`py-2.5 px-5 rounded-xl font-black text-xs transition flex items-center gap-2 ${
             activeTab === 'MEMBERS'
-              ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-md'
-              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+              ? 'bg-volt-500 text-black shadow-volt-glow'
+              : 'text-slate-600 dark:text-carbon-400 hover:bg-slate-100 dark:hover:bg-carbon-800'
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>👥 Members Details Directory ({filteredMembers.length})</span>
+          <span>👥 Athletes Directory ({filteredMembers.length})</span>
         </button>
       </div>
 
