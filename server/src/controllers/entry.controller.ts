@@ -64,58 +64,62 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     return;
   }
 
-  let facility = await prisma.facility.findFirst({
+  const cleanGymId = (gym_id || '').toString().trim();
+
+  let targetGym = await prisma.gym.findFirst({
     where: {
       OR: [
-        { id: gym_id },
-        { staticQrCodeHash: gym_id },
-        { exitQrCodeHash: gym_id },
-        { name: { contains: gym_id } }
+        { id: cleanGymId },
+        { staticQrCodeHash: cleanGymId },
+        { exitQrCodeHash: cleanGymId },
+        { inviteCode: cleanGymId }
       ]
     }
   });
 
-  // If not found in legacy Facility table, look up in modern Gym table!
-  if (!facility) {
-    const gym = await prisma.gym.findFirst({
-      where: {
-        OR: [
-          { id: gym_id },
-          { staticQrCodeHash: gym_id },
-          { exitQrCodeHash: gym_id },
-          { inviteCode: gym_id },
-          { name: { contains: gym_id } }
-        ]
+  let facility = await prisma.facility.findFirst({
+    where: {
+      OR: [
+        { id: cleanGymId },
+        { gymId: cleanGymId },
+        { staticQrCodeHash: cleanGymId },
+        { exitQrCodeHash: cleanGymId }
+      ]
+    }
+  });
+
+  // If not found in Facility table but exists in Gym table, upsert it
+  if (!facility && targetGym) {
+    facility = await prisma.facility.upsert({
+      where: { id: targetGym.id },
+      update: {
+        gymId: targetGym.id,
+        name: targetGym.name,
+        address: targetGym.address,
+        latitude: targetGym.latitude,
+        longitude: targetGym.longitude,
+        geofenceRadiusMeters: targetGym.geofenceRadiusMeters,
+        staticQrCodeHash: targetGym.staticQrCodeHash,
+        exitQrCodeHash: targetGym.exitQrCodeHash
+      },
+      create: {
+        id: targetGym.id,
+        gymId: targetGym.id,
+        name: targetGym.name,
+        address: targetGym.address,
+        latitude: targetGym.latitude,
+        longitude: targetGym.longitude,
+        geofenceRadiusMeters: targetGym.geofenceRadiusMeters,
+        staticQrCodeHash: targetGym.staticQrCodeHash,
+        exitQrCodeHash: targetGym.exitQrCodeHash,
+        ownerContactEmail: targetGym.ownerContactEmail || 'owner@gym.com',
+        ownerContactPhone: targetGym.ownerContactPhone || ''
       }
     });
+  }
 
-    if (gym) {
-      facility = await prisma.facility.upsert({
-        where: { id: gym.id },
-        update: {
-          name: gym.name,
-          address: gym.address,
-          latitude: gym.latitude,
-          longitude: gym.longitude,
-          geofenceRadiusMeters: gym.geofenceRadiusMeters,
-          staticQrCodeHash: gym.staticQrCodeHash,
-          exitQrCodeHash: gym.exitQrCodeHash
-        },
-        create: {
-          id: gym.id,
-          gymId: gym.id,
-          name: gym.name,
-          address: gym.address,
-          latitude: gym.latitude,
-          longitude: gym.longitude,
-          geofenceRadiusMeters: gym.geofenceRadiusMeters,
-          staticQrCodeHash: gym.staticQrCodeHash,
-          exitQrCodeHash: gym.exitQrCodeHash,
-          ownerContactEmail: gym.ownerContactEmail || 'owner@gym.com',
-          ownerContactPhone: gym.ownerContactPhone || ''
-        }
-      });
-    }
+  if (!targetGym && facility) {
+    targetGym = (await prisma.gym.findUnique({ where: { id: facility.gymId || facility.id } })) as any;
   }
 
   if (!facility) {
@@ -144,7 +148,10 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   // ---------------------------------------------------------------------------------
   // 0. Gate QR Identification & Direction Verification
   // ---------------------------------------------------------------------------------
-  const isExitToken = gym_id === facility.exitQrCodeHash || (typeof gym_id === 'string' && gym_id.includes('EXIT'));
+  const isExitToken =
+    cleanGymId === facility.exitQrCodeHash ||
+    (targetGym?.exitQrCodeHash && cleanGymId === targetGym.exitQrCodeHash) ||
+    cleanGymId.includes('EXIT');
 
   // If scanning exit QR or action is explicitly EXIT:
   if (action === 'EXIT' || isExitToken) {
@@ -154,23 +161,54 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
         userId: user.id,
         status: 'ACTIVE',
         exitedAt: null
+      },
+      include: {
+        facility: true
       }
     }) : null;
 
-    if (activeEntry) {
-      // Member is inside the gym and scanned the Exit Gate poster: route to checkout
-      return processExitScan(req, res);
-    }
+    // Multi-tenant check on exit: Guarantee member cannot exit or check out at a different gym
+    if (user && user.role === 'MEMBER') {
+      const scannedGymId = targetGym?.id || facility.gymId || facility.id;
+      const userGymId = user.gymId || user.facilityId;
+      const scannedGymName = targetGym?.name || facility.name;
+      const userGymName = user.gym?.name || user.facility?.name || 'your home gym';
 
-    // No active workout found: cannot exit
-    if (isExitToken && action !== 'EXIT') {
-      res.status(400).json({
-        error: 'Gate Mismatch: You scanned the Exit Gate poster, but you are not currently checked into the gym. Please scan the Entrance Gate turnstile poster to check in.',
-        gateMismatch: true,
-        expectedGate: 'ENTRANCE',
-        scannedGate: 'EXIT'
-      });
-      return;
+      // 1. If member has an active check-in session at another gym:
+      if (activeEntry) {
+        const activeGymId = activeEntry.gymId || activeEntry.facilityId;
+        const activeGymName = activeEntry.facility?.name || userGymName;
+        if (activeGymId && scannedGymId && activeGymId !== scannedGymId) {
+          res.status(403).json({
+            error: `Cross-Gym Mismatch: You are checked into "${activeGymName}". You cannot check out from "${scannedGymName}".`,
+            gymMismatch: true,
+            checkedInGym: activeGymName,
+            scannedGym: scannedGymName
+          });
+          return;
+        }
+      } else {
+        // 2. Not currently checked in at all:
+        if (userGymId && scannedGymId && userGymId !== scannedGymId) {
+          res.status(403).json({
+            error: `Access Denied (Gym Mismatch): You are registered with "${userGymName}". You cannot check out from "${scannedGymName}".`,
+            gymMismatch: true,
+            registeredGym: userGymName,
+            scannedGym: scannedGymName
+          });
+          return;
+        }
+
+        if (isExitToken && action !== 'EXIT') {
+          res.status(400).json({
+            error: 'Gate Mismatch: You scanned the Exit Gate poster, but you are not currently checked into the gym. Please scan the Entrance Gate turnstile poster to check in.',
+            gateMismatch: true,
+            expectedGate: 'ENTRANCE',
+            scannedGate: 'EXIT'
+          });
+          return;
+        }
+      }
     }
 
     return processExitScan(req, res);
@@ -306,24 +344,25 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   // Phase 1.5: Multi-Tenant Cross-Gym Isolation Check
   // Guarantee that a member of Gym A CANNOT enter Gym B using Gym B's QR code
   // ---------------------------------------------------------------------------------
-  const targetGymId = facility.gymId || facility.id;
+  const targetGymId = targetGym?.id || facility.gymId || facility.id;
   const userGymId = user.gymId || user.facilityId;
 
   if (user.role === 'MEMBER') {
-    // Check if member is registered at this gym
-    const isRegisteredAtThisGym = (userGymId && userGymId === targetGymId) || (user.facilityId && user.facilityId === facility.id);
+    // Strict multi-tenant validation: athlete must be registered at this gym
+    const isRegisteredAtThisGym = Boolean(userGymId && userGymId === targetGymId);
 
-    // Check if member holds an active subscription specifically for this gym
+    // Or hold an active subscription specifically for this scanned gym
     const hasActiveSubAtThisGym = user.subscriptions?.some(
       (sub: any) =>
-        (sub.gymId === targetGymId || (!sub.gymId && userGymId === targetGymId)) &&
+        sub.gymId === targetGymId &&
         sub.status === 'ACTIVE' &&
         new Date(sub.endDate) > timestamp
     );
 
     if (!isRegisteredAtThisGym && !hasActiveSubAtThisGym) {
       const userGymName = user.gym?.name || user.facility?.name || 'another gym';
-      const failureReason = `Cross-Gym Breach Blocked: Member ${user.fullName} is registered with '${userGymName}', but attempted turnstile scan at '${facility.name}'. Members cannot scan another gym's QR code.`;
+      const scannedGymName = targetGym?.name || facility.name;
+      const failureReason = `Cross-Gym Breach Blocked: Member ${user.fullName} is registered with '${userGymName}', but attempted turnstile scan at '${scannedGymName}'. Members cannot scan another gym's QR code.`;
       console.warn(`[Multi-Tenant Security] ${failureReason}`);
 
       const failedLog = await prisma.failedAccessLog.create({
@@ -341,7 +380,7 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
             memberGymId: userGymId,
             memberGymName: userGymName,
             attemptedGymId: targetGymId,
-            attemptedGymName: facility.name
+            attemptedGymName: scannedGymName
           })
         }
       });
@@ -355,21 +394,22 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
       });
 
       res.status(403).json({
-        error: `Access Denied (Gym Mismatch): You are registered with "${userGymName}". Your membership is not valid at "${facility.name}".`,
+        error: `Access Denied (Gym Mismatch): You are registered as an athlete at "${userGymName}". Your membership is not valid at "${scannedGymName}".`,
         gymMismatch: true,
         registeredGym: userGymName,
-        scannedGym: facility.name
+        scannedGym: scannedGymName
       });
       return;
     }
   } else if (user.role === 'GYM_OWNER' || user.role === 'MANAGER') {
     if (userGymId && userGymId !== targetGymId) {
       const userGymName = user.gym?.name || 'your assigned gym';
+      const scannedGymName = targetGym?.name || facility.name;
       res.status(403).json({
-        error: `Access Denied: You are a manager of "${userGymName}". You cannot check into "${facility.name}".`,
+        error: `Access Denied: You are a manager of "${userGymName}". You cannot check into "${scannedGymName}".`,
         gymMismatch: true,
         registeredGym: userGymName,
-        scannedGym: facility.name
+        scannedGym: scannedGymName
       });
       return;
     }
@@ -891,6 +931,8 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
+        gym: true,
+        facility: true,
         subscriptions: {
           orderBy: { endDate: 'desc' },
           take: 1
@@ -918,18 +960,34 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
 
     // Gate Token Verification (if scanned at turnstile)
     if (gym_id) {
-      const isEntranceGate =
-        (activeEntry?.facility && (gym_id === activeEntry.facility.staticQrCodeHash || gym_id === activeEntry.facility.id)) ||
+      const cleanGymId = gym_id.toString().trim();
+
+      const validExitGate =
+        (await prisma.gym.findFirst({
+          where: {
+            OR: [
+              { id: cleanGymId },
+              { exitQrCodeHash: cleanGymId },
+              { staticQrCodeHash: cleanGymId }
+            ]
+          }
+        })) ||
         (await prisma.facility.findFirst({
           where: {
             OR: [
-              { staticQrCodeHash: gym_id },
-              { id: gym_id }
+              { id: cleanGymId },
+              { exitQrCodeHash: cleanGymId },
+              { staticQrCodeHash: cleanGymId }
             ]
           }
         }));
 
-      if (isEntranceGate && !gym_id.includes('EXIT')) {
+      const isEntranceGate =
+        validExitGate &&
+        (cleanGymId === validExitGate.staticQrCodeHash ||
+          (cleanGymId === validExitGate.id && !cleanGymId.includes('EXIT')));
+
+      if (isEntranceGate && !cleanGymId.includes('EXIT')) {
         res.status(400).json({
           error: 'Gate Mismatch: You scanned the Entrance Gate poster. Please scan the Exit Gate turnstile poster to complete your checkout.',
           gateMismatch: true,
@@ -939,16 +997,7 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
         return;
       }
 
-      const validExitGate = await prisma.facility.findFirst({
-        where: {
-          OR: [
-            { id: gym_id },
-            { exitQrCodeHash: gym_id }
-          ]
-        }
-      });
-
-      if (!validExitGate && !gym_id.includes('EXIT')) {
+      if (!validExitGate && !cleanGymId.includes('EXIT')) {
         res.status(400).json({
           error: 'Invalid Gate QR Code. Unrecognized turnstile identifier. Please scan the official Exit Gate poster.',
           invalidGate: true
@@ -957,13 +1006,31 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
       }
 
       // Multi-tenant check: Prevent checking out from a different gym
-      if (validExitGate && activeEntry?.facility) {
+      const exitGymId = validExitGate ? (validExitGate.id || (validExitGate as any).gymId) : null;
+      const userGymId = user.gymId || user.facilityId;
+      const scannedGymName = validExitGate ? validExitGate.name : 'another gym';
+      const userGymName = user.gym?.name || user.facility?.name || 'your home gym';
+
+      if (activeEntry) {
         const activeGymId = activeEntry.gymId || activeEntry.facilityId;
-        const exitGymId = validExitGate.gymId || validExitGate.id;
-        if (activeGymId && exitGymId && activeGymId !== exitGymId) {
+        const activeGymName = activeEntry.facility?.name || userGymName;
+        if (exitGymId && activeGymId && exitGymId !== activeGymId) {
           res.status(403).json({
-            error: `Cross-Gym Mismatch: You are checked into "${activeEntry.facility.name}". You cannot check out from "${validExitGate.name}".`,
-            gymMismatch: true
+            error: `Cross-Gym Mismatch: You are checked into "${activeGymName}". You cannot check out from "${scannedGymName}".`,
+            gymMismatch: true,
+            checkedInGym: activeGymName,
+            scannedGym: scannedGymName
+          });
+          return;
+        }
+      } else {
+        // No active session in progress, but user scanned an exit gate of a gym they don't belong to
+        if (exitGymId && userGymId && exitGymId !== userGymId) {
+          res.status(403).json({
+            error: `Access Denied (Gym Mismatch): You are registered with "${userGymName}". You cannot check out from "${scannedGymName}".`,
+            gymMismatch: true,
+            registeredGym: userGymName,
+            scannedGym: scannedGymName
           });
           return;
         }

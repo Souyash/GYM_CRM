@@ -1,11 +1,79 @@
 import { Response } from 'express';
 import QRCode from 'qrcode';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveTenantGymId } from '../middleware/auth.middleware.js';
 
 export async function getFacilities(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    let facilities = await prisma.facility.findMany({
+    const callerGymId = resolveTenantGymId(req);
+    const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
+
+    // 1. Fetch all gyms in the system
+    const gyms = await prisma.gym.findMany();
+
+    // 2. Synchronize all Gyms into Facility table ensuring unique entrance and exit hashes
+    for (const gym of gyms) {
+      let needsGymUpdate = false;
+      const cleanName = (gym.name || 'GYM').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      let staticQrCodeHash = gym.staticQrCodeHash;
+      let exitQrCodeHash = gym.exitQrCodeHash;
+
+      if (!staticQrCodeHash) {
+        staticQrCodeHash = `GYM_${cleanName}_STATIC_${gym.id.replace(/-/g, '').slice(-8)}`;
+        needsGymUpdate = true;
+      }
+      if (!exitQrCodeHash || exitQrCodeHash === 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026') {
+        exitQrCodeHash = `GYM_${cleanName}_EXIT_${gym.id.replace(/-/g, '').slice(-8)}`;
+        needsGymUpdate = true;
+      }
+
+      if (needsGymUpdate) {
+        await prisma.gym.update({
+          where: { id: gym.id },
+          data: { staticQrCodeHash, exitQrCodeHash }
+        }).catch(() => {});
+        gym.staticQrCodeHash = staticQrCodeHash;
+        gym.exitQrCodeHash = exitQrCodeHash;
+      }
+
+      await prisma.facility.upsert({
+        where: { id: gym.id },
+        update: {
+          gymId: gym.id,
+          name: gym.name,
+          address: gym.address,
+          latitude: gym.latitude,
+          longitude: gym.longitude,
+          geofenceRadiusMeters: gym.geofenceRadiusMeters,
+          staticQrCodeHash: gym.staticQrCodeHash,
+          exitQrCodeHash: gym.exitQrCodeHash,
+          ownerContactEmail: gym.ownerContactEmail || 'owner@gym.com',
+          ownerContactPhone: gym.ownerContactPhone || ''
+        },
+        create: {
+          id: gym.id,
+          gymId: gym.id,
+          name: gym.name,
+          address: gym.address,
+          latitude: gym.latitude,
+          longitude: gym.longitude,
+          geofenceRadiusMeters: gym.geofenceRadiusMeters,
+          staticQrCodeHash: gym.staticQrCodeHash,
+          exitQrCodeHash: gym.exitQrCodeHash,
+          ownerContactEmail: gym.ownerContactEmail || 'owner@gym.com',
+          ownerContactPhone: gym.ownerContactPhone || ''
+        }
+      }).catch(() => {});
+    }
+
+    // 3. Query facilities, strictly scoped by tenant if user is not Super Admin
+    const facilities = await prisma.facility.findMany({
+      where: (!isSuperAdmin && callerGymId) ? {
+        OR: [
+          { id: callerGymId },
+          { gymId: callerGymId }
+        ]
+      } : undefined,
       include: {
         _count: {
           select: {
@@ -14,71 +82,9 @@ export async function getFacilities(req: AuthenticatedRequest, res: Response): P
             failedAccessLogs: true
           }
         }
-      }
+      },
+      orderBy: { createdAt: 'desc' }
     });
-
-    // If no legacy facilities, check Gyms table
-    if (facilities.length === 0) {
-      const gyms = await prisma.gym.findMany();
-      if (gyms.length > 0) {
-        facilities = gyms.map((g) => ({
-          id: g.id,
-          gymId: g.id,
-          name: g.name,
-          address: g.address,
-          latitude: g.latitude,
-          longitude: g.longitude,
-          geofenceRadiusMeters: g.geofenceRadiusMeters,
-          staticQrCodeHash: g.staticQrCodeHash,
-          exitQrCodeHash: g.exitQrCodeHash || 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026',
-          ownerContactEmail: g.ownerContactEmail || 'support@ironvault.com',
-          ownerContactPhone: g.ownerContactPhone || '+1-555-019-8800',
-          createdAt: g.createdAt,
-          updatedAt: g.updatedAt,
-          _count: { users: 0, attendanceEntries: 0, failedAccessLogs: 0 }
-        })) as any;
-      } else {
-        // Auto-provision the flagship gym & facility so platform always has working QR turnstiles
-        const flagshipGym = await prisma.gym.create({
-          data: {
-            name: 'IronVault Flagship Performance Club',
-            slug: 'ironvault-flagship',
-            inviteCode: '100001',
-            address: '100 IronVault Boulevard, Sector 4',
-            city: 'Metropolis',
-            state: 'NY',
-            latitude: 28.5355,
-            longitude: 77.3910,
-            geofenceRadiusMeters: 100.0,
-            staticQrCodeHash: 'FACILITY_IV_APEX_DOWNTOWN_STATIC_2026',
-            exitQrCodeHash: 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026',
-            ownerContactEmail: 'contact@ironvault.com',
-            ownerContactPhone: '+1-555-019-8800'
-          }
-        });
-
-        const flagshipFac = await prisma.facility.create({
-          data: {
-            id: flagshipGym.id,
-            gymId: flagshipGym.id,
-            name: flagshipGym.name,
-            address: flagshipGym.address,
-            latitude: flagshipGym.latitude,
-            longitude: flagshipGym.longitude,
-            geofenceRadiusMeters: flagshipGym.geofenceRadiusMeters,
-            staticQrCodeHash: flagshipGym.staticQrCodeHash,
-            exitQrCodeHash: flagshipGym.exitQrCodeHash,
-            ownerContactEmail: flagshipGym.ownerContactEmail || 'contact@ironvault.com',
-            ownerContactPhone: flagshipGym.ownerContactPhone || '+1-555-019-8800'
-          }
-        });
-
-        facilities = [{
-          ...flagshipFac,
-          _count: { users: 0, attendanceEntries: 0, failedAccessLogs: 0 }
-        }] as any;
-      }
-    }
 
     res.json({ facilities });
   } catch (error: any) {

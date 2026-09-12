@@ -3,6 +3,7 @@ import { Printer, ShieldCheck, LogIn, LogOut, Building2, RefreshCw } from 'lucid
 import QRCode from 'qrcode';
 import { api } from '../services/api';
 import { Facility } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 const FLAGSHIP_FACILITY: Facility = {
   id: 'flagship-ironvault-club',
@@ -19,6 +20,7 @@ const FLAGSHIP_FACILITY: Facility = {
 };
 
 export const PrintableFacilityQR: React.FC = () => {
+  const { user } = useAuth();
   const [facilities, setFacilities] = useState<Facility[]>([FLAGSHIP_FACILITY]);
   const [selectedFacility, setSelectedFacility] = useState<Facility>(FLAGSHIP_FACILITY);
   const [posterType, setPosterType] = useState<'ENTER' | 'EXIT'>('ENTER');
@@ -27,7 +29,7 @@ export const PrintableFacilityQR: React.FC = () => {
 
   useEffect(() => {
     loadFacilities();
-  }, []);
+  }, [user?.gymId]);
 
   useEffect(() => {
     if (selectedFacility) {
@@ -38,11 +40,18 @@ export const PrintableFacilityQR: React.FC = () => {
   const generateQR = async (fac: Facility, type: 'ENTER' | 'EXIT') => {
     try {
       const isExit = type === 'EXIT';
+      const cleanName = (fac.name || 'GYM').replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+      const targetGymId = fac.gymId || fac.id;
+      const uniqueExitHash = fac.exitQrCodeHash && fac.exitQrCodeHash !== 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026'
+        ? fac.exitQrCodeHash
+        : `GYM_${cleanName}_EXIT_${(fac.id || '').replace(/-/g, '').slice(-8)}`;
+      const uniqueStaticHash = fac.staticQrCodeHash || `GYM_${cleanName}_STATIC_${(fac.id || '').replace(/-/g, '').slice(-8)}`;
+
       const payload = JSON.stringify({
         type: isExit ? 'GYM_EXIT_GATE' : 'GYM_FACILITY_ACCESS',
         action: isExit ? 'EXIT' : 'ENTER',
-        gym_id: isExit ? (fac.exitQrCodeHash || 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026') : fac.id,
-        hash: isExit ? (fac.exitQrCodeHash || 'FACILITY_IV_APEX_DOWNTOWN_EXIT_2026') : fac.staticQrCodeHash,
+        gym_id: isExit ? uniqueExitHash : targetGymId,
+        hash: isExit ? uniqueExitHash : uniqueStaticHash,
         facility_name: fac.name
       });
 
@@ -65,10 +74,24 @@ export const PrintableFacilityQR: React.FC = () => {
     try {
       setIsLoading(true);
       const data = await api.getFacilities();
+      const userGymId = user?.gymId || user?.facilityId;
+      const isOwnerOrManager = user?.role === 'GYM_OWNER' || user?.role === 'MANAGER';
+
       if (data.facilities && data.facilities.length > 0) {
-        setFacilities(data.facilities);
-        setSelectedFacility(data.facilities[0]);
-        await generateQR(data.facilities[0], posterType);
+        if (isOwnerOrManager && userGymId) {
+          // Strictly lock to the owner's gym
+          const myGym = data.facilities.find((f: any) => f.id === userGymId || f.gymId === userGymId) || data.facilities[0];
+          setFacilities([myGym]);
+          setSelectedFacility(myGym);
+          await generateQR(myGym, posterType);
+        } else {
+          setFacilities(data.facilities);
+          const initial = userGymId
+            ? (data.facilities.find((f: any) => f.id === userGymId || f.gymId === userGymId) || data.facilities[0])
+            : data.facilities[0];
+          setSelectedFacility(initial);
+          await generateQR(initial, posterType);
+        }
       } else {
         // Fallback to flagship facility
         setFacilities([FLAGSHIP_FACILITY]);
@@ -90,6 +113,7 @@ export const PrintableFacilityQR: React.FC = () => {
   };
 
   const isExit = posterType === 'EXIT';
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   return (
     <div className="space-y-6 font-poppins max-w-3xl mx-auto">
@@ -111,8 +135,8 @@ export const PrintableFacilityQR: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Gym selector if multiple gyms are available */}
-          {facilities.length > 1 && (
+          {/* Gym selector for Super Admin if multiple gyms are available */}
+          {isSuperAdmin && facilities.length > 1 && (
             <div className="relative">
               <select
                 value={selectedFacility.id}
@@ -129,6 +153,14 @@ export const PrintableFacilityQR: React.FC = () => {
                 ))}
               </select>
               <Building2 className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3 pointer-events-none" />
+            </div>
+          )}
+
+          {/* Locked gym badge for Gym Owner / Manager */}
+          {!isSuperAdmin && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-black">
+              <Building2 className="w-3.5 h-3.5" />
+              <span>{selectedFacility.name}</span>
             </div>
           )}
 

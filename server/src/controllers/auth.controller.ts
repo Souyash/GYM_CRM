@@ -105,6 +105,22 @@ export async function registerBusiness(req: AuthenticatedRequest, res: Response)
         }
       });
 
+      await tx.facility.create({
+        data: {
+          id: gym.id,
+          gymId: gym.id,
+          name: gym.name,
+          address: gym.address,
+          latitude: 0,
+          longitude: 0,
+          geofenceRadiusMeters: 50.0,
+          staticQrCodeHash: gym.staticQrCodeHash,
+          exitQrCodeHash: gym.exitQrCodeHash,
+          ownerContactEmail: cleanEmail,
+          ownerContactPhone: phone?.trim() || ''
+        }
+      });
+
       const user = await tx.user.create({
         data: {
           email: cleanEmail,
@@ -112,7 +128,8 @@ export async function registerBusiness(req: AuthenticatedRequest, res: Response)
           fullName: ownerName.trim(),
           phone: phone?.trim() || null,
           role: 'GYM_OWNER',
-          gymId: gym.id
+          gymId: gym.id,
+          facilityId: gym.id
         }
       });
 
