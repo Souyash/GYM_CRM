@@ -353,6 +353,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     isProcessingRef.current = true;
     isScanningRef.current = false;
 
+    let slowTimer: any = null;
     try {
       setVerificationState('VERIFYING');
       setResultMessage(
@@ -411,34 +412,47 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         return;
       }
 
-      // Retrieve real device GPS coordinates with quick timeout, falling back gracefully
+      // Fast, non-blocking GPS retrieval with hard 400ms ceiling so camera and verification never hang
       const getDeviceCoordinates = async (): Promise<{ lat: number; lng: number }> => {
         if (cachedGpsRef.current) {
           return cachedGpsRef.current;
         }
 
         return new Promise((resolve) => {
+          let resolved = false;
+          const fallback = () => {
+            if (!resolved) {
+              resolved = true;
+              resolve({
+                lat: facility?.latitude && facility.latitude !== 0 ? facility.latitude : 0,
+                lng: facility?.longitude && facility.longitude !== 0 ? facility.longitude : 0
+              });
+            }
+          };
+
+          // Strict 400ms JS timer to prevent any mobile browser geolocation hanging indoors
+          const timer = setTimeout(fallback, 400);
+
           if (typeof navigator !== 'undefined' && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                resolve({
-                  lat: pos.coords.latitude,
-                  lng: pos.coords.longitude
-                });
-              },
-              () => {
-                resolve({
-                  lat: facility?.latitude !== undefined && facility.latitude !== 0 ? facility.latitude : 0,
-                  lng: facility?.longitude !== undefined && facility.longitude !== 0 ? facility.longitude : 0
-                });
-              },
-              { enableHighAccuracy: true, timeout: 2000, maximumAge: 10000 }
-            );
+            try {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    cachedGpsRef.current = coords;
+                    resolve(coords);
+                  }
+                },
+                () => fallback(),
+                { enableHighAccuracy: false, timeout: 400, maximumAge: 60000 }
+              );
+            } catch {
+              fallback();
+            }
           } else {
-            resolve({
-              lat: facility?.latitude !== undefined && facility.latitude !== 0 ? facility.latitude : 0,
-              lng: facility?.longitude !== undefined && facility.longitude !== 0 ? facility.longitude : 0
-            });
+            fallback();
           }
         });
       };
@@ -446,6 +460,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       const deviceCoords = await getDeviceCoordinates();
       const lat = deviceCoords.lat;
       const lng = deviceCoords.lng;
+
+      // Dynamic feedback if cloud server takes a moment
+      slowTimer = setTimeout(() => {
+        if (isMountedRef.current && isProcessingRef.current) {
+          setResultMessage('Contacting gym server... Verifying pass...');
+        }
+      }, 1500);
 
       let response: any;
 
@@ -467,6 +488,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             device_id: deviceId
           });
         }
+
+        clearTimeout(slowTimer);
 
         playFeedbackAudio('success');
         triggerHaptic(true);
@@ -500,6 +523,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             action: 'ENTER'
           });
         }
+
+        clearTimeout(slowTimer);
 
         if (response.access === 'EXIT_CONFIRMED') {
           playFeedbackAudio('success');
@@ -537,6 +562,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         }
       }
     } catch (err: any) {
+      clearTimeout(slowTimer);
       console.error('Scan error:', err);
       playFeedbackAudio('denied');
       triggerHaptic(false);

@@ -175,9 +175,13 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     return processExitScan(req, res);
   }
 
-  // Determine client coordinates (falls back to facility coordinates on web/laptop testing)
-  const clientLat = !isNaN(parseFloat(latitude)) ? parseFloat(latitude) : facility.latitude;
-  const clientLng = !isNaN(parseFloat(longitude)) ? parseFloat(longitude) : facility.longitude;
+  // Determine client coordinates (falls back to facility coordinates if coordinates are missing, 0,0, or indoor test)
+  const rawLat = parseFloat(latitude);
+  const rawLng = parseFloat(longitude);
+  const hasClientCoords = !isNaN(rawLat) && !isNaN(rawLng) && !(rawLat === 0 && rawLng === 0);
+
+  const clientLat = hasClientCoords ? rawLat : facility.latitude;
+  const clientLng = hasClientCoords ? rawLng : facility.longitude;
 
   // Check if gym has a valid configured physical location (not default 0,0)
   const isGymLocationConfigured = !(facility.latitude === 0 && facility.longitude === 0);
@@ -187,17 +191,24 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   let geoValidation = { withinGeofence: true, distanceMeters: 0 };
 
   if (isGymLocationConfigured) {
-    geoValidation = isWithinGeofence(
-      { latitude: clientLat, longitude: clientLng },
-      { latitude: facility.latitude, longitude: facility.longitude },
-      facility.geofenceRadiusMeters || 100
-    );
-    withinGeofence = geoValidation.withinGeofence;
-    distanceMeters = geoValidation.distanceMeters;
+    if (hasClientCoords) {
+      geoValidation = isWithinGeofence(
+        { latitude: clientLat, longitude: clientLng },
+        { latitude: facility.latitude, longitude: facility.longitude },
+        facility.geofenceRadiusMeters || 100
+      );
+      withinGeofence = geoValidation.withinGeofence;
+      distanceMeters = geoValidation.distanceMeters;
+    } else {
+      // Client device did not acquire GPS fix (e.g. indoors or desktop). Allow scan without blocking.
+      withinGeofence = true;
+      distanceMeters = 0;
+      geoValidation = { withinGeofence: true, distanceMeters: 0 };
+    }
   } else {
     // Gym coordinates are not set yet (0,0).
     // Auto-anchor gym to this device's coordinates if valid, preventing spurious geofence breaches!
-    if (clientLat !== 0 && clientLng !== 0 && !isNaN(clientLat) && !isNaN(clientLng)) {
+    if (hasClientCoords) {
       console.log(`[Auto-Anchor Location] Gym ${facility.name} coordinates were (0,0). Auto-anchoring to (${clientLat}, ${clientLng})`);
       await prisma.gym.update({
         where: { id: facility.id },
