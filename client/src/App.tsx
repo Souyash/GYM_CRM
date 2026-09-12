@@ -25,7 +25,8 @@ import {
   Plus,
   MessageSquare,
   HeartPulse,
-  Trash2
+  Trash2,
+  Download
 } from 'lucide-react';
 import { api } from './services/api';
 
@@ -67,6 +68,64 @@ export const AppContent: React.FC = () => {
     } catch (err: any) {
       alert(err.message || 'Failed to remove member');
     }
+  };
+
+  const handleExportMembersCsv = () => {
+    if (!membersList || membersList.length === 0) {
+      alert('No members found in this gym to export.');
+      return;
+    }
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const gymName = user?.gym?.name || 'IronVault';
+    const cleanGymName = gymName.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    const headers = [
+      'Membership ID',
+      'Member Full Name',
+      'Email Address',
+      'Phone Number',
+      'Membership Plan',
+      'Access Status',
+      'Pass Valid Until',
+      'Fee Paid ($)',
+      'Gym Business Name',
+      'Gym 6-Digit Access Code'
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = membersList.map((m) => [
+      `IV-${m.id.substring(0, 8).toUpperCase()}`,
+      m.fullName,
+      m.email,
+      m.phone || 'N/A',
+      m.latestSubscription?.planName || 'No Active Pass',
+      m.isAccessGranted ? 'ACTIVE' : 'EXPIRED',
+      m.latestSubscription?.endDate ? new Date(m.latestSubscription.endDate).toLocaleDateString() : 'N/A',
+      m.latestSubscription?.price || 0,
+      m.gym?.name || user?.gym?.name || 'IronVault Gym',
+      m.gym?.inviteCode || user?.gym?.inviteCode || 'N/A'
+    ]);
+
+    const csvContent = [
+      headers.map(escapeCsv).join(','),
+      ...rows.map((row) => row.map(escapeCsv).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${cleanGymName}_Members_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   useEffect(() => {
@@ -198,7 +257,18 @@ export const AppContent: React.FC = () => {
             {/* Member Directory Table */}
             <div className="app-card rounded-2xl overflow-hidden shadow-sm">
               <div className="p-4 border-b border-slate-100 dark:border-dark-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-dark-900/50">
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Active Members ({membersList.length})</h3>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">Active Members ({membersList.length})</h3>
+                  <button
+                    onClick={handleExportMembersCsv}
+                    disabled={membersList.length === 0}
+                    className="py-1.5 px-3 rounded-xl bg-white hover:bg-slate-50 dark:bg-dark-800 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-200 dark:border-dark-700 transition disabled:opacity-40 whitespace-nowrap shadow-sm active:scale-95"
+                    title="Export gym members roster to CSV file"
+                  >
+                    <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Export Members (CSV)</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   placeholder="Search members by name, email, or phone..."

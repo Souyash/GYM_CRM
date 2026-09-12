@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   Building2,
   Copy,
-  Check
+  Check,
+  Download
 } from 'lucide-react';
 import { api } from '../services/api';
 import { getSocket } from '../services/socket';
@@ -127,6 +128,65 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
       setCopiedLink(false);
       setActionNotice(null);
     }, 4000);
+  };
+
+  const handleExportAttendanceCsv = () => {
+    const allVisits = [
+      ...activeOnFloor.map((e) => ({ ...e, status: 'LIVE_ON_FLOOR', duration: 'In Progress' })),
+      ...departedToday.map((e) => ({ ...e, status: 'COMPLETED', duration: `${e.durationMinutes || 0}m` }))
+    ];
+
+    if (allVisits.length === 0) {
+      alert('No attendance entries recorded today yet.');
+      return;
+    }
+
+    const dateStr = new Date().toISOString().split('T')[0];
+    const gymName = gymDetails?.name || user?.gym?.name || 'IronVault';
+    const cleanGymName = gymName.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    const headers = [
+      'Member Full Name',
+      'Membership Plan',
+      'Entrance Check-In Time',
+      'Exit Check-Out Time',
+      'Session Duration',
+      'Visit Status',
+      'Gym Facility'
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = allVisits.map((v) => [
+      v.memberName || 'Athlete',
+      v.planName || 'Active Pass',
+      v.scannedAt ? new Date(v.scannedAt).toLocaleTimeString() : 'N/A',
+      v.exitedAt ? new Date(v.exitedAt).toLocaleTimeString() : 'N/A',
+      v.duration,
+      v.status,
+      gymName
+    ]);
+
+    const csvContent = [
+      headers.map(escapeCsv).join(','),
+      ...rows.map((row) => row.map(escapeCsv).join(','))
+    ].join('\r\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${cleanGymName}_Attendance_${dateStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setActionNotice(`Successfully exported ${allVisits.length} attendance records to CSV!`);
+    setTimeout(() => setActionNotice(null), 4000);
   };
 
   return (
@@ -342,9 +402,20 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
             </button>
           </div>
 
-          <span className="text-xs text-slate-500 dark:text-zinc-400 hidden sm:inline font-medium">
-            Auto-refreshed via WebSocket
-          </span>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleExportAttendanceCsv}
+              disabled={activeOnFloor.length === 0 && departedToday.length === 0}
+              className="py-1 px-2.5 rounded-xl bg-white hover:bg-slate-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-200 dark:border-zinc-700 transition disabled:opacity-40 shadow-sm active:scale-95"
+              title="Export today's attendance logs to CSV file"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Export Visits (CSV)</span>
+            </button>
+            <span className="text-xs text-slate-500 dark:text-zinc-400 hidden sm:inline font-medium">
+              Auto-refreshed via WebSocket
+            </span>
+          </div>
         </div>
 
         {/* Tab 1: Live On Floor List */}
