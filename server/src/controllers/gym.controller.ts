@@ -267,8 +267,9 @@ export async function updateGym(req: AuthenticatedRequest, res: Response): Promi
   try {
     const { id } = req.params;
     const callerGymId = resolveTenantGymId(req);
+    const targetId = (id === 'me' && callerGymId) ? callerGymId : id;
 
-    if (req.user?.role !== 'SUPER_ADMIN' && callerGymId !== id) {
+    if (req.user?.role !== 'SUPER_ADMIN' && callerGymId !== targetId) {
       res.status(403).json({ error: 'Access denied. You can only update your own gym.' });
       return;
     }
@@ -286,7 +287,7 @@ export async function updateGym(req: AuthenticatedRequest, res: Response): Promi
     } = req.body;
 
     const updated = await prisma.gym.update({
-      where: { id },
+      where: { id: targetId },
       data: {
         ...(name ? { name: String(name).trim() } : {}),
         ...(address ? { address: String(address).trim() } : {}),

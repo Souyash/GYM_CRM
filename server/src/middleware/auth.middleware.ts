@@ -130,7 +130,30 @@ export async function resolveFacilityId(gymIdOrFacilityId?: string | null): Prom
       where: { gymId: cleanId },
       select: { id: true }
     });
-    return gymFacility ? gymFacility.id : null;
+    if (gymFacility) return gymFacility.id;
+
+    // Auto-mirror Gym to Facility if it exists in Gym table
+    const gym = await prisma.gym.findUnique({ where: { id: cleanId } });
+    if (gym) {
+      const created = await prisma.facility.create({
+        data: {
+          id: gym.id,
+          gymId: gym.id,
+          name: gym.name,
+          address: gym.address,
+          latitude: gym.latitude,
+          longitude: gym.longitude,
+          geofenceRadiusMeters: gym.geofenceRadiusMeters,
+          staticQrCodeHash: gym.staticQrCodeHash,
+          exitQrCodeHash: gym.exitQrCodeHash,
+          ownerContactEmail: gym.ownerContactEmail || 'owner@gym.com',
+          ownerContactPhone: gym.ownerContactPhone || ''
+        }
+      });
+      return created.id;
+    }
+
+    return null;
   } catch (err) {
     return null;
   }

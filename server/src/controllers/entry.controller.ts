@@ -2,7 +2,7 @@ import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../utils/prisma.js';
-import { AuthenticatedRequest } from '../middleware/auth.middleware.js';
+import { AuthenticatedRequest, resolveFacilityId } from '../middleware/auth.middleware.js';
 import { isWithinGeofence } from '../services/geo.service.js';
 import {
   emitNewAttendance,
@@ -17,6 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_20
 const ANTI_PASSBACK_COOLDOWN_MINUTES = 3; // 3 to 5 minutes mandatory cooldown
 
 export async function processEntryScan(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
   const timestamp = new Date();
   const userId = req.user?.userId;
   const { gym_id, latitude, longitude, device_id, action } = req.body;
@@ -440,9 +441,11 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
         data: { deviceStatus: 'FLAGGED_MULTI_DEVICE' }
       });
 
+      const gymTenantId = targetGym?.id || user.gymId || facility.gymId || facility.id;
       const changeReq = await prisma.deviceChangeRequest.create({
         data: {
           userId: user.id,
+          gymId: gymTenantId,
           attemptedDeviceId: incomingDeviceId,
           attemptedDeviceName: (req.headers['user-agent'] as string) || 'Secondary Device',
           ipAddress: req.ip || '127.0.0.1',
@@ -455,6 +458,7 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
       const failedLog = await prisma.failedAccessLog.create({
         data: {
           userId: user.id,
+          gymId: gymTenantId,
           facilityId: facility.id,
           attemptedDeviceId: incomingDeviceId,
           attemptType: 'MULTI_DEVICE_BLOCKED',
@@ -559,10 +563,12 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
       data: { deviceStatus: 'FLAGGED_MULTI_DEVICE' }
     });
 
+    const gymTenantId = targetGym?.id || user.gymId || facility.gymId || facility.id;
     // Create flag request for Super Admin resolution
     const changeReq = await prisma.deviceChangeRequest.create({
       data: {
         userId: user.id,
+        gymId: gymTenantId,
         attemptedDeviceId: 'DAILY_LIMIT_EXCEEDED',
         attemptedDeviceName: 'Attempted 2nd Check-in on Same Day',
         ipAddress: req.ip || '127.0.0.1',
@@ -575,6 +581,7 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     const failedLog = await prisma.failedAccessLog.create({
       data: {
         userId: user.id,
+        gymId: gymTenantId,
         facilityId: facility.id,
         attemptedDeviceId: incomingDeviceId || 'Any-Device',
         attemptType: 'MULTI_DEVICE_BLOCKED',
@@ -646,7 +653,7 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
     orderBy: { scannedAt: 'desc' }
   });
 
-  if (latestEntry && latestEntry.cooldownExpiresAt > timestamp) {
+  if (latestEntry && latestEntry.cooldownExpiresAt && latestEntry.cooldownExpiresAt > timestamp) {
     const remainingSeconds = Math.ceil(
       (latestEntry.cooldownExpiresAt.getTime() - timestamp.getTime()) / 1000
     );
@@ -761,17 +768,20 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
   // ---------------------------------------------------------------------------------
   const cooldownExpiresAt = new Date(timestamp.getTime() + ANTI_PASSBACK_COOLDOWN_MINUTES * 60 * 1000);
 
+  const resolvedGymId = targetGym?.id || user.gymId || facility?.gymId || facility?.id || null;
+  const resolvedFacId = facility?.id || (await resolveFacilityId(resolvedGymId));
+
   const entry = await prisma.attendanceEntry.create({
     data: {
       userId: user.id,
-      gymId: user.gymId || facility.id,
-      facilityId: facility.id,
+      gymId: resolvedGymId,
+      facilityId: resolvedFacId,
       scannedAt: timestamp,
       status: 'ACTIVE',
       deviceId: incomingDeviceId || user.boundDeviceId || 'Unknown-Device',
-      gpsLat: clientLat,
-      gpsLng: clientLng,
-      distanceFromFacility: geoValidation.distanceMeters,
+      gpsLat: typeof clientLat === 'number' && !isNaN(clientLat) ? clientLat : 0.0,
+      gpsLng: typeof clientLng === 'number' && !isNaN(clientLng) ? clientLng : 0.0,
+      distanceFromFacility: typeof geoValidation?.distanceMeters === 'number' ? geoValidation.distanceMeters : 0.0,
       cooldownExpiresAt
     },
     include: {
@@ -845,6 +855,13 @@ export async function processEntryScan(req: AuthenticatedRequest, res: Response)
       avatarUrl: user.avatarUrl
     } : undefined
   });
+  } catch (error: any) {
+    console.error('processEntryScan fatal error:', error);
+    res.status(500).json({
+      error: 'An error occurred while processing turnstile check-in. Please try again.',
+      details: error?.message || 'Server error'
+    });
+  }
 }
 
 /**
@@ -1097,13 +1114,15 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
       }
     });
 
+    const facilityName = updatedEntry.facility?.name || user.gym?.name || 'IronVault Gym';
+
     const exitPayload = {
       entryId: updatedEntry.id,
       userId: user.id,
       memberName: user.fullName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      facilityName: updatedEntry.facility.name,
+      facilityName,
       scannedAt: updatedEntry.scannedAt,
       exitedAt: updatedEntry.exitedAt,
       durationMinutes,
@@ -1122,16 +1141,16 @@ export async function processExitScan(req: AuthenticatedRequest, res: Response):
         fullName: user.fullName,
         type: 'EXIT',
         timestamp: updatedEntry.exitedAt || new Date(),
-        facilityName: updatedEntry.facility.name
+        facilityName
       }).catch(e => console.warn('Turnstile check-out email error:', e.message));
     });
 
     res.status(200).json({
       access: 'EXIT_CONFIRMED',
-      message: `Workout complete! Fantastic effort today at ${updatedEntry.facility.name}.`,
+      message: `Workout complete! Fantastic effort today at ${facilityName}.`,
       session: {
         entryId: updatedEntry.id,
-        facilityName: updatedEntry.facility.name,
+        facilityName,
         scannedAt: updatedEntry.scannedAt,
         exitedAt: updatedEntry.exitedAt,
         durationMinutes,

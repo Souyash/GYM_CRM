@@ -4,33 +4,19 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🧹 Purging all existing multi-tenant test data...");
+  console.log("🛡️ Checking Platform Super Admin account (non-destructive seed)...");
 
-  // 1. Clean all existing records in referential integrity order
-  await prisma.otpVerification.deleteMany();
-  await prisma.memberHealthProfile.deleteMany();
-  await prisma.classBooking.deleteMany();
-  await prisma.groupClass.deleteMany();
-  await prisma.postComment.deleteMany();
-  await prisma.postLike.deleteMany();
-  await prisma.communityPost.deleteMany();
-  await prisma.notificationLog.deleteMany();
-  await prisma.failedAccessLog.deleteMany();
-  await prisma.attendanceEntry.deleteMany();
-  await prisma.deviceChangeRequest.deleteMany();
-  await prisma.subscription.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.facility.deleteMany();
-  await prisma.gym.deleteMany();
-
-  console.log("✨ Creating the single Platform Super Admin account...");
-
-  // 2. Hash Super Admin password
+  // Hash Super Admin password
   const adminPassHash = await bcrypt.hash("superadmin123", 10);
 
-  // 3. Create the single Super Admin
-  const superAdmin = await prisma.user.create({
-    data: {
+  // Safely upsert Super Admin so existing data is NEVER wiped
+  const superAdmin = await prisma.user.upsert({
+    where: { email: "superadmin@ironvault.com" },
+    update: {
+      role: "SUPER_ADMIN",
+      deviceStatus: "NORMAL"
+    },
+    create: {
       email: "superadmin@ironvault.com",
       fullName: "Super Admin",
       passwordHash: adminPassHash,
@@ -43,12 +29,10 @@ async function main() {
   });
 
   console.log("==============================================================================");
-  console.log("👑 100% CLEAN PROTOTYPE READY — SINGLE SUPER ADMIN CREATED");
+  console.log("👑 PROTOTYPE SEED VERIFIED — SUPER ADMIN READY (DATA PRESERVED)");
   console.log("==============================================================================");
-  console.log("👉 Super Admin ID:       superadmin@ironvault.com (or username: superadmin)");
-  console.log("👉 Super Admin Password: superadmin123");
-  console.log("👉 Role:                 SUPER_ADMIN");
-  console.log("👉 Database Status:      0 Gyms, 0 Members (100% pristine state)");
+  console.log("👉 Super Admin Email:    ", superAdmin.email);
+  console.log("👉 Role:                 ", superAdmin.role);
   console.log("==============================================================================");
 }
 

@@ -147,18 +147,18 @@ model AttendanceEntry {
   gym                  Gym?      @relation(fields: [gymId], references: [id], onDelete: Cascade)
   userId               String
   user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  facilityId           String
-  facility             Facility  @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  facilityId           String?
+  facility             Facility? @relation(fields: [facilityId], references: [id], onDelete: SetNull)
   scannedAt            DateTime  @default(now())
   exitedAt             DateTime? // Departure timestamp when exiting gym
   sessionDurationMinutes Int?    // Total workout duration in minutes
   status               String    @default("ACTIVE") // ACTIVE (in gym), COMPLETED (departed), AUTO_CLOSED
-  deviceId             String    // Validated entrance device ID
+  deviceId             String    @default("MEMBER_APP") // Validated entrance device ID
   exitDeviceId         String?   // Device or desk used for checkout
-  gpsLat               Float     // Verified device GPS latitude
-  gpsLng               Float     // Verified device GPS longitude
-  distanceFromFacility Float     // Computed Haversine distance in meters (<= 50m)
-  cooldownExpiresAt    DateTime  // 3-5 minute anti-passback cooldown lock
+  gpsLat               Float     @default(0.0) // Verified device GPS latitude
+  gpsLng               Float     @default(0.0) // Verified device GPS longitude
+  distanceFromFacility Float     @default(0.0) // Computed Haversine distance in meters (<= 50m)
+  cooldownExpiresAt    DateTime? // 3-5 minute anti-passback cooldown lock
 
   @@index([userId, scannedAt])
   @@index([facilityId, status])
