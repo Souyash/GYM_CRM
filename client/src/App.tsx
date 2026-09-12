@@ -16,6 +16,7 @@ import { CommunityFeed } from './components/CommunityFeed';
 import { LandingPageView } from './views/LandingPageView';
 import { HealthIntelligenceView } from './views/HealthIntelligenceView';
 import { PreloaderScreen } from './components/PreloaderScreen';
+import { MemberRosterView } from './views/MemberRosterView';
 import {
   Users,
   CreditCard,
@@ -222,136 +223,18 @@ export const AppContent: React.FC = () => {
 
         {/* Desk Billing & Member Management Directory */}
         {currentTab === 'desk_billing' && (
-          <div className="space-y-6 max-w-5xl mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl app-card">
-              <div>
-                <h1 className="text-xl font-black text-slate-900 dark:text-white">Desk Billing & Member Roster</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Manage memberships, issue monthly passes, and register new members
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setIsAccountModalOpen(true);
-                  }}
-                  className="btn-primary-green flex items-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  New Member Sign-Up
-                </button>
-                <button
-                  onClick={() => {
-                    setBillingMode('BILL');
-                    setIsBillingModalOpen(true);
-                  }}
-                  className="btn-secondary-gym flex items-center gap-1.5"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Renew Pass
-                </button>
-              </div>
-            </div>
-
-            {/* Member Directory Table */}
-            <div className="app-card rounded-2xl overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-slate-100 dark:border-dark-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-dark-900/50">
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">Active Members ({membersList.length})</h3>
-                  <button
-                    onClick={handleExportMembersCsv}
-                    disabled={membersList.length === 0}
-                    className="py-1.5 px-3 rounded-xl bg-white hover:bg-slate-50 dark:bg-dark-800 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-1.5 border border-slate-200 dark:border-dark-700 transition disabled:opacity-40 whitespace-nowrap shadow-sm active:scale-95"
-                    title="Export gym members roster to CSV file"
-                  >
-                    <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>Export Members (CSV)</span>
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search members by name, email, or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-dark-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 w-full sm:w-72 focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-slate-50 dark:bg-dark-850 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-100 dark:border-dark-800">
-                    <tr>
-                      <th className="py-3 px-4 font-bold">Member</th>
-                      <th className="py-3 px-4 font-bold">Contact</th>
-                      <th className="py-3 px-4 font-bold">Current Subscription</th>
-                      <th className="py-3 px-4 font-bold">Membership ID</th>
-                      <th className="py-3 px-4 font-bold">Access Status</th>
-                      <th className="py-3 px-4 font-bold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-dark-800">
-                    {membersList.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-400">
-                          No members found. Use "New Member Sign-Up" above to register athletes.
-                        </td>
-                      </tr>
-                    ) : (
-                      membersList.map((m) => (
-                        <tr key={m.id} className="hover:bg-slate-50/80 dark:hover:bg-dark-850/50 transition">
-                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                            {m.fullName}
-                          </td>
-                          <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
-                            {m.email}
-                            {m.phone && <span className="block text-[10px] text-slate-400 dark:text-slate-500">{m.phone}</span>}
-                          </td>
-                          <td className="py-3 px-4 text-xs whitespace-nowrap">
-                            {m.latestSubscription ? (
-                              <div>
-                                <span className="font-bold text-slate-900 dark:text-white">{m.latestSubscription.planName}</span>
-                                <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                                  Valid until: {new Date(m.latestSubscription.endDate).toLocaleDateString()}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-400">No active pass</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                            IV-{m.id.substring(0, 8).toUpperCase()}
-                          </td>
-                          <td className="py-3 px-4 whitespace-nowrap">
-                            <span
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                                m.isAccessGranted
-                                  ? 'badge-active-green'
-                                  : 'badge-alert-coral'
-                              }`}
-                            >
-                              {m.isAccessGranted ? 'Active / Granted' : 'Expired / On Hold'}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteMember(m.id, m.fullName)}
-                              className="px-2.5 py-1 text-xs font-semibold rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50 transition inline-flex items-center gap-1.5 ml-auto"
-                              title="Remove member from gym database"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Remove</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <MemberRosterView
+            membersList={membersList}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleExportMembersCsv={handleExportMembersCsv}
+            handleDeleteMember={handleDeleteMember}
+            onOpenAddMember={() => setIsAccountModalOpen(true)}
+            onOpenRenewPass={() => {
+              setBillingMode('BILL');
+              setIsBillingModalOpen(true);
+            }}
+          />
         )}
 
         {/* Community Feed Tab for All Roles */}

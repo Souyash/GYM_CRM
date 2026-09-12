@@ -10,6 +10,7 @@ import {
   Sparkles,
   Flame,
   User,
+  Users,
   Zap,
   CreditCard,
   ChevronRight,
@@ -57,6 +58,9 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [completedToday, setCompletedToday] = useState<any | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
+
+  // Segmented Subpart Tab State: 'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'
+  const [activeSubpart, setActiveSubpart] = useState<'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'>('PASS');
 
   // Departure Celebration Modal
   const [departureSessionData, setDepartureSessionData] = useState<any | null>(null);
@@ -444,120 +448,206 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       </div>
 
-      {/* 2. DEDICATED GYM ACCESS PORTAL: SCAN ENTRY & SCAN EXIT */}
-      <div className="community-card p-5 sm:p-6 bg-white dark:bg-[#0d0d10] border-2 border-emerald-500/30 rounded-3xl shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-zinc-800 pb-3">
-          <div>
-            <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              Gym Access: Entry & Exit Turnstiles
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
-              Scan the physical QR poster at the entrance to begin your session, and at the exit gate when departing.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase">
-              Floor Status:
+      {/* ========================================================================= */}
+      {/* 2. SUBPART NAVIGATION TABS (Segmented Control)                            */}
+      {/* ========================================================================= */}
+      <div className="flex items-center justify-between p-1.5 bg-slate-200/70 dark:bg-zinc-900/90 border border-slate-200/80 dark:border-zinc-800 rounded-2xl gap-1 overflow-x-auto no-scrollbar shadow-sm">
+        <button
+          type="button"
+          onClick={() => setActiveSubpart('PASS')}
+          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+            activeSubpart === 'PASS'
+              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+          }`}
+        >
+          <QrCode className="w-3.5 h-3.5" />
+          <span>Pass & Turnstile</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubpart('FITNESS')}
+          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+            activeSubpart === 'FITNESS'
+              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+          }`}
+        >
+          <Dumbbell className="w-3.5 h-3.5" />
+          <span>Body & Daily Fuel</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSubpart('HISTORY')}
+          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+            activeSubpart === 'HISTORY'
+              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+          }`}
+        >
+          <History className="w-3.5 h-3.5" />
+          <span>Visits Log</span>
+          {history.length > 0 && (
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+              activeSubpart === 'HISTORY' ? 'bg-black/20 text-black' : 'bg-slate-300 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300'
+            }`}>
+              {history.length}
             </span>
-            {activeSession ? (
-              <span className="badge-active-green text-xs font-black py-0.5 px-2.5 animate-pulse">
-                🟢 Inside Gym ({formatStopwatch(elapsedSeconds)})
-              </span>
-            ) : completedToday ? (
-              <span className="badge-active-green text-xs font-black py-0.5 px-2.5">
-                ✓ Completed Today ({completedToday.sessionDurationMinutes || 45}m)
-              </span>
-            ) : (
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
-                ⚪ Outside Gym
-              </span>
-            )}
-          </div>
-        </div>
+          )}
+        </button>
 
-        {/* DUAL TURNSTILE BUTTONS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          {/* OPTION 1: SCAN ENTRY */}
-          <button
-            onClick={() => onOpenScanner('ENTER')}
-            disabled={!!activeSession || !!completedToday}
-            className={`p-4 rounded-2xl flex items-center gap-3.5 transition-all text-left ${
-              activeSession
-                ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 opacity-75 cursor-not-allowed'
-                : completedToday
-                ? 'bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 opacity-60 cursor-not-allowed'
-                : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black shadow-lg shadow-emerald-500/20 active:scale-98 ring-2 ring-emerald-400/50'
-            }`}
-          >
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-              activeSession || completedToday
-                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                : 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
-            }`}>
-              <LogIn className="w-6 h-6 stroke-[2.5]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-black tracking-tight block">
-                  {activeSession ? 'Checked In' : completedToday ? 'Entry Used Today' : 'Scan Entry (Check In)'}
-                </span>
-                {activeSession && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.2 rounded">INSIDE</span>}
-              </div>
-              <span className={`text-xs block mt-0.5 ${
-                activeSession || completedToday ? 'text-slate-500 dark:text-zinc-400' : 'text-emerald-100 dark:text-zinc-900 font-medium'
-              }`}>
-                {activeSession
-                  ? `Checked in at ${new Date(activeSession.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                  : completedToday
-                  ? `Completed at ${new Date(completedToday.exitedAt || completedToday.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                  : 'Scan Entrance Gate Turnstile QR'}
-              </span>
-            </div>
-          </button>
-
-          {/* OPTION 2: SCAN EXIT */}
-          <button
-            onClick={() => onOpenScanner('EXIT')}
-            disabled={!activeSession}
-            className={`p-4 rounded-2xl flex items-center gap-3.5 transition-all text-left ${
-              activeSession
-                ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black shadow-lg shadow-emerald-500/20 active:scale-98 ring-2 ring-emerald-400/50 animate-pulse'
-                : completedToday
-                ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 opacity-90 cursor-not-allowed'
-                : 'bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
-            }`}
-          >
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-              activeSession
-                ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
-                : 'bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500'
-            }`}>
-              <LogOut className="w-6 h-6 stroke-[2.5]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-black tracking-tight block">
-                  {completedToday ? 'Workout Completed ✓' : 'Scan Exit (Check Out)'}
-                </span>
-                {activeSession && <span className="text-[10px] font-bold text-white bg-black/30 px-1.5 py-0.2 rounded">READY</span>}
-              </div>
-              <span className={`text-xs block mt-0.5 ${
-                activeSession ? 'text-emerald-100 dark:text-zinc-900 font-medium' : 'text-slate-400 dark:text-zinc-500'
-              }`}>
-                {activeSession
-                  ? 'Scan Exit Gate Turnstile to finish'
-                  : completedToday
-                  ? `Logged ${completedToday.sessionDurationMinutes || 45} mins session`
-                  : 'Check in first to unlock exit scan'}
-              </span>
-            </div>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setActiveSubpart('COMMUNITY')}
+          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+            activeSubpart === 'COMMUNITY'
+              ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-zinc-800/50'
+          }`}
+        >
+          <Users className="w-3.5 h-3.5" />
+          <span>Gym Feed</span>
+        </button>
       </div>
 
-      {/* 2.5 MEMBER ONBOARDING WIZARD & FITNESS ASSESSMENT CARD */}
-      {!healthProfile || isOnboardFormExpanded ? (
+      {/* ========================================================================= */}
+      {/* SUBPART A: PASS & TURNSTILE ACCESS PORTAL                                 */}
+      {/* ========================================================================= */}
+      {activeSubpart === 'PASS' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          {/* DEDICATED GYM ACCESS PORTAL: SCAN ENTRY & SCAN EXIT */}
+          <div className="community-card p-5 sm:p-6 bg-white dark:bg-[#0d0d10] border-2 border-emerald-500/30 rounded-3xl shadow-lg space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <QrCode className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  Gym Access: Entry & Exit Turnstiles
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                  Scan the physical QR poster at the entrance to begin your session, and at the exit gate when departing.
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase">
+                  Floor Status:
+                </span>
+                {activeSession ? (
+                  <span className="badge-active-green text-xs font-black py-0.5 px-2.5 animate-pulse">
+                    🟢 Inside Gym ({formatStopwatch(elapsedSeconds)})
+                  </span>
+                ) : completedToday ? (
+                  <span className="badge-active-green text-xs font-black py-0.5 px-2.5">
+                    ✓ Completed Today ({completedToday.sessionDurationMinutes || 45}m)
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
+                    ⚪ Outside Gym
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* DUAL TURNSTILE BUTTONS */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* OPTION 1: SCAN ENTRY */}
+              <button
+                onClick={() => onOpenScanner('ENTER')}
+                disabled={!!activeSession || !!completedToday}
+                className={`p-4 rounded-2xl flex items-center gap-3.5 transition-all text-left ${
+                  activeSession
+                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 opacity-75 cursor-not-allowed'
+                    : completedToday
+                    ? 'bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 opacity-60 cursor-not-allowed'
+                    : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black shadow-lg shadow-emerald-500/20 active:scale-98 ring-2 ring-emerald-400/50'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                  activeSession || completedToday
+                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
+                }`}>
+                  <LogIn className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black tracking-tight block">
+                      {activeSession ? 'Checked In' : completedToday ? 'Entry Used Today' : 'Scan Entry (Check In)'}
+                    </span>
+                    {activeSession && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.2 rounded">INSIDE</span>}
+                  </div>
+                  <span className={`text-xs block mt-0.5 ${
+                    activeSession || completedToday ? 'text-slate-500 dark:text-zinc-400' : 'text-emerald-100 dark:text-zinc-900 font-medium'
+                  }`}>
+                    {activeSession
+                      ? `Checked in at ${new Date(activeSession.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      : completedToday
+                      ? `Completed at ${new Date(completedToday.exitedAt || completedToday.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      : 'Scan Entrance Gate Turnstile QR'}
+                  </span>
+                </div>
+              </button>
+
+              {/* OPTION 2: SCAN EXIT */}
+              <button
+                onClick={() => onOpenScanner('EXIT')}
+                disabled={!activeSession}
+                className={`p-4 rounded-2xl flex items-center gap-3.5 transition-all text-left ${
+                  activeSession
+                    ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black shadow-lg shadow-emerald-500/20 active:scale-98 ring-2 ring-emerald-400/50 animate-pulse'
+                    : completedToday
+                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 opacity-90 cursor-not-allowed'
+                    : 'bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                  activeSession
+                    ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
+                    : 'bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500'
+                }`}>
+                  <LogOut className="w-6 h-6 stroke-[2.5]" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black tracking-tight block">
+                      {completedToday ? 'Workout Completed ✓' : 'Scan Exit (Check Out)'}
+                    </span>
+                    {activeSession && <span className="text-[10px] font-bold text-white bg-black/30 px-1.5 py-0.2 rounded">READY</span>}
+                  </div>
+                  <span className={`text-xs block mt-0.5 ${
+                    activeSession ? 'text-emerald-100 dark:text-zinc-900 font-medium' : 'text-slate-400 dark:text-zinc-500'
+                  }`}>
+                    {activeSession
+                      ? 'Scan Exit Gate Turnstile to finish'
+                      : completedToday
+                      ? `Logged ${completedToday.sessionDurationMinutes || 45} mins session`
+                      : 'Check in first to unlock exit scan'}
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Shortcuts Bar */}
+          <QuickActionBar
+            onCheckIn={() => onOpenScanner('ENTER')}
+            onCheckOut={handleDirectCheckOut}
+            onBookClass={() => setActiveSubpart('COMMUNITY')}
+            onLogWorkout={() => setIsWorkoutModalOpen(true)}
+            hasCheckedInToday={hasCheckedInToday}
+            isInGym={!!activeSession}
+          />
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SUBPART B: BODY & DAILY FUEL (FITNESS, ASSESSMENTS, PHYSIQUE)             */}
+      {/* ========================================================================= */}
+      {activeSubpart === 'FITNESS' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* 2.5 MEMBER ONBOARDING WIZARD & FITNESS ASSESSMENT CARD */}
+          {!healthProfile || isOnboardFormExpanded ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2.5">
@@ -988,6 +1078,8 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           </div>
         </div>
       )}
+    </div>
+  )}
 
       {/* Health Profile Edit Modal */}
       {isHealthEditOpen && (
@@ -1104,116 +1196,111 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       )}
 
-      {/* 3. QUICK ACTIONS BAR */}
-      <QuickActionBar
-        onCheckIn={() => onOpenScanner('ENTER')}
-        onCheckOut={handleDirectCheckOut}
-        onBookClass={() => {
-          const el = document.getElementById('community-section');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }}
-        onLogWorkout={() => setIsWorkoutModalOpen(true)}
-        hasCheckedInToday={hasCheckedInToday}
-        isInGym={!!activeSession}
-      />
-
-      {/* 3. GYM COMMUNITY SOCIAL HUB */}
-      <div id="community-section" className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-              👥 IronVault Community
+      {/* ========================================================================= */}
+      {/* SUBPART C: RECENT VISITS & WORKOUT SESSIONS LOG                           */}
+      {/* ========================================================================= */}
+      {activeSubpart === 'HISTORY' && (
+        <div className="community-card space-y-4 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <History className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              Your Recent Visits & Sessions
             </h3>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-              Live Feed
+            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+              {history.length} Total Visits Logged
             </span>
           </div>
-          <span className="text-xs text-slate-400 dark:text-zinc-500 hidden sm:inline">
-            Connect with trainers & find workout partners
-          </span>
-        </div>
 
-        <CommunityFeed defaultTab="feed" />
-      </div>
+          {isLoadingHistory ? (
+            <div className="py-6 text-center text-xs text-slate-400">Loading visit history...</div>
+          ) : history.length === 0 ? (
+            <div className="py-6 text-center text-xs text-slate-400">
+              No check-in history yet. Scan the entrance QR when you arrive at the gym!
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+              {history.slice(0, 10).map((entry) => {
+                const isCurrentlyActive = entry.status === 'ACTIVE' || (!entry.exitedAt && !completedToday);
+                const durationMinutes = entry.sessionDurationMinutes;
 
-      {/* 4. RECENT VISITS LOG WITH SESSION DURATION */}
-      <div className="community-card space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <History className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            Your Recent Visits & Sessions
-          </h3>
-          <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
-            {history.length} Total Visits Logged
-          </span>
-        </div>
-
-        {isLoadingHistory ? (
-          <div className="py-6 text-center text-xs text-slate-400">Loading visit history...</div>
-        ) : history.length === 0 ? (
-          <div className="py-6 text-center text-xs text-slate-400">
-            No check-in history yet. Scan the entrance QR when you arrive at the gym!
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-            {history.slice(0, 6).map((entry) => {
-              const isCurrentlyActive = entry.status === 'ACTIVE' || (!entry.exitedAt && !completedToday);
-              const durationMinutes = entry.sessionDurationMinutes;
-
-              return (
-                <div key={entry.id} className="py-3.5 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold ${
-                      isCurrentlyActive
-                        ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
-                        : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
-                    }`}>
-                      {isCurrentlyActive ? <Activity className="w-4 h-4 animate-spin-slow" /> : <CheckCircle2 className="w-4 h-4" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 dark:text-white block">
-                          {new Date(entry.scannedAt).toLocaleDateString([], {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
-                        {isCurrentlyActive && (
-                          <span className="badge-active-green text-[9px] py-0 px-1.5">
-                            Active Inside
-                          </span>
-                        )}
-                        {durationMinutes && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
-                            <Clock className="w-3 h-3 text-emerald-500" />
-                            {durationMinutes} mins
-                          </span>
-                        )}
+                return (
+                  <div key={entry.id} className="py-3.5 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold ${
+                        isCurrentlyActive
+                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
+                          : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
+                      }`}>
+                        {isCurrentlyActive ? <Activity className="w-4 h-4 animate-spin-slow" /> : <CheckCircle2 className="w-4 h-4" />}
                       </div>
-                      <span className="text-[10px] text-slate-400 dark:text-zinc-500 block mt-0.5">
-                        {entry.facility?.name || 'IronVault Apex'} • {entry.exitedAt ? 'Turnstile Check-Out Logged' : 'Entrance Gate'}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 dark:text-white block">
+                            {new Date(entry.scannedAt).toLocaleDateString([], {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                          {isCurrentlyActive && (
+                            <span className="badge-active-green text-[9px] py-0 px-1.5">
+                              Active Inside
+                            </span>
+                          )}
+                          {durationMinutes && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
+                              <Clock className="w-3 h-3 text-emerald-500" />
+                              {durationMinutes} mins
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 block mt-0.5">
+                          {entry.facility?.name || 'IronVault Apex'} • {entry.exitedAt ? 'Turnstile Check-Out Logged' : 'Entrance Gate'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-mono text-[11px] font-bold text-slate-800 dark:text-zinc-200 block">
+                        {new Date(entry.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {entry.exitedAt && (
+                          <span> — {new Date(entry.exitedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block">
+                        {isCurrentlyActive ? 'In-progress' : 'Completed'}
                       </span>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
-                  <div className="text-right">
-                    <span className="font-mono text-[11px] font-bold text-slate-800 dark:text-zinc-200 block">
-                      {new Date(entry.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      {entry.exitedAt && (
-                        <span> — {new Date(entry.exitedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      )}
-                    </span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block">
-                      {isCurrentlyActive ? 'In-progress' : 'Completed'}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+      {/* ========================================================================= */}
+      {/* SUBPART D: GYM COMMUNITY SOCIAL HUB                                       */}
+      {/* ========================================================================= */}
+      {activeSubpart === 'COMMUNITY' && (
+        <div id="community-section" className="space-y-3 pt-2 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                👥 IronVault Community
+              </h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                Live Feed
+              </span>
+            </div>
+            <span className="text-xs text-slate-400 dark:text-zinc-500 hidden sm:inline">
+              Connect with trainers & find workout partners
+            </span>
           </div>
-        )}
-      </div>
+
+          <CommunityFeed defaultTab="feed" />
+        </div>
+      )}
 
       {/* Workout Logger Modal */}
       <WorkoutLogModal
