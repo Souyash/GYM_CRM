@@ -117,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }`}
                   >
                     <Shield className="w-3.5 h-3.5" />
-                    <span>👑 Super Admin Panel</span>
+                    <span>🛠️ Dev Team Console</span>
                   </button>
                 )}
 

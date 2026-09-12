@@ -406,14 +406,14 @@ Portal URL: ${window.location.origin}`;
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  Super Admin Management Portal
+                  Dev Team Platform Console
                 </h1>
                 <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2.5 py-0.5 rounded-full shadow-sm">
-                  ROOT LEVEL
+                  DEV OPERATIONS • MULTI-TENANT
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                Central multi-tenant SaaS dashboard: Inspect all gym owner accounts, view platform member directories, and export data.
+                IronVault Platform Engineering: Cloud telemetry, multi-tenant workspace provisioning, and database exports. Gym owners operate their businesses autonomously with protected database records.
               </p>
             </div>
           </div>
