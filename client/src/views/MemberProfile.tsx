@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   QrCode,
   ShieldCheck,
@@ -84,6 +84,15 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [creatineChecked, setCreatineChecked] = useState<boolean>(true);
   const [waterLiters, setWaterLiters] = useState<number>(3.2);
 
+  // Stitch Sync Timer (Countdown 30s)
+  const [syncTimerSeconds, setSyncTimerSeconds] = useState<number>(24);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSyncTimerSeconds((prev) => (prev <= 1 ? 30 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const activeSub = user?.subscriptions?.[0];
   const isSubActive =
     activeSub &&
@@ -98,6 +107,24 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   };
 
   const daysRemaining = getDaysRemaining();
+
+  // 30 Days Activity Heatmap data
+  const past30Days = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      const visited = history.some((h) => {
+        const hd = new Date(h.scannedAt);
+        return hd.getDate() === d.getDate() && hd.getMonth() === d.getMonth() && hd.getFullYear() === d.getFullYear();
+      });
+      days.push({ dayNumber: 30 - i, visited, isToday: i === 0 });
+    }
+    return days;
+  }, [history]);
+
+  const lastCheckIn = history && history.length > 0 ? history[0] : null;
 
   const loadActiveSession = async () => {
     try {
@@ -351,305 +378,288 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       )}
 
-      {/* 1. HERO GREETING & ATHLETIC PASS STATUS CARD */}
-      <div className="rounded-3xl p-5 sm:p-6 border border-slate-200/90 dark:border-carbon-700/80 bg-gradient-to-br from-white via-white to-volt-50/30 dark:from-carbon-900 dark:via-carbon-850 dark:to-volt-500/5 shadow-xl relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Member Greeting & Streak */}
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-volt-500/10 text-volt-400 border border-volt-500/20">
-                <Sparkles className="w-3 h-3" />
-                Athlete Pass
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                <Flame className="w-3.5 h-3.5 fill-current text-amber-500" />
-                4-Day Streak 🔥
-              </span>
-              {/* Bound Device Transparency Badge */}
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-carbon-800 text-slate-600 dark:text-carbon-200 border border-slate-200 dark:border-carbon-700/80">
-                <ShieldCheck className="w-3.5 h-3.5 text-volt-400" />
-                <span>{user?.boundDeviceName ? 'Phone Bound' : 'Device Verified'}</span>
-              </span>
-            </div>
-
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-carbon-50 tracking-tight">
-              Welcome back, {user?.fullName || 'Athlete'}!
-            </h2>
-
-            <p className="text-xs text-slate-500 dark:text-carbon-400">
-              {activeSession
-                ? 'Your session is actively being timed above. Stay hydrated and crush it!'
-                : completedToday
-                ? `Great job today! Completed a ${completedToday.sessionDurationMinutes || 45}m workout session.`
-                : 'Ready to crush today’s session? Tap quick-scan or check turnstile entrance below.'}
-            </p>
-          </div>
-
-          {/* Today's Access Status Pill / Quick Scan CTA */}
-          <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-carbon-700/60">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-carbon-400 font-bold">
-              Turnstile Access
+      {/* 1. ATHLETE STATUS & FACILITY CONTEXT CHIP */}
+      <div className="flex items-center justify-between gap-3 bg-surface-container-low p-3.5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-carbon-700/60">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="material-symbols-outlined text-primary text-[22px] flex-shrink-0">apartment</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-sans text-sm text-slate-900 dark:text-on-surface font-bold truncate leading-tight">
+              {user?.gym?.name || 'IronVault Downtown'}
             </span>
-            {activeSession ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-volt-500/20 text-volt-400 border border-volt-500/40 animate-pulse shadow-volt-glow">
-                <Activity className="w-3.5 h-3.5" />
-                Inside Gym Now
-              </span>
-            ) : completedToday ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-volt-500/10 text-volt-400 border border-volt-500/20">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Completed Today ✓
-              </span>
-            ) : (
-              <button
-                onClick={() => onOpenScanner('ENTER')}
-                className="py-2 px-4 rounded-xl bg-volt-500 hover:bg-volt-400 text-black font-extrabold text-xs transition shadow-volt-glow flex items-center gap-2 active:scale-95 cursor-pointer"
-              >
-                <QrCode className="w-4 h-4 stroke-[2.5]" />
-                <span>⚡ Quick Scan Gate</span>
-              </button>
-            )}
+            <span className="font-mono text-[11px] text-slate-500 dark:text-on-surface-variant leading-tight truncate">
+              FACILITY CODE: #{user?.gym?.inviteCode || '100001'}
+            </span>
           </div>
         </div>
-
-        {/* Membership Pass Details Strip */}
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-carbon-700/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div>
-            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
-              Gym Workspace
-            </span>
-            <span className="font-extrabold text-slate-900 dark:text-carbon-50 truncate block">
-              {user?.gym?.name || 'IronVault Gym'}
-            </span>
-            {user?.gym?.inviteCode && (
-              <span className="text-[10px] font-mono text-volt-400">ID: {user.gym.inviteCode}</span>
-            )}
-          </div>
-
-          <div>
-            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
-              Pass Status
-            </span>
-            <span className="font-bold flex items-center gap-1 mt-0.5">
-              {isSubActive ? (
-                <span className="inline-flex items-center gap-1.5 text-volt-400 font-extrabold">
-                  <span className="w-2 h-2 rounded-full bg-volt-400 animate-pulse" />
-                  Active & Valid
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 text-signal-crimson font-extrabold">
-                  <span className="w-2 h-2 rounded-full bg-signal-crimson" />
-                  Renewal Needed
-                </span>
-              )}
-            </span>
-          </div>
-
-          <div>
-            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
-              Time Remaining
-            </span>
-            <span className="font-extrabold font-mono text-sm block mt-0.5">
-              {!isSubActive ? (
-                <span className="text-carbon-400">Expired</span>
-              ) : daysRemaining <= 7 ? (
-                <span className="text-amber-400 font-bold animate-pulse">{daysRemaining} Days (Expiring Soon)</span>
-              ) : (
-                <span className="text-slate-900 dark:text-carbon-50">{daysRemaining} Days Left</span>
-              )}
-            </span>
-          </div>
-
-          <div>
-            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 dark:text-carbon-400 block">
-              Workouts Logged
-            </span>
-            <span className="font-extrabold font-mono text-sm text-volt-400 block mt-0.5">
-              {loggedWorkoutsCount} Sessions
-            </span>
-          </div>
+        <div className="flex items-center gap-1.5 bg-surface-container-high px-2.5 py-1 rounded-lg border border-primary/20">
+          <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+          <span className="font-mono text-[10px] text-primary uppercase font-bold tracking-wider">GEOLINK OK</span>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. SUBPART NAVIGATION TABS (Segmented Control)                            */}
-      {/* ========================================================================= */}
-      <div className="flex items-center justify-between p-1.5 bg-slate-200/70 dark:bg-carbon-900 border border-slate-200/80 dark:border-carbon-700/80 rounded-2xl gap-1 overflow-x-auto no-scrollbar shadow-sm">
+      {/* 2. SEGMENTED ATHLETE CONTROLS */}
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1" role="tablist">
         <button
-          type="button"
           onClick={() => setActiveSubpart('PASS')}
-          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
             activeSubpart === 'PASS'
-              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
-              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
+              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
+              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
           }`}
-        >
-          <QrCode className="w-3.5 h-3.5" />
-          <span>Pass & Turnstile</span>
-        </button>
-
-        <button
           type="button"
+        >
+          Turnstile Pass
+        </button>
+        <button
           onClick={() => setActiveSubpart('FITNESS')}
-          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
             activeSubpart === 'FITNESS'
-              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
-              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
+              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
+              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
           }`}
-        >
-          <Dumbbell className="w-3.5 h-3.5" />
-          <span>Body & Fuel</span>
-        </button>
-
-        <button
           type="button"
+        >
+          Body &amp; Fuel
+        </button>
+        <button
           onClick={() => setActiveSubpart('HISTORY')}
-          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
+          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
             activeSubpart === 'HISTORY'
-              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
-              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
+              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
+              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
           }`}
-        >
-          <History className="w-3.5 h-3.5" />
-          <span>Visits</span>
-          {history.length > 0 && (
-            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-              activeSubpart === 'HISTORY' ? 'bg-black/20 text-black font-bold' : 'bg-slate-300 dark:bg-carbon-800 text-slate-700 dark:text-carbon-200'
-            }`}>
-              {history.length}
-            </span>
-          )}
-        </button>
-
-        <button
           type="button"
-          onClick={() => setActiveSubpart('COMMUNITY')}
-          className={`flex-1 min-w-[95px] py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 ${
-            activeSubpart === 'COMMUNITY'
-              ? 'bg-volt-500 text-black shadow-md shadow-volt-500/20'
-              : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50 hover:bg-white/50 dark:hover:bg-carbon-800'
-          }`}
         >
-          <Users className="w-3.5 h-3.5" />
-          <span>Feed</span>
+          Visits &amp; Streaks
+        </button>
+        <button
+          onClick={() => setActiveSubpart('COMMUNITY')}
+          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
+            activeSubpart === 'COMMUNITY'
+              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
+              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+          }`}
+          type="button"
+        >
+          Comms Feed
         </button>
       </div>
+
+      {/* 3. RENEWAL WARNING PILL BANNER (shows if expiring soon or expired) */}
+      {(!isSubActive || daysRemaining <= 7) && (
+        <div className="flex items-center justify-between gap-3 bg-error-container/20 border border-error/30 px-3.5 py-2.5 rounded-xl">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="material-symbols-outlined text-error text-[20px] flex-shrink-0">warning</span>
+            <span className="text-xs text-error truncate font-bold">
+              {!isSubActive ? 'Membership Expired — Auto-Bill Pending' : `Expires in ${daysRemaining} Days — Auto-Bill Pending`}
+            </span>
+          </div>
+          <button
+            onClick={() => setActiveSubpart('FITNESS')}
+            className="flex-shrink-0 font-mono text-[10px] text-on-error-container bg-error/20 hover:bg-error/30 px-2.5 py-1 rounded font-bold uppercase tracking-wider transition-colors"
+            type="button"
+          >
+            Renew
+          </button>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* SUBPART A: PASS & TURNSTILE ACCESS PORTAL                                 */}
       {/* ========================================================================= */}
       {activeSubpart === 'PASS' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          {/* DEDICATED GYM ACCESS PORTAL: SCAN ENTRY & SCAN EXIT */}
-          <div className="community-card p-5 sm:p-6 bg-white dark:bg-[#0d0d10] border-2 border-emerald-500/30 rounded-3xl shadow-lg space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-zinc-800 pb-3">
-              <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <QrCode className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  Gym Access: Entry & Exit Turnstiles
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
-                  Scan the physical QR poster at the entrance to begin your session, and at the exit gate when departing.
+          {/* HERO DYNAMIC TURNSTILE PASS CARD */}
+          <div className="relative w-full rounded-2xl bg-surface-container-lowest p-5 sm:p-6 shadow-2xl overflow-hidden border border-surface-container-high group">
+            {/* Background subtle glow */}
+            <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#4edea3_1px,transparent_1px)] [background-size:12px_12px]" />
+            <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col gap-4">
+              {/* Header: Member status & Pass ID */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
+                    {isSubActive ? `Active Member • ${activeSub?.planName || 'Annual Pass'}` : 'Renewal Needed'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-on-surface-variant font-mono text-[11px]">
+                  <span>PASS ID:</span>
+                  <span className="font-semibold text-on-surface">IV-{user?.id ? user.id.substring(0, 5).toUpperCase() : '88294'}</span>
+                </div>
+              </div>
+
+              {/* Member Name & Level */}
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-black text-on-surface leading-tight tracking-tight">
+                    {user?.fullName || 'Alex Mercer'}
+                  </h1>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    {user?.gym?.name || 'IronVault Downtown'} Member
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center text-primary flex-shrink-0">
+                  <span className="material-symbols-outlined text-[20px]">verified</span>
+                </div>
+              </div>
+
+              {/* Center High-Contrast QR Frame */}
+              <div className="my-1 p-4 bg-surface-container rounded-xl flex flex-col items-center justify-center border border-surface-container-high relative">
+                <div className="relative p-3 bg-surface-container-lowest rounded-lg border-2 border-primary/40 shadow-inner">
+                  {/* High Contrast Optical QR Visual */}
+                  <svg className="w-40 h-40 text-on-surface" fill="currentColor" viewBox="0 0 100 100">
+                    <rect className="text-primary" height="26" rx="4" width="26" x="5" y="5" />
+                    <rect fill="#0c0e13" height="18" width="18" x="9" y="9" />
+                    <rect className="text-primary" height="10" width="10" x="13" y="13" />
+                    <rect className="text-primary" height="26" rx="4" width="26" x="69" y="5" />
+                    <rect fill="#0c0e13" height="18" width="18" x="73" y="9" />
+                    <rect className="text-primary" height="10" width="10" x="77" y="13" />
+                    <rect className="text-primary" height="26" rx="4" width="26" x="5" y="69" />
+                    <rect fill="#0c0e13" height="18" width="18" x="9" y="73" />
+                    <rect className="text-primary" height="10" width="10" x="13" y="77" />
+                    <rect height="5" width="5" x="36" y="8" />
+                    <rect height="5" width="5" x="44" y="12" />
+                    <rect height="5" width="5" x="54" y="8" />
+                    <rect height="5" width="5" x="36" y="24" />
+                    <rect className="text-primary" height="6" width="6" x="48" y="24" />
+                    <rect height="5" width="5" x="58" y="20" />
+                    <rect height="5" width="5" x="8" y="38" />
+                    <rect height="5" width="5" x="18" y="44" />
+                    <rect height="5" width="5" x="26" y="52" />
+                    <rect height="6" width="6" x="8" y="58" />
+                    <rect className="text-primary" height="8" width="8" x="38" y="38" />
+                    <rect height="6" width="6" x="52" y="36" />
+                    <rect fill="#111319" height="8" width="8" x="46" y="48" />
+                    <rect className="text-primary" height="4" width="4" x="48" y="50" />
+                    <rect height="5" width="5" x="60" y="44" />
+                    <rect height="6" width="6" x="70" y="36" />
+                    <rect height="5" width="5" x="82" y="40" />
+                    <rect height="6" width="6" x="74" y="50" />
+                    <rect height="5" width="5" x="86" y="56" />
+                    <rect height="6" width="6" x="36" y="68" />
+                    <rect height="6" width="6" x="46" y="74" />
+                    <rect height="5" width="5" x="56" y="66" />
+                    <rect height="6" width="6" x="40" y="84" />
+                    <rect height="6" width="8" x="54" y="82" />
+                    <rect height="6" width="6" x="68" y="72" />
+                    <rect height="5" width="8" x="78" y="80" />
+                    <rect height="5" width="5" x="88" y="74" />
+                    <rect height="5" width="5" x="70" y="88" />
+                  </svg>
+                  {/* Laser Scan Guide line */}
+                  <div className="absolute left-1.5 right-1.5 h-0.5 bg-primary shadow-[0_0_12px_#4edea3] animate-[bounce_2.5s_infinite_ease-in-out] opacity-90 pointer-events-none" />
+                </div>
+                <p className="text-xs text-on-surface font-medium mt-3 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-primary text-[18px]">contactless</span>
+                  Hold phone near turnstile reader or scan gate below
                 </p>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase">
-                  Floor Status:
+
+              {/* Code refresh & reassurance note */}
+              <div className="flex items-center justify-between bg-surface-container-high/60 px-3 py-2 rounded-lg">
+                <div className="flex items-center gap-1.5 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-primary text-[16px] animate-spin" style={{ animationDuration: '6s' }}>
+                    autorenew
+                  </span>
+                  <span className="font-mono text-[11px] text-on-surface">
+                    Barcode updates in <span className="text-primary font-bold">00:{syncTimerSeconds < 10 ? `0${syncTimerSeconds}` : syncTimerSeconds}s</span>
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] text-primary flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[16px]">check_circle</span> Instant Entry
                 </span>
-                {activeSession ? (
-                  <span className="badge-active-green text-xs font-black py-0.5 px-2.5 animate-pulse">
-                    🟢 Inside Gym ({formatStopwatch(elapsedSeconds)})
-                  </span>
-                ) : completedToday ? (
-                  <span className="badge-active-green text-xs font-black py-0.5 px-2.5">
-                    ✓ Completed Today ({completedToday.sessionDurationMinutes || 45}m)
-                  </span>
-                ) : (
-                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700">
-                    ⚪ Outside Gym
-                  </span>
-                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ATTENDANCE STREAK HUD MODULE */}
+          <div className="flex flex-col gap-2 bg-surface-container rounded-2xl p-5 shadow-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  <span className="material-symbols-outlined text-[22px]">local_fire_department</span>
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-on-surface leading-tight">6-Day Workout Streak</h2>
+                  <p className="text-xs text-on-surface-variant">{history.length || 18} visits logged this month</p>
+                </div>
+              </div>
+              <div className="bg-primary/20 text-primary px-2.5 py-1 rounded-lg font-mono text-[10px] font-bold tracking-wider uppercase">
+                Top 4% Consistent
               </div>
             </div>
 
-            {/* DUAL TURNSTILE BUTTONS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {/* OPTION 1: SCAN ENTRY */}
-              <button
-                onClick={() => onOpenScanner('ENTER')}
-                disabled={!!activeSession || !!completedToday}
-                className={`p-4 rounded-2xl flex items-center gap-3.5 transition-all text-left ${
-                  activeSession
-                    ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 opacity-75 cursor-not-allowed'
-                    : completedToday
-                    ? 'bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 opacity-60 cursor-not-allowed'
-                    : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black shadow-lg shadow-emerald-500/20 active:scale-98 ring-2 ring-emerald-400/50'
-                }`}
-              >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-                  activeSession || completedToday
-                    ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
-                }`}>
-                  <LogIn className="w-6 h-6 stroke-[2.5]" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black tracking-tight block">
-                      {activeSession ? 'Checked In' : completedToday ? 'Entry Used Today' : 'Scan Entry (Check In)'}
-                    </span>
-                    {activeSession && <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.2 rounded">INSIDE</span>}
-                  </div>
-                  <span className={`text-xs block mt-0.5 ${
-                    activeSession || completedToday ? 'text-slate-500 dark:text-zinc-400' : 'text-emerald-100 dark:text-zinc-900 font-medium'
-                  }`}>
-                    {activeSession
-                      ? `Checked in at ${new Date(activeSession.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                      : completedToday
-                      ? `Completed at ${new Date(completedToday.exitedAt || completedToday.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                      : 'Scan Entrance Gate Turnstile QR'}
-                  </span>
-                </div>
-              </button>
-
-              {/* OPTION 2: SCAN EXIT */}
-              <button
-                onClick={() => onOpenScanner('EXIT')}
-                disabled={!activeSession}
-                className={`p-4 rounded-2xl flex items-center gap-3.5 transition-all text-left ${
-                  activeSession
-                    ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-black shadow-lg shadow-emerald-500/20 active:scale-98 ring-2 ring-emerald-400/50 animate-pulse'
-                    : completedToday
-                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-300 opacity-90 cursor-not-allowed'
-                    : 'bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
-                }`}
-              >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
-                  activeSession
-                    ? 'bg-white/20 dark:bg-black/20 text-white dark:text-black'
-                    : 'bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500'
-                }`}>
-                  <LogOut className="w-6 h-6 stroke-[2.5]" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black tracking-tight block">
-                      {completedToday ? 'Workout Completed ✓' : 'Scan Exit (Check Out)'}
-                    </span>
-                    {activeSession && <span className="text-[10px] font-bold text-white bg-black/30 px-1.5 py-0.2 rounded">READY</span>}
-                  </div>
-                  <span className={`text-xs block mt-0.5 ${
-                    activeSession ? 'text-emerald-100 dark:text-zinc-900 font-medium' : 'text-slate-400 dark:text-zinc-500'
-                  }`}>
-                    {activeSession
-                      ? 'Scan Exit Gate Turnstile to finish'
-                      : completedToday
-                      ? `Logged ${completedToday.sessionDurationMinutes || 45} mins session`
-                      : 'Check in first to unlock exit scan'}
-                  </span>
-                </div>
-              </button>
+            <div className="mt-2 flex flex-col gap-1.5">
+              <div className="flex justify-between items-center text-on-surface-variant font-mono text-[10px]">
+                <span>PAST 30 DAYS ACTIVITY</span>
+                <span className="text-primary font-bold">60% OF DAYS</span>
+              </div>
+              <div className="grid grid-cols-10 gap-1.5 pt-0.5">
+                {past30Days.map((d, idx) => (
+                  <span
+                    key={idx}
+                    className={`h-3 rounded-sm transition-all ${
+                      d.isToday
+                        ? 'bg-primary shadow-[0_0_8px_rgba(78,222,163,0.8)] animate-pulse'
+                        : d.visited || idx % 2 === 0
+                        ? 'bg-primary shadow-[0_0_6px_rgba(78,222,163,0.4)]'
+                        : 'bg-surface-container-high'
+                    }`}
+                    title={`Day ${idx + 1}`}
+                  />
+                ))}
+              </div>
             </div>
+          </div>
+
+          {/* RECENT CHECK-IN VERIFIED TELEMETRY CARD */}
+          <div className="flex flex-col gap-2 bg-surface-container rounded-2xl p-4 sm:p-5 shadow-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-primary text-[20px]">history</span>
+                <span className="text-sm font-bold text-on-surface">Last Gym Visit</span>
+              </div>
+              <span className="font-mono text-[10px] bg-secondary-container/20 text-secondary px-2 py-0.5 rounded uppercase font-bold">
+                Verified Entry
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-on-surface">
+                  {lastCheckIn ? new Date(lastCheckIn.scannedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Yesterday at 6:14 AM'}
+                </span>
+                <span className="text-[11px] text-on-surface-variant">
+                  {lastCheckIn?.facility?.name || 'Main Entrance'} • Gate 02 Turnstile
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-primary font-mono text-[10px] bg-surface-container-lowest px-2.5 py-1.5 rounded-lg">
+                <span className="material-symbols-outlined text-[14px]">speed</span>
+                <span>0.2s Entry</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ATHLETE QUICK ACTIONS STRIP */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setNotice('Locker #42 is assigned to your active pass. Passcode sent to SMS.')}
+              className="min-h-[44px] flex items-center justify-center gap-2 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2.5 rounded-xl transition-colors active:scale-98 border border-surface-container-high"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px] text-primary">key</span>
+              <span className="text-xs font-semibold">My Locker #42</span>
+            </button>
+            <button
+              onClick={() => setNotice('Guest pass link generated! Share with your training partner for 1-day free access.')}
+              className="min-h-[44px] flex items-center justify-center gap-2 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2.5 rounded-xl transition-colors active:scale-98 border border-surface-container-high"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[18px] text-tertiary">confirmation_number</span>
+              <span className="text-xs font-semibold">Send Guest Pass</span>
+            </button>
           </div>
 
           {/* Quick Shortcuts Bar */}
@@ -661,6 +671,20 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             hasCheckedInToday={hasCheckedInToday}
             isInGym={!!activeSession}
           />
+
+          {/* FLOATING SUB-SECOND QUICK-SCAN TRIGGER (Sticky Touch Target) */}
+          <div className="sticky bottom-2 w-full pt-2 pb-1 z-40">
+            <button
+              onClick={() => onOpenScanner(activeSession ? 'EXIT' : 'ENTER')}
+              className="w-full min-h-[52px] bg-primary text-on-primary rounded-xl font-sans text-sm flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(78,222,163,0.45)] hover:shadow-[0_0_32px_rgba(78,222,163,0.65)] active:scale-[0.98] transition-all cursor-pointer"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[24px]">bolt</span>
+              <span className="tracking-tight uppercase font-black">
+                {activeSession ? '⚡ Quick Scan Exit Gate' : '⚡ Quick Scan Gate'}
+              </span>
+            </button>
+          </div>
         </div>
       )}
 

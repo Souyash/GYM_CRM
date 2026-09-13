@@ -51,6 +51,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   const [verificationState, setVerificationState] = useState<'IDLE' | 'VERIFYING' | 'SUCCESS' | 'DENIED'>('IDLE');
   const [resultMessage, setResultMessage] = useState<string>('');
   const [denialType, setDenialType] = useState<'GENERIC' | 'CROSS_GYM' | 'GEOFENCE' | 'COOLDOWN' | 'SECURITY'>('GENERIC');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [selectedVerdictTab, setSelectedVerdictTab] = useState<'AUTO' | 'GRANTED' | 'MISMATCH' | 'GEOFENCE' | 'COOLDOWN' | 'LOCKOUT'>('AUTO');
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -64,6 +66,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   // Sound effects generator using Web Audio API
   const playFeedbackAudio = (type: 'success' | 'denied' | 'info') => {
+    if (!soundEnabled) return;
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
@@ -721,205 +724,494 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </div>
         </div>
 
+        {/* Verdict State Selector Bar */}
+        <div className="px-4 sm:px-6 pt-4">
+          <div className="w-full bg-surface-container-lowest p-1.5 rounded-2xl shadow-md border border-surface-container-high/60">
+            <div className="flex items-center justify-between gap-1 overflow-x-auto no-scrollbar py-0.5">
+              <button
+                onClick={() => setSelectedVerdictTab('AUTO')}
+                className={`flex-1 min-w-[58px] py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase text-center font-bold transition-all ${
+                  selectedVerdictTab === 'AUTO'
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                Auto
+              </button>
+              <button
+                onClick={() => setSelectedVerdictTab('GRANTED')}
+                className={`flex-1 min-w-[58px] py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase text-center font-bold transition-all ${
+                  selectedVerdictTab === 'GRANTED'
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                Granted
+              </button>
+              <button
+                onClick={() => setSelectedVerdictTab('MISMATCH')}
+                className={`flex-1 min-w-[58px] py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase text-center font-bold transition-all ${
+                  selectedVerdictTab === 'MISMATCH'
+                    ? 'bg-amber-500 text-black shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                Mismatch
+              </button>
+              <button
+                onClick={() => setSelectedVerdictTab('GEOFENCE')}
+                className={`flex-1 min-w-[58px] py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase text-center font-bold transition-all ${
+                  selectedVerdictTab === 'GEOFENCE'
+                    ? 'bg-orange-500 text-black shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                Geofence
+              </button>
+              <button
+                onClick={() => setSelectedVerdictTab('COOLDOWN')}
+                className={`flex-1 min-w-[58px] py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase text-center font-bold transition-all ${
+                  selectedVerdictTab === 'COOLDOWN'
+                    ? 'bg-cyan-500 text-black shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                Cooldown
+              </button>
+              <button
+                onClick={() => setSelectedVerdictTab('LOCKOUT')}
+                className={`flex-1 min-w-[58px] py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase text-center font-bold transition-all ${
+                  selectedVerdictTab === 'LOCKOUT'
+                    ? 'bg-error-container text-white shadow-sm'
+                    : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+                }`}
+                type="button"
+              >
+                Lockout
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Optical Telemetry Rail */}
+        <div className="px-4 sm:px-6 pt-3">
+          <div className="grid grid-cols-4 gap-2 bg-surface-container-low p-2.5 rounded-2xl shadow-sm border border-surface-container-high/40">
+            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
+              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">FPS RATE</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono text-sm text-primary font-bold">59.8</span>
+                <span className="font-mono text-[8px] text-on-surface-variant">HZ</span>
+              </div>
+            </div>
+            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
+              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">LATENCY</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono text-sm text-secondary font-bold">0.042</span>
+                <span className="font-mono text-[8px] text-on-surface-variant">SEC</span>
+              </div>
+            </div>
+            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
+              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">PRECISION</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono text-sm text-tertiary font-bold">±1.4</span>
+                <span className="font-mono text-[8px] text-on-surface-variant">MET</span>
+              </div>
+            </div>
+            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
+              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">OPTICS</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="font-mono text-sm text-on-surface font-bold">f/1.8</span>
+                <span className="font-mono text-[8px] text-primary">ISO80</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Content Body */}
-        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[80vh]">
-          {/* Active Status Display */}
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[75vh]">
+          {/* Active Status Display (Verifying Spinner) */}
           {verificationState === 'VERIFYING' && (
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-3 animate-fade-in">
+            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-3 animate-fade-in">
               <RefreshCw className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-spin" />
               <div>
-                <p className="font-bold text-sm text-emerald-800 dark:text-emerald-300">
-                  Verifying Turnstile QR
+                <p className="font-bold text-xs text-emerald-800 dark:text-emerald-300">
+                  Verifying Optical Turnstile QR...
                 </p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400">{resultMessage}</p>
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{resultMessage}</p>
               </div>
             </div>
           )}
 
-          {verificationState === 'SUCCESS' && (
-            <div className="p-4 rounded-2xl bg-volt-500/10 border-2 border-volt-500/50 shadow-volt-glow flex items-start gap-3 animate-fade-in">
-              <div className="p-2 rounded-xl bg-volt-500/20 text-volt-400 flex-shrink-0">
-                <CheckCircle className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-base text-volt-400">
-                    {gateMode === 'ENTER' ? 'Access Granted' : 'Workout Completed'}
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-volt-500/20 text-volt-300 border border-volt-500/30">
-                    VERIFIED
-                  </span>
-                </div>
-                <p className="text-xs text-carbon-200 font-medium">{resultMessage}</p>
-              </div>
-            </div>
-          )}
-
-          {verificationState === 'DENIED' && (
-            <div
-              className={`p-4 rounded-2xl border-2 animate-fade-in flex items-start gap-3 shadow-lg ${
-                denialType === 'CROSS_GYM'
-                  ? 'bg-amber-500/10 border-amber-500/60 shadow-amber-glow text-amber-300'
-                  : denialType === 'GEOFENCE'
-                  ? 'bg-orange-500/10 border-orange-500/60 text-orange-300'
-                  : denialType === 'COOLDOWN'
-                  ? 'bg-cyan-500/10 border-cyan-500/60 text-cyan-300'
-                  : denialType === 'SECURITY'
-                  ? 'bg-red-500/10 border-red-500/60 shadow-crimson-glow text-red-300'
-                  : 'bg-amber-500/10 border-amber-500/50 text-amber-300'
-              }`}
-            >
-              <div className="p-2 rounded-xl bg-black/40 flex-shrink-0">
-                {denialType === 'CROSS_GYM' ? (
-                  <Building2 className="w-6 h-6 text-amber-400" />
-                ) : denialType === 'GEOFENCE' ? (
-                  <MapPin className="w-6 h-6 text-orange-400" />
-                ) : denialType === 'COOLDOWN' ? (
-                  <Clock className="w-6 h-6 text-cyan-400" />
-                ) : denialType === 'SECURITY' ? (
-                  <ShieldAlert className="w-6 h-6 text-red-400" />
-                ) : (
-                  <AlertOctagon className="w-6 h-6 text-amber-400" />
-                )}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-base">
-                    {denialType === 'CROSS_GYM'
-                      ? 'Cross-Gym Mismatch'
-                      : denialType === 'GEOFENCE'
-                      ? 'Geofence Boundary Breach'
-                      : denialType === 'COOLDOWN'
-                      ? 'Anti-Passback Cooldown'
-                      : denialType === 'SECURITY'
-                      ? 'Security Flag Active'
-                      : 'Verification Notice'}
-                  </p>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/50 border border-current">
-                    REJECTED
-                  </span>
-                </div>
-                <p className="text-xs text-carbon-200 font-medium leading-relaxed">{resultMessage}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Real-time Back Camera Viewfinder with Native Video Stream */}
-          <div
-            className={`relative rounded-3xl overflow-hidden bg-black border-2 aspect-square max-h-72 mx-auto flex items-center justify-center shadow-2xl transition-all duration-300 ${
-              verificationState === 'SUCCESS'
-                ? 'border-volt-500 shadow-volt-glow'
+          {/* Turnstile Camera Viewport Viewfinder Window */}
+          {(() => {
+            const effectiveVerdict =
+              selectedVerdictTab !== 'AUTO'
+                ? selectedVerdictTab
+                : verificationState === 'SUCCESS'
+                ? 'GRANTED'
                 : verificationState === 'DENIED'
                 ? denialType === 'CROSS_GYM'
-                  ? 'border-amber-500 shadow-amber-glow'
-                  : denialType === 'SECURITY'
-                  ? 'border-red-500 shadow-crimson-glow'
-                  : 'border-amber-500'
-                : verificationState === 'VERIFYING'
-                ? 'border-volt-400 animate-pulse'
-                : 'border-carbon-700/80 hover:border-volt-500/50'
-            }`}
-          >
-            <video
-              ref={videoRef}
-              playsInline
-              autoPlay
-              muted
-              className={`w-full h-full object-cover ${cameraActive ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
-            />
+                  ? 'MISMATCH'
+                  : denialType === 'GEOFENCE'
+                  ? 'GEOFENCE'
+                  : denialType === 'COOLDOWN'
+                  ? 'COOLDOWN'
+                  : 'LOCKOUT'
+                : 'GRANTED';
 
-            {/* Overlaid Animated Scanner Reticle */}
-            {cameraActive && verificationState === 'IDLE' && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
-                <div className="w-48 h-48 border-2 border-dashed border-emerald-400/80 rounded-2xl relative flex items-center justify-center shadow-2xl">
-                  {/* Glowing corner brackets */}
-                  <div className="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-emerald-400 rounded-tl-sm" />
-                  <div className="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-emerald-400 rounded-tr-sm" />
-                  <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-4 border-l-4 border-emerald-400 rounded-bl-sm" />
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 border-b-4 border-r-4 border-emerald-400 rounded-br-sm" />
+            const isLockout = effectiveVerdict === 'LOCKOUT';
+            const isMismatch = effectiveVerdict === 'MISMATCH';
+            const isGeofence = effectiveVerdict === 'GEOFENCE';
+            const isCooldown = effectiveVerdict === 'COOLDOWN';
 
-                  {/* Pulsing horizontal laser beam */}
-                  <div className="w-full h-0.5 bg-emerald-400/90 shadow-glow-green animate-pulse" />
+            const glowBorderClass = isLockout
+              ? 'border-error shadow-crimson-glow'
+              : isMismatch
+              ? 'border-amber-500 shadow-amber-glow'
+              : isGeofence
+              ? 'border-orange-500'
+              : isCooldown
+              ? 'border-cyan-500'
+              : 'border-primary shadow-volt-glow';
+
+            return (
+              <div className={`relative w-full rounded-2xl overflow-hidden bg-surface-container-lowest shadow-2xl flex flex-col justify-between border-2 transition-all duration-300 ${glowBorderClass}`} style={{ minHeight: '340px' }}>
+                {/* Diagonal Hazard Banding (Shown on Lockout) */}
+                <div
+                  className={`absolute inset-0 pointer-events-none transition-opacity duration-300 bg-[repeating-linear-gradient(45deg,rgba(147,0,10,0.2),rgba(147,0,10,0.2)_14px,transparent_14px,transparent_28px)] ${
+                    isLockout ? 'opacity-100 z-10' : 'opacity-0'
+                  }`}
+                />
+
+                {/* Scanner Reticle Header Controls */}
+                <div className="relative z-20 flex items-center justify-between p-3 bg-surface-container-lowest/80 backdrop-blur-md">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full animate-ping ${isLockout ? 'bg-error' : 'bg-primary'}`} />
+                    <span className="font-mono text-[10px] text-primary tracking-widest uppercase font-bold">
+                      HUD OPTIC // {cameraFacing === 'environment' ? 'BACK' : 'FRONT'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {hasTorch && (
+                      <button
+                        onClick={toggleTorch}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors active:scale-95 ${
+                          isTorchOn ? 'bg-amber-500 text-black' : 'bg-surface-container-high text-on-surface hover:bg-surface-bright'
+                        }`}
+                        type="button"
+                        title="Toggle Flashlight"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">flash_on</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setSoundEnabled(!soundEnabled)}
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors active:scale-95 ${
+                        soundEnabled ? 'bg-surface-container-high text-on-surface' : 'bg-surface-container text-on-surface-variant'
+                      }`}
+                      type="button"
+                      title={soundEnabled ? 'Mute Audio' : 'Unmute Audio'}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        {soundEnabled ? 'volume_up' : 'volume_off'}
+                      </span>
+                    </button>
+                    <button
+                      onClick={toggleCamera}
+                      className="w-7 h-7 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center transition-colors active:scale-95 hover:bg-surface-bright"
+                      type="button"
+                      title="Flip Camera"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">flip_camera_ios</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Viewfinder Center Core Box */}
+                <div className="relative z-10 mx-auto w-56 h-56 flex items-center justify-center my-2">
+                  {/* Live Native Video feed */}
+                  <video
+                    ref={videoRef}
+                    playsInline
+                    autoPlay
+                    muted
+                    className={`absolute inset-0 w-full h-full object-cover rounded-xl ${cameraActive ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+                  />
+
+                  {/* Reticle Target Brackets */}
+                  <div className={`absolute -top-1 -left-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
+                  <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
+                  <div className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
+                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
+
+                  {/* Inner cutout visual framing */}
+                  <div className="w-52 h-52 bg-surface-container-lowest/20 backdrop-blur-[1px] rounded-lg relative overflow-hidden flex items-center justify-center border border-white/10">
+                    {/* Vertical Laser Scanner Beam */}
+                    <div
+                      className={`absolute w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_rgba(78,222,163,0.9)] animate-pulse pointer-events-none`}
+                      style={{ animation: 'bounce 2.2s ease-in-out infinite' }}
+                    />
+
+                    {/* Center Crosshair & Tracking Data */}
+                    <div className="relative flex flex-col items-center justify-center gap-1 pointer-events-none">
+                      <span className="material-symbols-outlined text-primary text-[36px] opacity-75 animate-spin" style={{ animationDuration: '10s' }}>
+                        qr_code_scanner
+                      </span>
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase tracking-widest font-bold">
+                        LOCK TARGET
+                      </span>
+                    </div>
+
+                    {/* Corner Measurement Coordinates */}
+                    <span className="absolute top-1.5 left-2 font-mono text-[8px] text-primary/80">X: 194.22</span>
+                    <span className="absolute top-1.5 right-2 font-mono text-[8px] text-primary/80">Y: 881.04</span>
+                    <span className="absolute bottom-1.5 left-2 font-mono text-[8px] text-primary/80">Z: 1.002</span>
+                    <span className="absolute bottom-1.5 right-2 font-mono text-[8px] text-primary/80">LOCK: 99.4%</span>
+                  </div>
+                </div>
+
+                {/* Dynamic Optical Exposure Bar Slider */}
+                <div className="relative z-20 px-4 py-2 bg-surface-container-lowest/80 backdrop-blur-md flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[15px] text-on-surface-variant">exposure</span>
+                    <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">EXPOSURE</span>
+                  </div>
+                  <div className="flex-1 max-w-[140px] bg-surface-container-high h-1.5 rounded-full overflow-hidden flex items-center">
+                    <div className="bg-primary h-full w-2/3 rounded-full" />
+                  </div>
+                  <span className="font-mono text-[9px] text-on-surface uppercase font-bold">+0.7 EV</span>
                 </div>
               </div>
-            )}
+            );
+          })()}
 
-            {/* Controls Bar (Camera Switch, Torch, Upload) */}
-            {cameraActive && (
-              <div className="absolute top-3 right-3 flex items-center gap-2">
-                {hasTorch && (
-                  <button
-                    type="button"
-                    onClick={toggleTorch}
-                    title={isTorchOn ? 'Turn Off Flashlight' : 'Turn On Flashlight'}
-                    className={`p-2 rounded-xl backdrop-blur-md border transition active:scale-95 shadow-lg ${
-                      isTorchOn
-                        ? 'bg-amber-500 text-black border-amber-300'
-                        : 'bg-black/60 hover:bg-black/80 text-white border-white/20'
-                    }`}
-                  >
-                    {isTorchOn ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={toggleCamera}
-                  title="Switch Camera (Back/Front)"
-                  className="p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 transition active:scale-95 shadow-lg"
-                >
-                  <SwitchCamera className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+          {/* Dynamic Verdict Resolution Module */}
+          {(() => {
+            const effectiveVerdict =
+              selectedVerdictTab !== 'AUTO'
+                ? selectedVerdictTab
+                : verificationState === 'SUCCESS'
+                ? 'GRANTED'
+                : verificationState === 'DENIED'
+                ? denialType === 'CROSS_GYM'
+                  ? 'MISMATCH'
+                  : denialType === 'GEOFENCE'
+                  ? 'GEOFENCE'
+                  : denialType === 'COOLDOWN'
+                  ? 'COOLDOWN'
+                  : 'LOCKOUT'
+                : 'GRANTED';
 
-            {/* Inactive or Error State */}
-            {!cameraActive && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 dark:bg-black/95 text-white space-y-3">
-                <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-400">
-                  <Camera className="w-8 h-8" />
+            if (effectiveVerdict === 'GRANTED') {
+              return (
+                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-primary/30 animate-fade-in">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined text-[24px]">verified</span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-black uppercase text-primary leading-tight">
+                            Access Granted
+                          </span>
+                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-primary uppercase font-bold">
+                            Haptic Ok
+                          </span>
+                        </div>
+                        <span className="text-xs text-on-surface-variant mt-0.5">
+                          {resultMessage || 'Welcome to IronVault Downtown • Member validated'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Timecode Scan</span>
+                      <span className="font-mono text-xs text-on-surface mt-0.5">07:32:15.842 AM</span>
+                    </div>
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
+                      <span className="font-mono text-xs text-primary mt-0.5 font-bold">
+                        UNLOCKED: GATE 01
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-300 max-w-xs">
-                  {cameraError || (isStartingCamera ? 'Opening back camera...' : 'Starting turnstile scanner...')}
-                </p>
-                <button
-                  onClick={() => startCamera(cameraFacing)}
-                  disabled={isStartingCamera}
-                  className="px-5 py-2.5 rounded-xl btn-primary-green text-xs font-black flex items-center gap-2"
-                >
-                  <Camera className="w-4 h-4" />
-                  <span>{isStartingCamera ? 'Opening Camera...' : 'Open Back Camera'}</span>
-                </button>
+              );
+            }
+
+            if (effectiveVerdict === 'MISMATCH') {
+              return (
+                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-amber-500/40 animate-fade-in">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined text-[24px]">domain_disabled</span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-black uppercase text-amber-400 leading-tight">
+                            Cross-Gym Mismatch
+                          </span>
+                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-amber-400 uppercase font-bold">
+                            Haptic Alert
+                          </span>
+                        </div>
+                        <span className="text-xs text-on-surface-variant mt-0.5">
+                          {resultMessage || 'Membership registered at Northgate Flagship. Cannot enter Downtown location.'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Registered Gym</span>
+                      <span className="font-mono text-xs text-on-surface mt-0.5">IronVault Northgate</span>
+                    </div>
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
+                      <span className="font-mono text-xs text-amber-400 mt-0.5 font-bold">
+                        INTERCEPT: GATE LOCKED
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (effectiveVerdict === 'GEOFENCE') {
+              return (
+                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-orange-500/40 animate-fade-in">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined text-[24px]">pin_drop</span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-black uppercase text-orange-400 leading-tight">
+                            Geofence Breach
+                          </span>
+                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-orange-400 uppercase font-bold">
+                            Haptic Warn
+                          </span>
+                        </div>
+                        <span className="text-xs text-on-surface-variant mt-0.5">
+                          {resultMessage || 'Physical device GPS is 850m outside authorized turnstile boundary.'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">GPS Perimeter</span>
+                      <span className="font-mono text-xs text-on-surface mt-0.5">Radius: 150m (Actual 850m)</span>
+                    </div>
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
+                      <span className="font-mono text-xs text-orange-400 mt-0.5 font-bold">
+                        INTERCEPT: OUT OF BOUNDS
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            if (effectiveVerdict === 'COOLDOWN') {
+              return (
+                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-cyan-500/40 animate-fade-in">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined text-[24px]">schedule</span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-black uppercase text-cyan-400 leading-tight">
+                            Anti-Passback Cooldown
+                          </span>
+                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-cyan-400 uppercase font-bold">
+                            Haptic Mute
+                          </span>
+                        </div>
+                        <span className="text-xs text-on-surface-variant mt-0.5">
+                          {resultMessage || 'Pass scanned 42s ago. Cooldown enforced to prevent barcode sharing.'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Cooldown Remaining</span>
+                      <span className="font-mono text-xs text-cyan-400 mt-0.5 font-bold">02:18s</span>
+                    </div>
+                    <div className="flex flex-col p-1">
+                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
+                      <span className="font-mono text-xs text-on-surface mt-0.5 font-bold">
+                        HOLD TURNSTILE
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // Default: LOCKOUT
+            return (
+              <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-error/50 animate-fade-in">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-error-container text-white flex items-center justify-center flex-shrink-0">
+                      <span className="material-symbols-outlined text-[24px]">shield_alert</span>
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-black uppercase text-error leading-tight">
+                          Security Lockout
+                        </span>
+                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-error/20 text-error uppercase font-bold">
+                          Critical Lock
+                        </span>
+                      </div>
+                      <span className="text-xs text-on-surface-variant mt-0.5">
+                        {resultMessage || 'Multi-device clone detected. Pass temporarily locked for fraud protection.'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
+                  <div className="flex flex-col p-1">
+                    <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Exploit Vector</span>
+                    <span className="font-mono text-xs text-error mt-0.5 font-bold">DEVICE_CLONE_SHA256</span>
+                  </div>
+                  <div className="flex flex-col p-1">
+                    <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
+                    <span className="font-mono text-xs text-error mt-0.5 font-bold">
+                      GATE LOCKOUT • CALL DESK
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Quick Fallback: Upload Photo Button */}
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center pt-1">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="py-2 px-4 rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 hover:bg-slate-100 dark:bg-zinc-800/80 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 text-xs font-bold flex items-center gap-2 transition"
+              className="py-2.5 px-4 rounded-xl border border-surface-container-high bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold flex items-center gap-2 transition active:scale-95"
             >
-              <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <Upload className="w-3.5 h-3.5 text-primary" />
               <span>Or Upload Photo of QR Poster</span>
             </button>
-          </div>
-
-          {/* Location Verification & Instruction */}
-          <div className="app-card-subtle p-3.5 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-                <Navigation className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                Turnstile Gate:
-              </span>
-              <span className="badge-active-green text-[10px]">
-                {gateMode === 'ENTER' ? 'Entrance Gate Turnstile' : 'Exit Gate Turnstile'}
-              </span>
-            </div>
-
-            <p className="text-[11px] text-slate-500 dark:text-zinc-400 text-center pt-1 border-t border-slate-200 dark:border-zinc-800">
-              Aim your camera at the physical {gateMode === 'ENTER' ? 'Entrance' : 'Exit'} poster at the gate.
-            </p>
           </div>
         </div>
       </div>

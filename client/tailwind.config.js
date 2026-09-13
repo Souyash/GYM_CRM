@@ -8,12 +8,50 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Poppins', 'Inter', 'sans-serif'],
-        heading: ['"Plus Jakarta Sans"', 'Poppins', 'sans-serif'],
+        sans: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'Poppins', 'Inter', 'sans-serif'],
+        heading: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'Poppins', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
         poppins: ['Poppins', 'sans-serif'],
       },
       colors: {
+        // Stitch AI Design Tokens
+        "surface": "#111319",
+        "surface-dim": "#111319",
+        "surface-bright": "#37393f",
+        "surface-container-lowest": "#0c0e13",
+        "surface-container-low": "#191c21",
+        "surface-container": "#1d2025",
+        "surface-container-high": "#282a30",
+        "surface-container-highest": "#32353b",
+        "surface-variant": "#32353b",
+        "on-surface": "#e1e2ea",
+        "on-surface-variant": "#bbcabf",
+        "on-background": "#e1e2ea",
+        "primary": "#4edea3",
+        "primary-container": "#10b981",
+        "primary-fixed": "#6ffbbe",
+        "primary-fixed-dim": "#4edea3",
+        "on-primary": "#003824",
+        "on-primary-container": "#00422b",
+        "secondary": "#45dfa4",
+        "secondary-container": "#00bd85",
+        "secondary-fixed": "#68fcbf",
+        "secondary-fixed-dim": "#45dfa4",
+        "on-secondary": "#003825",
+        "on-secondary-container": "#00452e",
+        "tertiary": "#4cd7f6",
+        "tertiary-container": "#00b2d0",
+        "tertiary-fixed": "#acedff",
+        "tertiary-fixed-dim": "#4cd7f6",
+        "on-tertiary": "#003640",
+        "on-tertiary-container": "#003f4b",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "on-error": "#690005",
+        "on-error-container": "#ffdad6",
+        "outline": "#86948a",
+        "outline-variant": "#3c4a42",
+
         // High-Precision Brand & Status Design System Tokens
         carbon: {
           950: '#06080D',          // Pure Void Black (App canvas)

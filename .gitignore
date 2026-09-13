@@ -45,3 +45,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Media screen recordings
+*.mov
+*.mp4
+Screen Recording*
+Screenshot*
+
+
