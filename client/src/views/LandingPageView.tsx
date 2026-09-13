@@ -40,6 +40,7 @@ import {
   X
 } from 'lucide-react';
 import { api } from '../services/api';
+import { IronVaultLogo } from '../components/IronVaultLogo';
 import { BodybuildingAnatomyMap } from '../components/BodybuildingAnatomyMap';
 import { GymEquipmentShowcase } from '../components/GymEquipmentShowcase';
 import { BodybuildingAthletesSpotlight } from '../components/BodybuildingAthletesSpotlight';
@@ -149,9 +150,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
-              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
-            </div>
+            <IronVaultLogo className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl shadow-lg shadow-emerald-500/20 flex-shrink-0" />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-black text-lg sm:text-xl tracking-wider text-slate-900 dark:text-white">
@@ -656,6 +655,233 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* BRAND VALIDATION METRICS */}
+      <section className="w-full bg-zinc-950/90 py-12 px-4 sm:px-6 lg:px-8 border-y border-white/5">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="space-y-1">
+            <div className="text-3xl sm:text-4xl font-black text-white font-mono">4.8M+</div>
+            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">Monthly Gate Turnstile Flips</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono">142ms</div>
+            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-mono">P99 Edge Verification</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-3xl sm:text-4xl font-black text-teal-400 font-mono">840+</div>
+            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-mono">Active High-Volume Arenas</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-3xl sm:text-4xl font-black text-white font-mono">$0</div>
+            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">Proprietary Reader Lock-in</div>
+          </div>
+        </div>
+      </section>
+
+      {/* SIMULATION SPLIT HUD SHOWCASE */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-12 space-y-2">
+          <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest font-mono">Real-Time Access Audit</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            Turnstiles Powered by Pure Software. Zero Keyfobs.
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-zinc-400">
+            Compare outdated plastic badge readers against IronVault's sub-second cryptographic camera HUD.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Left: Archaic Legacy Systems */}
+          <div className="lg:col-span-5 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden backdrop-blur-xl">
+            <div className="absolute top-0 right-0 px-3 py-1 bg-rose-950/80 border-b border-l border-rose-500/30 font-mono text-[10px] text-rose-300 font-bold uppercase rounded-bl-xl">
+              LEGACY STATUS: INEFFICIENCY
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2 text-rose-400">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="font-mono text-xs uppercase tracking-wider font-bold">Plastic Keyfobs & Prox Cards</span>
+              </div>
+              <h3 className="text-xl font-bold text-white tracking-tight">The 2.4-Second Gate Bottleneck</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Athletes dig through duffels for magnetic badges. Damaged antennas, cloned credentials, and lost cards choke your reception line during peak 5:30 PM gym rushes.
+              </p>
+            </div>
+            <div className="my-6 p-4 rounded-2xl bg-zinc-950/70 border border-white/5 space-y-2.5">
+              <div className="flex justify-between font-mono text-xs">
+                <span className="text-zinc-400">FOB REPLACEMENT UNIT COST</span>
+                <span className="text-rose-400 font-bold">$4.20 / member</span>
+              </div>
+              <div className="flex justify-between font-mono text-xs">
+                <span className="text-zinc-400">PASS-BACK FRAUD RISK</span>
+                <span className="text-rose-400 font-bold">UNPROTECTED</span>
+              </div>
+              <div className="flex justify-between font-mono text-xs">
+                <span className="text-zinc-400">QUEUE DWELL TIME</span>
+                <span className="text-rose-400 font-bold">2,420 ms / gate</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-400 text-xs pt-1 border-t border-white/5">
+              <X className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>Manual front-desk reissuing requires dedicated 1.5 FTE desk staff</span>
+            </div>
+          </div>
+
+          {/* Center VS Graphic Token */}
+          <div className="lg:col-span-2 flex flex-col items-center justify-center py-4">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-emerald-500/30 flex items-center justify-center font-mono font-black text-emerald-400 shadow-xl shadow-emerald-500/10 text-base">
+              VS
+            </div>
+            <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mt-3 hidden lg:block">REALTIME AUDIT</span>
+          </div>
+
+          {/* Right: IronVault Next-Gen Telemetry Pass */}
+          <div className="lg:col-span-5 rounded-3xl bg-zinc-900/60 border border-emerald-500/30 p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden backdrop-blur-xl shadow-2xl shadow-emerald-500/10">
+            <div className="absolute top-0 right-0 px-3 py-1 bg-emerald-500 text-black font-mono text-[10px] font-bold uppercase rounded-bl-xl shadow-md">
+              IRONVAULT OS: ZERO LATENCY
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2 text-emerald-400">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="font-mono text-xs uppercase tracking-wider font-bold">Dynamic Cryptographic HUD</span>
+              </div>
+              <h3 className="text-xl font-bold text-white tracking-tight">Sub-Second Biometric Screen Authorization</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Ephemeral time-based QR codes refresh every 30 seconds inside Apple Wallet and native app. Zero hardware scanners needed—runs on any low-cost tablet camera.
+              </p>
+            </div>
+            <div className="my-6 p-4 rounded-2xl bg-zinc-950/80 border border-white/5 space-y-2.5">
+              <div className="flex justify-between items-center text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-mono text-zinc-300">TOKEN: #IV-8492-TX</span>
+                </div>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">0.18s VERIFIED</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                <div className="p-2 rounded-xl bg-zinc-900 border border-white/5">
+                  <div className="text-lg font-black text-emerald-400 font-mono">0.18s</div>
+                  <div className="text-[9px] font-mono text-zinc-400 uppercase">RELAY TRIGGER</div>
+                </div>
+                <div className="p-2 rounded-xl bg-zinc-900 border border-white/5">
+                  <div className="text-lg font-black text-teal-400 font-mono">100%</div>
+                  <div className="text-[9px] font-mono text-zinc-400 uppercase">ANTI-SHARING</div>
+                </div>
+                <div className="p-2 rounded-xl bg-zinc-900 border border-white/5">
+                  <div className="text-lg font-black text-white font-mono">$0.00</div>
+                  <div className="text-[9px] font-mono text-zinc-400 uppercase">PLASTIC COST</div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-400 text-xs pt-1 border-t border-white/5 font-medium">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>Passive dynamic recovery recaptures an avg. $14,850/mo in membership leakage</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4 CORE PRODUCT PILLARS (BENTO GRID) */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+        <div className="max-w-2xl text-left space-y-2">
+          <span className="font-mono text-xs text-emerald-400 uppercase tracking-widest font-bold">Hardware Architecture</span>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            Precision Telemetry at Physical Scale
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-zinc-400">
+            Built for extreme foot-traffic environments: combat training halls, multi-floor barbell complexes, and 24/7 unstaffed fitness chains.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+          {/* Pillar 1: Sub-Second QR (Span 7) */}
+          <div className="lg:col-span-7 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
+            <div className="space-y-3">
+              <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
+                <QrCode className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Sub-Second QR & Laser Reticle HUD</h3>
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                Dynamic cryptographic tokens refresh with high-entropy hashes every 30 seconds. Screenshots and recorded videos fail instantly. If network cables are cut, our in-browser WebAssembly engine evaluates encrypted local state keys locally in under 12 milliseconds.
+              </p>
+            </div>
+            <div className="mt-6 p-4 rounded-2xl bg-zinc-950 border border-white/5 space-y-2">
+              <div className="flex justify-between items-center font-mono text-xs">
+                <span className="text-teal-400">OPTICAL CAM RETICLE: 60FPS ACTIVE</span>
+                <span className="text-zinc-400">HASH: ED25519-SIG</span>
+              </div>
+              <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-400 w-5/6 animate-pulse" />
+              </div>
+              <div className="flex justify-between font-mono text-[10px] text-zinc-500">
+                <span>LOCAL WASM CACHE: SYNCED</span>
+                <span>GATE FLIP LATENCY: 0.14s</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pillar 2: Anti-Passback (Span 5) */}
+          <div className="lg:col-span-5 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
+            <div className="space-y-3">
+              <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
+                <Shield className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Cross-Facility Anti-Passback</h3>
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                Geo-telemetry and time-velocity heuristics instantly flag unauthorized account transfers. If Member A scans at Downtown at 09:00, their pass is physically locked out of Midtown until real-world transit velocity permits.
+              </p>
+            </div>
+            <div className="mt-6 p-3.5 rounded-2xl bg-zinc-950 border border-rose-500/20 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400 shrink-0">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1 font-mono text-xs">
+                <div className="text-white font-bold truncate">PASSBACK_EVENT_REJECTED</div>
+                <div className="text-rose-400 text-[10px]">DELTA: +4.2s (IMPOSSIBLE TRAVEL)</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pillar 3: Fast Desk Renew (Span 5) */}
+          <div className="lg:col-span-5 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
+            <div className="space-y-3">
+              <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">3-Tap Fast Desk Member Renew</h3>
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                When a past-due athlete taps the gate, the tablet immediately offers an integrated Apple Pay / Google Pay micro-checkout on screen. They tap their watch, the gate pops open, and dues deposit instantly to your Stripe ledger.
+              </p>
+            </div>
+            <div className="mt-6 p-3.5 rounded-2xl bg-zinc-950 border border-white/5 flex justify-between items-center font-mono text-xs">
+              <div className="flex items-center gap-2 text-zinc-300">
+                <Zap className="w-4 h-4 text-teal-400" />
+                <span>ONE-TOUCH REACTIVATION</span>
+              </div>
+              <span className="text-emerald-400 text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">10 SECONDS TOTAL</span>
+            </div>
+          </div>
+
+          {/* Pillar 4: Edge Node Relays (Span 7) */}
+          <div className="lg:col-span-7 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
+            <div className="space-y-3">
+              <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
+                <Activity className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Edge Node Hardware Relays</h3>
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                Zero rewiring. Connect our universal $49 dry-contact IoT trigger module to Hayward turnstiles, Boon Edam optical gates, Alvarado tripod arms, or magnetic glass doors. Fires physical relay signals over local WebSocket in under 18 milliseconds.
+              </p>
+            </div>
+            <div className="mt-6 p-4 rounded-2xl bg-zinc-950 border border-white/5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="text-zinc-300">COMPATIBLE: HAYWARD, ALVARADO, BOON EDAM</span>
+              </div>
+              <span className="text-emerald-400 font-bold">DRY-CONTACT NO/NC RELAY</span>
+            </div>
           </div>
         </div>
       </section>

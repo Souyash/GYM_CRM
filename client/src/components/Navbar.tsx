@@ -16,6 +16,7 @@ import {
   Globe,
   HeartPulse
 } from 'lucide-react';
+import { IronVaultLogo } from './IronVaultLogo';
 import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
@@ -74,12 +75,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand */}
           {/* Brand & Gym Tenant Badge */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center shadow-md dark:shadow-glow-green text-white dark:text-black">
-              <Shield className="w-5 h-5 stroke-[2.5]" />
-            </div>
+            <IronVaultLogo className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl shadow-lg shadow-emerald-500/20 shrink-0" />
             <div>
               <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1">
-                IRON<span className="text-emerald-600 dark:text-emerald-400">VAULT</span>
+                IRON<span className="text-emerald-500">VAULT</span>
               </span>
               <span className="text-[10px] hidden sm:block font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 -mt-1">
                 FITNESS & HEALTH CLUB

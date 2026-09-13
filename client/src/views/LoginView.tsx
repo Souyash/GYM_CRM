@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { IronVaultLogo } from '../components/IronVaultLogo';
 
 export interface LoginViewProps {
   initialTab?: 'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS';
@@ -525,11 +526,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex p-3.5 rounded-2xl bg-emerald-600 dark:bg-emerald-500 shadow-sm dark:shadow-glow-green mb-3 text-white dark:text-black">
-          <Shield className="w-8 h-8 stroke-[2.5]" />
-        </div>
+        <IronVaultLogo className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl shadow-xl shadow-emerald-500/20 mb-3 mx-auto" />
         <h1 className="text-3xl font-black tracking-tight">
-          IRON<span className="text-emerald-600 dark:text-emerald-400">VAULT</span>
+          IRON<span className="text-emerald-500">VAULT</span>
         </h1>
         <p className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
           MULTI-TENANT FITNESS CRM & SAAS
