@@ -40,6 +40,7 @@ import { WorkoutLogModal } from '../components/WorkoutLogModal';
 import { WorkoutDepartureModal } from '../components/WorkoutDepartureModal';
 import { MemberOnboardingModal } from '../components/MemberOnboardingModal';
 import { MemberOnboardingForm } from '../components/MemberOnboardingForm';
+import { AppleWalletDigitalPass } from '../components/AppleWalletDigitalPass';
 
 interface MemberProfileProps {
   onOpenScanner: (mode?: 'ENTER' | 'EXIT') => void;
@@ -61,6 +62,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
 
   // Segmented Subpart Tab State: 'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'
   const [activeSubpart, setActiveSubpart] = useState<'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'>('PASS');
+  const [passDesignMode, setPassDesignMode] = useState<'APPLE_WALLET_PLUS' | 'CLASSIC'>('APPLE_WALLET_PLUS');
 
   // Departure Celebration Modal
   const [departureSessionData, setDepartureSessionData] = useState<any | null>(null);
@@ -475,10 +477,48 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       {/* ========================================================================= */}
       {activeSubpart === 'PASS' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          {/* HERO APPLE WALLET VIP DIGITAL PASS CARD */}
-          <div className="relative w-full rounded-3xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-6 sm:p-7 shadow-2xl border border-white/15 overflow-hidden">
-            {/* Ambient Glass Glows */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+          {/* Pass Layout Switcher */}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+              Pass Layout Style
+            </span>
+            <div className="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-white/10">
+              <button
+                type="button"
+                onClick={() => setPassDesignMode('APPLE_WALLET_PLUS')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                  passDesignMode === 'APPLE_WALLET_PLUS'
+                    ? 'bg-[#6dffba] text-[#003822] shadow-sm font-extrabold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                ✨ Apple Wallet Pass
+              </button>
+              <button
+                type="button"
+                onClick={() => setPassDesignMode('CLASSIC')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${
+                  passDesignMode === 'CLASSIC'
+                    ? 'bg-emerald-500 text-black shadow-sm font-extrabold'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                📊 Facility Pass
+              </button>
+            </div>
+          </div>
+
+          {passDesignMode === 'APPLE_WALLET_PLUS' ? (
+            <AppleWalletDigitalPass
+              onOpenScanner={onOpenScanner}
+              onNavigateToTab={(tab) => setActiveSubpart(tab as any)}
+            />
+          ) : (
+            <>
+              {/* HERO APPLE WALLET VIP DIGITAL PASS CARD */}
+              <div className="relative w-full rounded-3xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-6 sm:p-7 shadow-2xl border border-white/15 overflow-hidden">
+                {/* Ambient Glass Glows */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
 
             <div className="relative z-10 flex flex-col gap-5">
@@ -697,15 +737,17 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             </button>
           </div>
 
-          {/* Quick Shortcuts Bar */}
-          <QuickActionBar
-            onCheckIn={() => onOpenScanner('ENTER')}
-            onCheckOut={handleDirectCheckOut}
-            onBookClass={() => setActiveSubpart('COMMUNITY')}
-            onLogWorkout={() => setIsWorkoutModalOpen(true)}
-            hasCheckedInToday={hasCheckedInToday}
-            isInGym={!!activeSession}
-          />
+            {/* Quick Shortcuts Bar */}
+            <QuickActionBar
+              onCheckIn={() => onOpenScanner('ENTER')}
+              onCheckOut={handleDirectCheckOut}
+              onBookClass={() => setActiveSubpart('COMMUNITY')}
+              onLogWorkout={() => setIsWorkoutModalOpen(true)}
+              hasCheckedInToday={hasCheckedInToday}
+              isInGym={!!activeSession}
+            />
+          </>
+          )}
         </div>
       )}
 

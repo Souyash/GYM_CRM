@@ -240,3 +240,4 @@ export const ZomatoLiveBanner: React.FC<ZomatoLiveBannerProps> = ({
     </div>
   );
 };
+
