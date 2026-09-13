@@ -6,8 +6,6 @@ import {
   Search,
   Copy,
   Check,
-  Filter,
-  ShieldAlert,
   KeyRound,
   Mail,
   Phone,
@@ -18,14 +16,15 @@ import {
   CheckCircle2,
   AlertTriangle,
   MapPin,
-  Calendar,
-  CreditCard,
-  ChevronDown,
-  FileSpreadsheet,
   ExternalLink,
   User,
   Activity,
-  Trash2
+  Trash2,
+  Shield,
+  Zap,
+  Globe,
+  Radio,
+  FileSpreadsheet
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -277,10 +276,6 @@ Portal URL: ${window.location.origin}`;
     return members.filter((m) => m.status === 'ACTIVE').length;
   }, [members]);
 
-  const totalMonthlyValue = useMemo(() => {
-    return members.reduce((sum, m) => sum + (Number(m.price) || 0), 0);
-  }, [members]);
-
   // -------------------------------------------------------------
   // CSV EXPORT LOGIC
   // -------------------------------------------------------------
@@ -380,537 +375,438 @@ Portal URL: ${window.location.origin}`;
   };
 
   return (
-    <div className="w-full min-h-screen bg-surface text-on-surface pb-24 pt-safe px-3 sm:px-6 space-y-6">
+    <div className="w-full min-h-screen bg-zinc-950 text-zinc-100 pb-28 pt-safe px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Toast Notification Banner */}
       {actionNotice && (
-        <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all transform animate-fade-in border ${
+        <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 transition-all backdrop-blur-xl border ${
           isErrorNotice
-            ? 'bg-error-container text-on-error-container border-error/30'
-            : 'bg-surface-container-highest text-on-surface border-surface-container-high'
+            ? 'bg-rose-950/90 text-rose-200 border-rose-500/30'
+            : 'bg-zinc-900/95 text-white border-white/15'
         }`}>
-          <span className={`material-symbols-outlined text-[20px] ${isErrorNotice ? 'text-error' : 'text-primary'}`}>
-            {isErrorNotice ? 'security' : 'check_circle'}
-          </span>
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+            isErrorNotice ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
+          }`}>
+            {isErrorNotice ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+          </div>
           <div className="flex flex-col">
-            <span className="font-headline-sm text-body-sm font-bold text-on-surface">
-              {isErrorNotice ? 'Security Intercept' : 'Operation Executed'}
+            <span className="text-xs font-bold text-white">
+              {isErrorNotice ? 'Security Intercept' : 'Operation Success'}
             </span>
-            <span className="font-label-mono text-label-mono text-on-surface-variant">
+            <span className="text-xs text-zinc-300">
               {actionNotice}
             </span>
           </div>
           <button
             onClick={() => setActionNotice(null)}
-            className="ml-3 text-on-surface-variant hover:text-on-surface transition"
+            className="ml-3 text-zinc-400 hover:text-white transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Ambient Glow Canvas Elements */}
+      {/* Ambient Glow */}
       <div className="relative w-full overflow-hidden pointer-events-none -mb-6">
-        <div className="absolute -top-12 left-1/4 w-96 h-32 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-24 right-10 w-80 h-40 bg-tertiary/5 rounded-full blur-3xl" />
+        <div className="absolute -top-16 left-1/3 w-[500px] h-36 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-12 right-12 w-96 h-40 bg-teal-500/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Operational Header & Live Telemetry Strip */}
-      <div className="flex flex-col gap-3 w-full relative z-10">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-surface-container-lowest p-4 sm:p-5 rounded-xl shadow-xl border border-surface-container-high/30">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-center gap-2 bg-surface-container-high px-3 py-1 rounded">
-              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-              <span className="font-badge-label text-badge-label text-primary tracking-widest uppercase">
-                DEV OPERATIONS • MULTI-TENANT CONSOLE
-              </span>
+      {/* Sleek Linear Header */}
+      <div className="flex flex-col gap-4 w-full relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black font-bold shadow-lg shadow-emerald-500/20">
+              <Building2 className="w-6 h-6" />
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="font-label-mono text-outline">CLUSTER:</span>
-              <span className="font-telemetry-tabular text-tertiary font-mono">us-east-metal.ironvault.internal</span>
-              <span className="px-1.5 py-0.5 rounded bg-surface-container font-label-mono text-[10px] text-secondary">
-                HTTP/3 QUIC
-              </span>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  Super Admin Console
+                </h1>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Live Fleet
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400">
+                Multi-tenant workspace orchestration, turnstile gateways & cross-gym security
+              </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => {
                 loadData();
-                showToast('Edge Topology Synced. Live streams refreshed.');
+                showToast('Synchronized with edge cloud.');
               }}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-2 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-xs transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 text-xs font-semibold border border-white/10 transition-all active:scale-95 disabled:opacity-50"
             >
-              <span className={`material-symbols-outlined text-[16px] text-tertiary ${isLoading ? 'animate-spin' : ''}`}>
-                sync
-              </span>
-              <span>Force Cloud Sync</span>
+              <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>Sync Cloud</span>
             </button>
 
             <button
               type="button"
               onClick={handleExportMasterArchive}
-              className="flex items-center gap-1.5 px-3 py-2 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-xs transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 text-xs font-semibold border border-white/10 transition-all active:scale-95"
             >
-              <span className="material-symbols-outlined text-[16px] text-on-surface-variant">download</span>
-              <span>Export Master CSV</span>
+              <Download className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Export CSV</span>
             </button>
 
             <button
               type="button"
               onClick={handleOpenCreateGymModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded bg-primary text-on-primary font-headline-sm text-xs hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(78,222,163,0.3)] active:scale-95"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
             >
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              <span className="font-bold tracking-tight">Provision Gym Workspace</span>
+              <Sparkles className="w-4 h-4" />
+              <span>Provision Gym Workspace</span>
             </button>
           </div>
         </div>
 
-        {/* Telemetry Metric Pill Badges Strip */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full">
-          <div className="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low shadow-sm border border-surface-container-high/40">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded bg-surface-container-high flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[20px]">apartment</span>
-              </div>
-              <div>
-                <span className="font-label-mono text-[10px] text-outline uppercase block tracking-wider">Active Tenants</span>
-                <span className="font-telemetry-counter text-base sm:text-lg font-mono font-bold text-on-surface">
-                  {gyms.length} <span className="font-label-mono text-xs text-secondary font-normal">/ {gyms.length || 1}</span>
-                </span>
-              </div>
+        {/* 4 Glanceable KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Active Gyms</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>
-            <span className="font-badge-label text-[10px] text-secondary bg-surface-container px-1.5 py-0.5 rounded font-mono">
-              ONLINE
-            </span>
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {gyms.length}
+            </div>
+            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
+              <Globe className="w-3 h-3 text-emerald-400" />
+              <span>100% online across regions</span>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low shadow-sm border border-surface-container-high/40">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded bg-surface-container-high flex items-center justify-center text-tertiary">
-                <span className="material-symbols-outlined text-[20px]">bolt</span>
-              </div>
-              <div>
-                <span className="font-label-mono text-[10px] text-outline uppercase block tracking-wider">Platform Athletes</span>
-                <span className="font-telemetry-counter text-base sm:text-lg font-mono font-bold text-on-surface">
-                  {members.length.toLocaleString()}
-                </span>
-              </div>
+          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Total Athletes</span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+                +{totalActivePasses} Active
+              </span>
             </div>
-            <span className="font-badge-label text-[10px] text-tertiary bg-surface-container px-1.5 py-0.5 rounded font-mono">
-              +{totalActivePasses} ACTIVE
-            </span>
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {members.length.toLocaleString()}
+            </div>
+            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
+              <Users className="w-3 h-3 text-teal-400" />
+              <span>Platform-wide memberships</span>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low shadow-sm border border-surface-container-high/40">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded bg-surface-container-high flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[20px]">verified_user</span>
-              </div>
-              <div>
-                <span className="font-label-mono text-[10px] text-outline uppercase block tracking-wider">Gateway Uptime</span>
-                <span className="font-telemetry-counter text-base sm:text-lg font-mono font-bold text-primary">
-                  99.98%
-                </span>
-              </div>
+          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Gateway Uptime</span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+                Operational
+              </span>
             </div>
-            <span className="font-badge-label text-[10px] text-primary bg-surface-container px-1.5 py-0.5 rounded font-mono">
-              SLO MET
-            </span>
+            <div className="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">
+              99.98%
+            </div>
+            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
+              <Shield className="w-3 h-3 text-emerald-400" />
+              <span>Zero unplanned downtime</span>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low shadow-sm border border-surface-container-high/40">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded bg-surface-container-high flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined text-[20px]">speed</span>
-              </div>
-              <div>
-                <span className="font-label-mono text-[10px] text-outline uppercase block tracking-wider">Global P99 Latency</span>
-                <span className="font-telemetry-counter text-base sm:text-lg font-mono font-bold text-on-surface">
-                  42<span className="font-label-mono text-xs text-outline font-normal">ms</span>
-                </span>
-              </div>
+          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Turnstile Speed</span>
+              <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[10px] font-mono">
+                P99
+              </span>
             </div>
-            <span className="font-badge-label text-[10px] text-secondary bg-surface-container px-1.5 py-0.5 rounded font-mono">
-              -4ms JTR
-            </span>
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              18<span className="text-sm font-normal text-zinc-400 ml-0.5">ms</span>
+            </div>
+            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
+              <Zap className="w-3 h-3 text-amber-400" />
+              <span>Sub-second biometric & QR verification</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* System Health & Edge Topology Sub-Panel */}
+      {/* Gateway Traffic & Infrastructure Status */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
-        {/* Webhook Gateway Latency & Throughput Meter */}
-        <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-5 rounded-xl bg-surface-container-low shadow-lg border border-surface-container-high/30">
+        {/* Sleek Latency Visualizer */}
+        <div className="lg:col-span-8 bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 gap-2">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-[22px]">network_check</span>
-              <div>
-                <h2 className="font-headline-sm text-sm sm:text-base text-on-surface tracking-tight font-bold">
-                  Turnstile Ingress & Webhook Latency Spectrum
-                </h2>
-                <span className="font-label-mono text-[11px] text-on-surface-variant">
-                  Continuous 60-second real-time telemetry slice per edge pop
-                </span>
+            <div>
+              <h2 className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                Turnstile Validation Response Times
+              </h2>
+              <span className="text-xs text-zinc-400">
+                Real-time edge verification latency over the last 60 seconds
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span className="text-zinc-300 font-medium">Average 18.4ms</span>
+            </div>
+          </div>
+
+          {/* Clean Latency Chart Bars */}
+          <div className="grid grid-cols-12 items-end gap-1.5 h-28 pt-4 pb-2 px-3 bg-zinc-950/70 rounded-2xl border border-white/5">
+            {[
+              { h: '38%', s: '00s' },
+              { h: '44%', s: '05s' },
+              { h: '29%', s: '10s' },
+              { h: '35%', s: '15s' },
+              { h: '52%', s: '20s' },
+              { h: '48%', s: '25s' },
+              { h: '61%', s: '30s' },
+              { h: '42%', s: '35s' },
+              { h: '70%', s: '40s', alert: true },
+              { h: '36%', s: '45s' },
+              { h: '33%', s: '50s' },
+              { h: '40%', s: '55s', pulse: true }
+            ].map((bar, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5 h-full justify-end group">
+                <div
+                  className={`w-full rounded-md transition-all duration-300 ${
+                    bar.alert
+                      ? 'bg-amber-400/80 group-hover:bg-amber-300'
+                      : bar.pulse
+                      ? 'bg-emerald-400 group-hover:bg-emerald-300 animate-pulse'
+                      : 'bg-emerald-500/40 group-hover:bg-emerald-400'
+                  }`}
+                  style={{ height: bar.h }}
+                />
+                <span className="text-[9px] text-zinc-500 font-mono">{bar.s}</span>
               </div>
-            </div>
-            <div className="flex items-center gap-2 font-label-mono text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-on-surface font-semibold">EDGE VALIDATION (AVG 18.4ms)</span>
-            </div>
+            ))}
           </div>
 
-          {/* Latency Visual Graph / Bars */}
-          <div className="grid grid-cols-12 items-end gap-1 h-32 pt-4 pb-2 px-2 bg-surface-container-lowest rounded-lg border border-surface-container-high/20">
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary/40 hover:bg-primary transition-all rounded-t" style={{ height: '38%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">00s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary/50 hover:bg-primary transition-all rounded-t" style={{ height: '44%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">05s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '29%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">10s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '35%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">15s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '52%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">20s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-tertiary/70 hover:bg-tertiary transition-all rounded-t" style={{ height: '48%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">25s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '61%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">30s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '42%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">35s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-error hover:bg-error/80 transition-all rounded-t shadow-[0_0_8px_rgba(255,80,80,0.4)]" style={{ height: '78%' }} title="Spike: Geo-distance anomaly check" />
-              <span className="font-badge-label text-[9px] text-error font-mono font-bold">40s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '36%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">45s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-primary hover:bg-secondary transition-all rounded-t" style={{ height: '33%' }} />
-              <span className="font-badge-label text-[9px] text-outline font-mono">50s</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 h-full justify-end">
-              <div className="w-full bg-secondary hover:bg-secondary transition-all rounded-t animate-pulse" style={{ height: '40%' }} />
-              <span className="font-badge-label text-[9px] text-secondary font-mono font-bold">55s</span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between pt-3 gap-2 font-label-mono text-[11px] text-on-surface-variant border-t border-surface-container-high/30 mt-3">
-            <span>GATEWAY: <span className="text-on-surface font-semibold">api-turnstile.production.v4</span></span>
-            <span>RATE: <span className="text-secondary font-mono">1,489 req/sec</span></span>
-            <span>ERROR RATIO: <span className="text-primary font-mono">0.0014%</span></span>
-            <span>CIPHER: <span className="text-tertiary">TLS_AES_256_GCM_SHA384</span></span>
+          <div className="flex flex-wrap items-center justify-between pt-3 gap-2 text-xs text-zinc-400 border-t border-white/5 mt-3">
+            <span>Edge Cluster: <span className="text-zinc-200 font-medium">AWS us-east & Cloudflare Workers</span></span>
+            <span>Throughput: <span className="text-emerald-400 font-mono font-medium">1,489 scans/sec</span></span>
+            <span>Error Rate: <span className="text-emerald-400 font-mono font-medium">0.001%</span></span>
           </div>
         </div>
 
-        {/* Edge Compute Turnstile Nodes & WS Connection Pool */}
-        <div className="lg:col-span-4 flex flex-col justify-between p-4 sm:p-5 rounded-xl bg-surface-container-low shadow-lg border border-surface-container-high/30">
-          <div className="flex items-center justify-between pb-2">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[20px]">lan</span>
-              <h3 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface">Edge Node Topology</h3>
-            </div>
-            <span className="font-badge-label text-[10px] text-secondary bg-surface-container px-2 py-0.5 rounded font-mono">
-              {gyms.length}/{gyms.length || 1} HEALTHY
+        {/* Edge Node Topology */}
+        <div className="lg:col-span-4 bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3">
+            <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+              <Radio className="w-4 h-4 text-emerald-400" />
+              Connected Gateways
+            </h3>
+            <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold border border-emerald-500/20">
+              {gyms.length}/{gyms.length || 1} Healthy
             </span>
           </div>
 
-          <div className="flex flex-col gap-2.5 py-1">
-            <div className="p-2.5 rounded bg-surface-container-lowest flex flex-col gap-1 border border-surface-container-high/20">
-              <div className="flex items-center justify-between">
-                <span className="font-label-mono text-[10px] text-on-surface-variant uppercase">ACTIVE WS SOCKET POOLS</span>
-                <span className="font-telemetry-tabular text-xs text-secondary font-bold font-mono">
-                  {gyms.length} Hubs ({gyms.length * 2 + 6} Conns)
-                </span>
+          <div className="space-y-2.5 py-1">
+            <div className="p-3 rounded-xl bg-zinc-950/70 border border-white/5 space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-400">WebSocket Turnstile Relay</span>
+                <span className="text-emerald-400 font-bold font-mono">Active</span>
               </div>
-              <div className="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
-                <div className="bg-secondary h-full rounded-full" style={{ width: '88%' }} />
+              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-emerald-400 h-full rounded-full" style={{ width: '96%' }} />
               </div>
             </div>
 
-            <div className="p-2.5 rounded bg-surface-container-lowest flex flex-col gap-1 border border-surface-container-high/20">
-              <div className="flex items-center justify-between">
-                <span className="font-label-mono text-[10px] text-on-surface-variant uppercase">HARDWARE OCR CAMERA BUFFERS</span>
-                <span className="font-telemetry-tabular text-xs text-primary font-bold font-mono">0 Drop Frame</span>
+            <div className="p-3 rounded-xl bg-zinc-950/70 border border-white/5 space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-400">Biometric OCR Camera Stream</span>
+                <span className="text-emerald-400 font-bold font-mono">0 Drop Frames</span>
               </div>
-              <div className="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
-                <div className="bg-primary h-full rounded-full" style={{ width: '100%' }} />
+              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-emerald-400 h-full rounded-full" style={{ width: '100%' }} />
               </div>
             </div>
 
-            <div className="p-2.5 rounded bg-surface-container-lowest flex flex-col gap-1 border border-surface-container-high/20">
-              <div className="flex items-center justify-between">
-                <span className="font-label-mono text-[10px] text-on-surface-variant uppercase">REDIS STREAM REPLICATION</span>
-                <span className="font-telemetry-tabular text-xs text-tertiary font-bold font-mono">0.8ms Offset</span>
+            <div className="p-3 rounded-xl bg-zinc-950/70 border border-white/5 space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-400">Autonomous Gate Shield</span>
+                <span className="text-teal-400 font-bold font-mono">Armed</span>
               </div>
-              <div className="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
-                <div className="bg-tertiary h-full rounded-full" style={{ width: '96%' }} />
+              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-teal-400 h-full rounded-full" style={{ width: '100%' }} />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 text-[11px] font-label-mono text-outline border-t border-surface-container-high/30 mt-2">
-            <span>FAILOVER: ACTIVE-ACTIVE</span>
-            <span className="text-primary flex items-center gap-1 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              AUTONOMOUS SHIELD
+          <div className="flex items-center justify-between pt-3 text-xs text-zinc-400 border-t border-white/5 mt-2">
+            <span>Failover Mode: Active-Active</span>
+            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Multi-Region Synced
             </span>
           </div>
         </div>
       </div>
 
-      {/* Cross-Facility Fraud & Anti-Passback Telemetry Queue */}
-      <div className="flex flex-col gap-2.5 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-error animate-pulse" />
-            <h2 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface">
-              Cross-Facility Anti-Passback & Fraud Telemetry Queue
-            </h2>
-            <span className="font-badge-label text-[10px] bg-error-container text-on-error-container px-2 py-0.5 rounded font-mono font-bold">
-              2 CRITICAL ANOMALIES ACTIVE
-            </span>
+      {/* Security Alerts: Anti-Passback & Pass Fraud Protection */}
+      <div className="bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                Security Alerts: Anti-Passback & Fraud Protection
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Automated detection of shared passes, impossible velocity breaches, and cloned QR codes
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 font-label-mono text-xs text-on-surface-variant">
-            <span>AUTO-INTERCEPT:</span>
-            <span className="text-primary font-bold">ARMED (P1 ESCALATION)</span>
-          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-xs font-semibold self-start sm:self-auto">
+            <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+            2 Active Incidents
+          </span>
         </div>
 
-        {/* Anomaly Table Container */}
-        <div className="w-full bg-surface-container-low rounded-xl shadow-xl overflow-hidden border border-surface-container-high/30">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-surface-container-lowest font-label-mono text-[10px] text-outline uppercase tracking-wider">
-                  <th className="py-2.5 px-4">INCIDENT ID & TIMESTAMP</th>
-                  <th className="py-2.5 px-4">MEMBER IDENTIFIER</th>
-                  <th className="py-2.5 px-4">SECURITY EXPLOIT VECTOR</th>
-                  <th className="py-2.5 px-4">TELEMETRY & HARDWARE DELTA</th>
-                  <th className="py-2.5 px-4">RISK CLASSIFICATION</th>
-                  <th className="py-2.5 px-4 text-right">ONE-CLICK COUNTERMEASURE</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-container-high/40 font-body-sm">
-                {/* Anomaly 1: Dual check-in 12km in 4 min */}
-                <tr className={`transition-colors ${
-                  anomaly1Locked ? 'opacity-50 grayscale bg-surface-container' : 'hover:bg-surface-container/60 bg-error-container/10'
-                }`}>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-telemetry-tabular text-xs text-error font-bold font-mono">SEC-ANOM-9021</span>
-                      <span className="font-label-mono text-[10px] text-on-surface-variant">14:02:18.491 UTC</span>
-                      <span className="font-badge-label text-[9px] text-error mt-0.5 tracking-wider uppercase font-bold">
-                        IMPOSSIBLE VELOCITY
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold text-xs">
-                        IV
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-headline-sm text-xs text-on-surface font-semibold">Account IV-3391</span>
-                        <span className="font-label-mono text-[11px] text-on-surface-variant">Marcus Sterling (Black Vault)</span>
-                        <span className="font-label-mono text-[10px] text-tertiary">RFID: 0x98A_FC42_01</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col gap-0.5 max-w-sm">
-                      <span className="text-xs font-semibold text-on-surface">Dual Simultaneous Check-In: 12.4 km Delta</span>
-                      <p className="text-on-surface-variant text-[11px] leading-relaxed">
-                        Gate 02 at <span className="text-on-surface font-semibold">IronVault Downtown</span> scanned at 14:00:12. Secondary gate breach at <span className="text-on-surface font-semibold">IronVault Northgate</span> at 14:04:09 (3m 57s delta). Calculated travel rate 188.2 km/h exceeds physical threshold.
-                      </p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col gap-0.5 font-label-mono text-[10px]">
-                      <div><span className="text-outline">IP NODE:</span> <span className="text-on-surface">198.51.100.41 • 198.51.100.89</span></div>
-                      <div><span className="text-outline">HW HASH:</span> <span className="text-secondary font-mono">SHA256:d8c1..9a8f</span></div>
-                      <div><span className="text-outline">SCAN VEL:</span> <span className="text-tertiary font-mono">0.19s / 0.22s</span></div>
-                      <div><span className="text-outline">JITTER:</span> <span className="text-on-surface">1.4ms</span></div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-error/20 text-error">
-                      <span className="w-1.5 h-1.5 rounded-full bg-error animate-ping" />
-                      <span className="font-badge-label text-[10px] font-bold uppercase">CRITICAL 99.4%</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAnomaly1Locked(!anomaly1Locked);
-                          showToast(
-                            !anomaly1Locked
-                              ? 'Pass IV-3391 locked across all turnstile gates.'
-                              : 'Pass IV-3391 lock removed.',
-                            !anomaly1Locked
-                          );
-                        }}
-                        className={`px-3 py-1.5 rounded text-xs font-headline-sm transition-all shadow-md active:scale-95 flex items-center gap-1 ${
-                          anomaly1Locked
-                            ? 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant'
-                            : 'bg-error hover:bg-error/90 text-on-error font-bold'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[15px]">
-                          {anomaly1Locked ? 'lock_open' : 'lock'}
-                        </span>
-                        <span>{anomaly1Locked ? 'Pass Locked' : 'Lock Member Pass'}</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+        {/* Security Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          {/* Incident 1 */}
+          <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+            anomaly1Locked
+              ? 'bg-zinc-950/40 border-white/5 opacity-60'
+              : 'bg-zinc-950/80 border-rose-500/30'
+          }`}>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <span className="text-[10px] font-mono text-rose-400 font-semibold uppercase tracking-wider">
+                  Incident #SEC-9021 • 14:02 UTC
+                </span>
+                <h4 className="text-sm font-bold text-white mt-0.5">
+                  Impossible Travel Velocity Detected
+                </h4>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold">
+                HIGH RISK
+              </span>
+            </div>
+            <p className="text-xs text-zinc-300 leading-relaxed mb-4">
+              Member <strong className="text-white">Marcus Sterling</strong> checked in at <strong className="text-white">Downtown Branch</strong> and then at <strong className="text-white">Northgate Branch (12.4 km away)</strong> within 3 minutes 57 seconds. Pass is likely being shared with another person.
+            </p>
+            <div className="flex items-center justify-between pt-3 border-t border-white/5">
+              <span className="text-xs text-zinc-500 font-mono">Gate 02 Breach</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setAnomaly1Locked(!anomaly1Locked);
+                  showToast(!anomaly1Locked ? 'Pass locked across all gym locations.' : 'Lock removed.');
+                }}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1.5 ${
+                  anomaly1Locked
+                    ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                    : 'bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/25'
+                }`}
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>{anomaly1Locked ? 'Pass Locked' : 'Lock Pass at All Gates'}</span>
+              </button>
+            </div>
+          </div>
 
-                {/* Anomaly 2: QR Screenshot Clone Detected */}
-                <tr className={`transition-colors ${
-                  anomaly2Whitelisted ? 'bg-primary/10' : anomaly2Locked ? 'opacity-50 grayscale bg-surface-container' : 'hover:bg-surface-container/60 bg-surface-container-low'
-                }`}>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-telemetry-tabular text-xs text-tertiary font-bold font-mono">SEC-ANOM-9019</span>
-                      <span className="font-label-mono text-[10px] text-on-surface-variant">13:48:02.112 UTC</span>
-                      <span className="font-badge-label text-[9px] text-tertiary mt-0.5 tracking-wider uppercase font-bold">
-                        DEVICE MISMATCH
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-bold text-xs">
-                        IV
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-headline-sm text-xs text-on-surface font-semibold">Account IV-10822</span>
-                        <span className="font-label-mono text-[11px] text-on-surface-variant">Elena Rostova (Olympic Tier)</span>
-                        <span className="font-label-mono text-[10px] text-secondary">EPHEMERAL_TOKEN_ROTATION</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col gap-0.5 max-w-sm">
-                      <span className="text-xs font-semibold text-on-surface">QR Screenshot Clone / Identity Token Spoof</span>
-                      <p className="text-on-surface-variant text-[11px] leading-relaxed">
-                        Primary device profile registered as <span className="text-tertiary font-semibold">Apple iPhone 15 Pro (iOS 17.4)</span>. Token presented on secondary screen via <span className="text-error font-semibold">Samsung Galaxy S23 (Android 14)</span>.
-                      </p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col gap-0.5 font-label-mono text-[10px]">
-                      <div><span className="text-outline">IP NODE:</span> <span className="text-on-surface">172.56.21.90 (Cellular NAT)</span></div>
-                      <div><span className="text-outline">HW HASH:</span> <span className="text-error font-mono">MISMATCH: a74e != 2b90</span></div>
-                      <div><span className="text-outline">TOTP DRIFT:</span> <span className="text-tertiary font-mono">+12.8s replay window</span></div>
-                      <div><span className="text-outline">SENSOR:</span> <span className="text-on-surface">Optic QR Lux 98.2</span></div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-secondary-container/20 text-secondary">
-                      <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
-                      <span className="font-badge-label text-[10px] font-bold uppercase">ELEVATED 78.1%</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAnomaly2Locked(!anomaly2Locked);
-                          showToast(
-                            !anomaly2Locked
-                              ? 'Pass IV-10822 locked across all gates.'
-                              : 'Pass lock revoked.',
-                            !anomaly2Locked
-                          );
-                        }}
-                        className="px-2.5 py-1.5 rounded bg-surface-container-high hover:bg-error hover:text-on-error text-on-surface text-xs font-semibold transition-all active:scale-95 flex items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-[15px]">lock</span>
-                        <span>{anomaly2Locked ? 'Locked' : 'Lock Pass'}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAnomaly2Whitelisted(true);
-                          showToast('Hardware profile for IV-10822 whitelisted.');
-                        }}
-                        className="px-2.5 py-1.5 rounded bg-surface-container-high hover:bg-primary hover:text-on-primary text-on-surface-variant hover:text-on-surface text-xs font-semibold transition-all active:scale-95 flex items-center gap-1"
-                      >
-                        <span className="material-symbols-outlined text-[15px]">verified</span>
-                        <span>Whitelist HW</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Incident 2 */}
+          <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+            anomaly2Whitelisted
+              ? 'bg-emerald-950/20 border-emerald-500/30'
+              : anomaly2Locked
+              ? 'bg-zinc-950/40 border-white/5 opacity-60'
+              : 'bg-zinc-950/80 border-amber-500/30'
+          }`}>
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <span className="text-[10px] font-mono text-amber-400 font-semibold uppercase tracking-wider">
+                  Incident #SEC-9019 • 13:48 UTC
+                </span>
+                <h4 className="text-sm font-bold text-white mt-0.5">
+                  Possible QR Screenshot / Secondary Device
+                </h4>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold">
+                ELEVATED
+              </span>
+            </div>
+            <p className="text-xs text-zinc-300 leading-relaxed mb-4">
+              Member <strong className="text-white">Elena Rostova</strong>'s pass was scanned from a Samsung Galaxy S23 while their verified primary device is an iPhone 15 Pro. The QR code displayed delayed token rotation.
+            </p>
+            <div className="flex items-center justify-between pt-3 border-t border-white/5 gap-2">
+              <span className="text-xs text-zinc-500 font-mono">Turnstile Gate 01</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAnomaly2Locked(!anomaly2Locked);
+                    showToast(!anomaly2Locked ? 'Pass locked for review.' : 'Lock revoked.');
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition active:scale-95 flex items-center gap-1 ${
+                    anomaly2Locked ? 'bg-zinc-800 text-zinc-400' : 'bg-zinc-800 hover:bg-rose-500 text-zinc-200 hover:text-white'
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>{anomaly2Locked ? 'Locked' : 'Lock'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAnomaly2Whitelisted(true);
+                    showToast('Device verified & whitelisted.');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black text-xs font-bold transition active:scale-95 flex items-center gap-1 border border-emerald-500/30"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Whitelist Device</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Multi-Tenant Facility Registry Grid / Data Table */}
-      <div className="flex flex-col gap-3 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-primary text-[22px]">domain</span>
-            <div>
-              <h2 className="font-headline-sm text-sm sm:text-base font-bold text-on-surface">
-                Multi-Tenant Facility Infrastructure Directory
-              </h2>
-              <span className="font-label-mono text-[11px] text-on-surface-variant">
-                {gyms.length} enterprise gym workspaces connected via low-latency hardware turnstile daemons
-              </span>
-            </div>
+      <div className="bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-emerald-400" />
+              Multi-Tenant Gym Directory
+            </h2>
+            <p className="text-xs text-zinc-400">
+              Manage enterprise gym instances, owner accounts, and athlete records
+            </p>
           </div>
 
           {/* Tab Selector & Search Toolbar */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             {/* View Switcher Pills */}
-            <div className="flex items-center bg-surface-container-lowest p-1 rounded-lg border border-surface-container-high/30">
+            <div className="flex items-center bg-zinc-950/80 p-1 rounded-xl border border-white/10">
               <button
                 type="button"
                 onClick={() => setActiveTab('GYMS')}
-                className={`px-3 py-1 rounded text-xs font-label-mono transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   activeTab === 'GYMS'
-                    ? 'bg-primary text-on-primary font-bold shadow-sm'
-                    : 'text-on-surface-variant hover:text-on-surface'
+                    ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" />
-                <span>Workspaces ({filteredGyms.length})</span>
+                <span>Gyms ({filteredGyms.length})</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('MEMBERS')}
-                className={`px-3 py-1 rounded text-xs font-label-mono transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                   activeTab === 'MEMBERS'
-                    ? 'bg-primary text-on-primary font-bold shadow-sm'
-                    : 'text-on-surface-variant hover:text-on-surface'
+                    ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -919,101 +815,90 @@ Portal URL: ${window.location.origin}`;
             </div>
 
             {/* Search Input */}
-            <div className="flex items-center gap-1.5 bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-surface-container-high/30">
-              <span className="material-symbols-outlined text-outline text-[16px]">search</span>
+            <div className="flex items-center gap-2 bg-zinc-950/80 px-3.5 py-2 rounded-xl border border-white/10">
+              <Search className="w-4 h-4 text-zinc-500" />
               <input
                 type="text"
-                placeholder={activeTab === 'GYMS' ? 'Filter gyms, codes, owners...' : 'Filter athletes, emails, gyms...'}
+                placeholder={activeTab === 'GYMS' ? 'Search gym, code, owner...' : 'Search athlete, email, phone...'}
                 value={activeTab === 'GYMS' ? gymSearch : memberSearch}
                 onChange={(e) => {
                   if (activeTab === 'GYMS') setGymSearch(e.target.value);
                   else setMemberSearch(e.target.value);
                 }}
-                className="bg-transparent font-label-mono text-xs text-on-surface placeholder:text-outline focus:outline-none w-44 sm:w-56"
+                className="bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none w-44 sm:w-56"
               />
             </div>
           </div>
         </div>
 
-        {/* ========================================================= */}
-        {/* VIEW 1: GYM WORKSPACES DIRECTORY                          */}
-        {/* ========================================================= */}
+        {/* VIEW 1: GYM WORKSPACES DIRECTORY */}
         {activeTab === 'GYMS' && (
-          <div className="w-full bg-surface-container-low rounded-xl shadow-xl overflow-hidden border border-surface-container-high/30">
+          <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/50">
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-surface-container-lowest font-label-mono text-[10px] text-outline uppercase tracking-wider">
-                    <th className="py-2.5 px-4">FACILITY & CODE</th>
-                    <th className="py-2.5 px-4">TIER & SLA</th>
-                    <th className="py-2.5 px-4">OWNER DIRECT CONTACT</th>
-                    <th className="py-2.5 px-4">GEOFENCE</th>
-                    <th className="py-2.5 px-4">ATHLETES</th>
-                    <th className="py-2.5 px-4">MONTHLY SCANS</th>
-                    <th className="py-2.5 px-4">RISK SCORE</th>
-                    <th className="py-2.5 px-4 text-right">ADMIN CONTROL</th>
+                  <tr className="bg-zinc-900/80 text-zinc-400 uppercase tracking-wider text-[11px] font-semibold border-b border-white/10">
+                    <th className="py-3.5 px-4">Gym Facility</th>
+                    <th className="py-3.5 px-4">Access Code</th>
+                    <th className="py-3.5 px-4">Owner Contact</th>
+                    <th className="py-3.5 px-4">Location</th>
+                    <th className="py-3.5 px-4 text-center">Athletes</th>
+                    <th className="py-3.5 px-4 text-center">Total Scans</th>
+                    <th className="py-3.5 px-4 text-right">Quick Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-surface-container-high/40 font-body-sm">
+                <tbody className="divide-y divide-white/5">
                   {filteredGyms.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-outline">
+                      <td colSpan={7} className="py-12 text-center text-zinc-500">
                         <Building2 className="w-10 h-10 mx-auto stroke-1 opacity-50 mb-2" />
-                        <p className="text-sm font-bold text-on-surface">No Gym Workspaces Found</p>
-                        <p className="text-xs text-on-surface-variant mt-0.5">Provision a new workspace above to begin.</p>
+                        <p className="text-sm font-bold text-zinc-300">No Gym Workspaces Found</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">Provision a new workspace above to begin.</p>
                       </td>
                     </tr>
                   ) : (
                     filteredGyms.map((g, idx) => {
                       const ownerName = g.ownerName || g.owner?.fullName || 'Gym Owner';
                       const ownerEmail = g.ownerEmail || g.owner?.email || g.ownerContactEmail || 'N/A';
-                      const ownerPhone = g.ownerPhone || g.owner?.phone || g.ownerContactPhone || 'N/A';
                       const memberCount = g.counts?.totalUsers ?? g._count?.users ?? 0;
                       const checkinCount = g.counts?.attendanceTotal ?? g._count?.attendanceEntries ?? 0;
                       const inviteUrl = `${window.location.origin}/?invite=${g.inviteCode}`;
-                      const paddedIdx = String(idx + 1).padStart(2, '0');
 
                       return (
-                        <tr key={g.id} className="hover:bg-surface-container/60 transition-colors">
-                          <td className="py-3 px-4">
+                        <tr key={g.id} className="hover:bg-white/[0.03] transition-colors">
+                          <td className="py-3.5 px-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center font-label-mono font-bold text-primary text-xs shrink-0">
-                                {paddedIdx}
+                              <div className="w-9 h-9 rounded-xl bg-zinc-800/80 border border-white/10 flex items-center justify-center font-bold text-emerald-400 text-xs shrink-0">
+                                {String(idx + 1).padStart(2, '0')}
                               </div>
-                              <div className="flex flex-col">
-                                <span className="font-headline-sm text-xs font-semibold text-on-surface">
+                              <div>
+                                <span className="font-bold text-sm text-white block">
                                   {g.name}
                                 </span>
-                                <span className="font-label-mono text-[11px] text-tertiary">
-                                  #{g.inviteCode} • {g.city || 'Metro'}, {g.state || 'HQ'}
+                                <span className="text-[11px] text-zinc-400">
+                                  Enterprise Workspace
                                 </span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col">
-                              <span className="font-badge-label text-[10px] text-primary uppercase font-bold">
-                                ENTERPRISE TITANIUM
-                              </span>
-                              <span className="font-label-mono text-[10px] text-outline font-mono">
-                                P99 &lt; 25ms • 99.99%
-                              </span>
-                            </div>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold text-xs">
+                              #{g.inviteCode}
+                            </span>
                           </td>
 
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-1 text-on-surface">
-                                <span className="font-semibold text-xs">{ownerName}</span>
-                              </div>
-                              <div className="flex items-center gap-1 font-label-mono text-[10px] text-on-surface-variant">
+                          <td className="py-3.5 px-4">
+                            <div>
+                              <span className="font-semibold text-xs text-white block">{ownerName}</span>
+                              <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] mt-0.5">
                                 <span>{ownerEmail}</span>
                                 {ownerEmail !== 'N/A' && (
                                   <button
                                     type="button"
                                     onClick={() => handleCopyText(ownerEmail, `email-${g.id}`, 'Owner Email')}
-                                    className="hover:text-primary transition"
+                                    className="hover:text-emerald-400 transition"
+                                    title="Copy Email"
                                   >
                                     <Copy className="w-3 h-3" />
                                   </button>
@@ -1022,60 +907,44 @@ Portal URL: ${window.location.origin}`;
                             </div>
                           </td>
 
-                          <td className="py-3 px-4">
-                            <span className="font-label-mono text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface">
-                              50m Strict
+                          <td className="py-3.5 px-4">
+                            <div className="text-zinc-300">
+                              <span className="block font-medium">{g.city || 'Metro'}, {g.state || 'HQ'}</span>
+                              <span className="text-[11px] text-zinc-500">{g.address || 'Standard Perimeter'}</span>
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="font-black text-sm text-white font-mono">
+                              {memberCount.toLocaleString()}
                             </span>
                           </td>
 
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col">
-                              <span className="font-telemetry-tabular text-xs text-on-surface font-semibold font-mono">
-                                {memberCount.toLocaleString()}
-                              </span>
-                              <span className="font-label-mono text-[10px] text-secondary">
-                                92% Daily Active
-                              </span>
-                            </div>
+                          <td className="py-3.5 px-4 text-center">
+                            <span className="font-bold text-xs text-zinc-300 font-mono">
+                              {checkinCount.toLocaleString()}
+                            </span>
                           </td>
 
-                          <td className="py-3 px-4">
-                            <div className="flex flex-col">
-                              <span className="font-telemetry-tabular text-xs text-on-surface font-semibold font-mono">
-                                {checkinCount.toLocaleString()}
-                              </span>
-                              <span className="font-label-mono text-[10px] text-outline">
-                                avg 0.18s scan
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-4">
-                            <div className="inline-flex items-center gap-1 font-label-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded">
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                              <span>Low 0.2%</span>
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
                               <button
                                 type="button"
                                 onClick={() => handleCopyText(g.inviteCode, `code-${g.id}`, 'Access Code')}
-                                className="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-label-mono text-[11px] transition-colors flex items-center gap-1"
+                                className="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all active:scale-95 flex items-center gap-1"
                                 title="Copy 6-digit access code"
                               >
-                                {copiedKey === `code-${g.id}` ? <Check className="w-3 h-3 text-primary" /> : <KeyRound className="w-3 h-3" />}
+                                {copiedKey === `code-${g.id}` ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <KeyRound className="w-3.5 h-3.5" />}
                                 <span>Code</span>
                               </button>
 
                               <button
                                 type="button"
-                                onClick={() => handleCopyText(inviteUrl, `link-${g.id}`, 'Client Invite Link')}
-                                className="px-2.5 py-1 rounded bg-tertiary-container hover:bg-tertiary text-on-tertiary-container hover:text-on-tertiary font-label-mono text-[11px] transition-colors flex items-center gap-1 font-bold"
-                                title="Copy direct join link"
+                                onClick={() => handleCopyText(inviteUrl, `link-${g.id}`, 'Join Link')}
+                                className="px-2.5 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-black text-xs font-bold transition-all active:scale-95 flex items-center gap-1 border border-emerald-500/30"
+                                title="Copy direct athlete join link"
                               >
-                                {copiedKey === `link-${g.id}` ? <Check className="w-3 h-3" /> : <ExternalLink className="w-3 h-3" />}
+                                {copiedKey === `link-${g.id}` ? <Check className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
                                 <span>Join Link</span>
                               </button>
                             </div>
@@ -1088,43 +957,34 @@ Portal URL: ${window.location.origin}`;
               </table>
             </div>
 
-            {/* Table Pagination / Status Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-surface-container-lowest font-label-mono text-xs text-on-surface-variant gap-2 border-t border-surface-container-high/30">
-              <div className="flex items-center gap-3">
-                <span>SHOWING {filteredGyms.length} OF {gyms.length} MULTI-TENANT WORKSPACES</span>
-                <span className="hidden md:inline text-outline">|</span>
-                <span className="hidden md:inline">
-                  GLOBAL SCAN VOLUME: <span className="text-on-surface font-mono font-bold">156,648/mo</span>
-                </span>
-              </div>
+            <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-zinc-900/40 text-xs text-zinc-400 gap-2 border-t border-white/5">
+              <span>Showing {filteredGyms.length} of {gyms.length} gym workspaces</span>
               <button
                 type="button"
                 onClick={handleExportGymsCsv}
-                className="text-xs text-primary hover:underline flex items-center gap-1"
+                className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Download Gyms CSV</span>
+                <span>Export Gyms CSV</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* ========================================================= */}
-        {/* VIEW 2: ATHLETES DIRECTORY                                */}
-        {/* ========================================================= */}
+        {/* VIEW 2: ATHLETES DIRECTORY */}
         {activeTab === 'MEMBERS' && (
           <div className="space-y-3">
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center gap-2 p-3 bg-surface-container-low rounded-xl border border-surface-container-high/30">
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-zinc-950/70 rounded-2xl border border-white/10">
               <select
                 value={selectedGymFilter}
                 onChange={(e) => setSelectedGymFilter(e.target.value)}
-                className="bg-surface-container-lowest border border-surface-container-high/40 rounded-lg px-3 py-1.5 text-xs text-on-surface focus:outline-none"
+                className="bg-zinc-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none"
               >
                 <option value="ALL">🏢 All Gyms ({gyms.length})</option>
                 {gyms.map((g) => (
                   <option key={g.id} value={g.id}>
-                    {g.name} ({g.inviteCode})
+                    {g.name} (#{g.inviteCode})
                   </option>
                 ))}
               </select>
@@ -1132,50 +992,50 @@ Portal URL: ${window.location.origin}`;
               <select
                 value={memberStatusFilter}
                 onChange={(e: any) => setMemberStatusFilter(e.target.value)}
-                className="bg-surface-container-lowest border border-surface-container-high/40 rounded-lg px-3 py-1.5 text-xs text-on-surface focus:outline-none"
+                className="bg-zinc-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">🟢 Active Passes Only</option>
                 <option value="INACTIVE">⚪ Inactive / Expired</option>
               </select>
 
-              <div className="ml-auto flex items-center gap-2">
-                <span className="text-xs font-mono text-outline">
-                  Showing {filteredMembers.length} athletes
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-xs text-zinc-500 font-mono">
+                  {filteredMembers.length} athletes
                 </span>
                 <button
                   type="button"
                   onClick={handleExportMembersCsv}
-                  className="px-3 py-1.5 rounded bg-primary text-on-primary font-bold text-xs flex items-center gap-1"
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1.5 transition active:scale-95"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" />
-                  <span>Export Athletes CSV</span>
+                  <span>Export CSV</span>
                 </button>
               </div>
             </div>
 
             {/* Athletes Table */}
-            <div className="w-full bg-surface-container-low rounded-xl shadow-xl overflow-hidden border border-surface-container-high/30">
+            <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/50">
               <div className="overflow-x-auto w-full">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-surface-container-lowest font-label-mono text-[10px] text-outline uppercase tracking-wider">
-                      <th className="py-2.5 px-4">ATHLETE NAME</th>
-                      <th className="py-2.5 px-4">CONTACT DETAILS</th>
-                      <th className="py-2.5 px-4">ASSIGNED WORKSPACE</th>
-                      <th className="py-2.5 px-4">MEMBERSHIP PLAN</th>
-                      <th className="py-2.5 px-4">PASS STATUS</th>
-                      <th className="py-2.5 px-4">EXPIRY</th>
-                      <th className="py-2.5 px-4 text-right">ADMIN CONTROL</th>
+                    <tr className="bg-zinc-900/80 text-zinc-400 uppercase tracking-wider text-[11px] font-semibold border-b border-white/10">
+                      <th className="py-3.5 px-4">Athlete</th>
+                      <th className="py-3.5 px-4">Contact</th>
+                      <th className="py-3.5 px-4">Gym Facility</th>
+                      <th className="py-3.5 px-4">Plan & Rate</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4">Valid Until</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-surface-container-high/40 font-body-sm">
+                  <tbody className="divide-y divide-white/5">
                     {filteredMembers.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-outline">
+                        <td colSpan={7} className="py-12 text-center text-zinc-500">
                           <Users className="w-10 h-10 mx-auto stroke-1 opacity-50 mb-2" />
-                          <p className="text-sm font-bold text-on-surface">No Athletes Found</p>
-                          <p className="text-xs text-on-surface-variant mt-0.5">Try clearing filters or search criteria.</p>
+                          <p className="text-sm font-bold text-zinc-300">No Athletes Found</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">Try clearing filters or search query.</p>
                         </td>
                       </tr>
                     ) : (
@@ -1185,88 +1045,88 @@ Portal URL: ${window.location.origin}`;
                         const priceVal = m.price || m.latestSubscription?.price || 65;
 
                         return (
-                          <tr key={m.id} className="hover:bg-surface-container/60 transition-colors">
-                            <td className="py-3 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-surface-container-highest text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                          <tr key={m.id} className="hover:bg-white/[0.03] transition-colors">
+                            <td className="py-3.5 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
                                   {m.fullName?.charAt(0) || 'A'}
                                 </div>
                                 <div>
-                                  <span className="font-bold text-on-surface block text-xs">
+                                  <span className="font-bold text-white block text-xs">
                                     {m.fullName}
                                   </span>
-                                  <span className="text-[10px] text-outline uppercase font-mono">
+                                  <span className="text-[10px] text-zinc-500 uppercase font-mono">
                                     {m.role || 'ATHLETE'}
                                   </span>
                                 </div>
                               </div>
                             </td>
 
-                            <td className="py-3 px-4">
+                            <td className="py-3.5 px-4">
                               <div className="space-y-0.5">
-                                <div className="flex items-center gap-1 text-on-surface font-mono text-[11px]">
+                                <div className="flex items-center gap-1.5 text-zinc-300 text-xs">
                                   <span>{m.email}</span>
                                   <button
                                     type="button"
                                     onClick={() => handleCopyText(m.email, `m-email-${m.id}`, 'Email')}
-                                    className="text-outline hover:text-primary transition"
+                                    className="text-zinc-500 hover:text-emerald-400 transition"
                                   >
                                     <Copy className="w-3 h-3" />
                                   </button>
                                 </div>
                                 {m.phone && (
-                                  <span className="text-[10px] text-outline font-mono block">
+                                  <span className="text-[11px] text-zinc-500 font-mono block">
                                     {m.phone}
                                   </span>
                                 )}
                               </div>
                             </td>
 
-                            <td className="py-3 px-4">
-                              <span className="font-bold text-on-surface block text-xs">
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold text-white block text-xs">
                                 {m.gymName || 'Unassigned'}
                               </span>
                               {m.gymInviteCode && (
-                                <span className="font-mono text-[10px] text-tertiary">
+                                <span className="font-mono text-[10px] text-emerald-400">
                                   #{m.gymInviteCode}
                                 </span>
                               )}
                             </td>
 
-                            <td className="py-3 px-4">
-                              <span className="font-bold text-on-surface block text-xs">
+                            <td className="py-3.5 px-4">
+                              <span className="font-semibold text-white block text-xs">
                                 {planTitle}
                               </span>
-                              <span className="text-[11px] text-primary font-mono font-bold">
+                              <span className="text-[11px] text-emerald-400 font-mono font-bold">
                                 ${priceVal}/mo
                               </span>
                             </td>
 
-                            <td className="py-3 px-4">
+                            <td className="py-3.5 px-4">
                               {isActive ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary font-mono">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                   ACTIVE
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-container text-outline font-mono">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 font-mono">
                                   INACTIVE
                                 </span>
                               )}
                             </td>
 
-                            <td className="py-3 px-4 font-mono text-outline text-xs">
+                            <td className="py-3.5 px-4 font-mono text-zinc-400 text-xs">
                               {m.endDate ? new Date(m.endDate).toLocaleDateString() : '30-Day Pass'}
                             </td>
 
-                            <td className="py-3 px-4 text-right">
+                            <td className="py-3.5 px-4 text-right">
                               <button
                                 type="button"
                                 onClick={() => handleDeleteMember(m.id, m.fullName || m.email)}
-                                className="px-2.5 py-1 rounded bg-error/10 hover:bg-error text-error hover:text-on-error font-mono text-[11px] transition flex items-center gap-1 ml-auto"
+                                className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white text-xs font-semibold transition-all active:scale-95 flex items-center gap-1 ml-auto"
                                 title="Delete Member"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3.5 h-3.5" />
                                 <span>Delete</span>
                               </button>
                             </td>
@@ -1282,32 +1142,30 @@ Portal URL: ${window.location.origin}`;
         )}
       </div>
 
-      {/* ========================================================= */}
-      {/* MODAL: PROVISION GYM WORKSPACE                            */}
-      {/* ========================================================= */}
+      {/* MODAL: PROVISION GYM WORKSPACE */}
       {isCreateGymModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto bg-surface-container-low rounded-2xl border border-surface-container-high shadow-2xl text-on-surface">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto bg-zinc-900 border border-white/10 rounded-3xl shadow-2xl text-white">
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setIsCreateGymModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl text-outline hover:text-on-surface hover:bg-surface-container transition"
+              className="absolute top-5 right-5 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Modal Header */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center font-bold shadow-md">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-black flex items-center justify-center font-bold shadow-lg shadow-emerald-500/20">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-black text-on-surface">
+                <h3 className="text-base font-bold text-white">
                   Provision Gym Workspace
                 </h3>
-                <p className="text-xs text-on-surface-variant">
-                  Create an isolated SaaS facility tenant with 6-digit access code & owner credentials
+                <p className="text-xs text-zinc-400">
+                  Generate isolated gym tenant, unique 6-digit access code & credentials
                 </p>
               </div>
             </div>
@@ -1315,44 +1173,44 @@ Portal URL: ${window.location.origin}`;
             {/* Success State */}
             {createdGymResult ? (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 text-primary">
+                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
                   <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                    <span className="font-bold text-sm">Gym Workspace Successfully Created!</span>
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <span className="font-bold text-sm">Gym Workspace Successfully Provisioned!</span>
                   </div>
-                  <p className="text-xs text-on-surface-variant">
-                    Isolated tenant ready. Credentials generated for the gym owner portal.
+                  <p className="text-xs text-zinc-300">
+                    Tenant created. Copy the access credentials below for the gym owner.
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-surface-container-lowest border border-surface-container-high/40 space-y-3 font-mono text-xs">
+                <div className="p-4 rounded-2xl bg-zinc-950 border border-white/10 space-y-3 font-mono text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-outline font-sans">Gym Name:</span>
-                    <span className="font-bold text-on-surface">{createdGymResult.gym.name}</span>
+                    <span className="text-zinc-400 font-sans">Gym Name:</span>
+                    <span className="font-bold text-white">{createdGymResult.gym.name}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-outline font-sans">6-Digit Access Code:</span>
-                    <span className="font-bold text-sm bg-primary text-on-primary px-2 py-0.5 rounded">
+                    <span className="text-zinc-400 font-sans">6-Digit Access Code:</span>
+                    <span className="font-bold text-sm bg-emerald-500 text-black px-2.5 py-0.5 rounded-lg">
                       {createdGymResult.gym.inviteCode}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-outline font-sans">Owner Login Gmail:</span>
-                    <span className="font-bold text-on-surface">{createdGymResult.user.email}</span>
+                    <span className="text-zinc-400 font-sans">Owner Login Gmail:</span>
+                    <span className="font-bold text-white">{createdGymResult.user.email}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-outline font-sans">Initial Password:</span>
-                    <span className="font-bold text-on-surface">{createdGymResult.password}</span>
+                    <span className="text-zinc-400 font-sans">Initial Password:</span>
+                    <span className="font-bold text-white">{createdGymResult.password}</span>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={handleCopyGymCredentials}
-                    className="flex-1 py-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-xs font-bold text-on-surface transition flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-white transition flex items-center justify-center gap-2"
                   >
-                    {copiedGymCreds ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                    {copiedGymCreds ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                     <span>{copiedGymCreds ? 'Copied to Clipboard!' : 'Copy Credentials'}</span>
                   </button>
                   <button
@@ -1361,7 +1219,7 @@ Portal URL: ${window.location.origin}`;
                       setIsCreateGymModalOpen(false);
                       setCreatedGymResult(null);
                     }}
-                    className="flex-1 py-3 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-xs uppercase tracking-wider transition"
+                    className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20"
                   >
                     Done
                   </button>
@@ -1370,25 +1228,25 @@ Portal URL: ${window.location.origin}`;
             ) : (
               <form onSubmit={handleCreateGymSubmit} className="space-y-4">
                 {gymCreationError && (
-                  <div className="p-3.5 rounded-xl bg-error-container text-on-error-container text-xs flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-error shrink-0 mt-0.5" />
+                  <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                     <span>{gymCreationError}</span>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                     Gym Business Name *
                   </label>
                   <div className="relative">
-                    <Building2 className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                    <Building2 className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       required
                       placeholder="e.g. IronVault Apex Downtown"
                       value={gymFormName}
                       onChange={(e) => setGymFormName(e.target.value)}
-                      className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                      className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                     />
                   </div>
                 </div>
@@ -1396,19 +1254,19 @@ Portal URL: ${window.location.origin}`;
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-on-surface">
+                      <label className="text-xs font-semibold text-zinc-300">
                         6-Digit Access Code *
                       </label>
                       <button
                         type="button"
                         onClick={generateRandomGymCode}
-                        className="text-[11px] text-primary font-bold hover:underline"
+                        className="text-[11px] text-emerald-400 font-semibold hover:underline"
                       >
                         🎲 Random
                       </button>
                     </div>
                     <div className="relative">
-                      <KeyRound className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                      <KeyRound className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                       <input
                         type="text"
                         required
@@ -1416,45 +1274,45 @@ Portal URL: ${window.location.origin}`;
                         placeholder="100003"
                         value={gymFormCode}
                         onChange={(e) => setGymFormCode(e.target.value.toUpperCase())}
-                        className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-mono text-on-surface focus:outline-none focus:border-primary"
+                        className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Owner Full Name *
                     </label>
                     <div className="relative">
-                      <User className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                      <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                       <input
                         type="text"
                         required
                         placeholder="Sarah Jenkins"
                         value={gymFormOwnerName}
                         onChange={(e) => setGymFormOwnerName(e.target.value)}
-                        className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                        className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                     Owner Gmail ID (For Login & OTP Reset) *
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                    <Mail className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                     <input
                       type="email"
                       required
                       placeholder="owner.gym@gmail.com"
                       value={gymFormEmail}
                       onChange={(e) => setGymFormEmail(e.target.value)}
-                      className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                      className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                     />
                   </div>
-                  <p className="text-[11px] text-on-surface-variant mt-1">
+                  <p className="text-[11px] text-zinc-400 mt-1">
                     Password recovery codes (OTP) will be dispatched directly to this Gmail address.
                   </p>
                 </div>
@@ -1462,19 +1320,19 @@ Portal URL: ${window.location.origin}`;
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-on-surface">
+                      <label className="text-xs font-semibold text-zinc-300">
                         Initial Password *
                       </label>
                       <button
                         type="button"
                         onClick={generateRandomPassword}
-                        className="text-[11px] text-primary font-bold hover:underline"
+                        className="text-[11px] text-emerald-400 font-semibold hover:underline"
                       >
                         ⚡ Generate
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                      <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                       <input
                         type="text"
                         required
@@ -1482,47 +1340,47 @@ Portal URL: ${window.location.origin}`;
                         placeholder="Min 6 characters"
                         value={gymFormPassword}
                         onChange={(e) => setGymFormPassword(e.target.value)}
-                        className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-mono text-on-surface focus:outline-none focus:border-primary"
+                        className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       Owner Phone (Optional)
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                      <Phone className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                       <input
                         type="tel"
                         placeholder="+1 (555) 000-0000"
                         value={gymFormPhone}
                         onChange={(e) => setGymFormPhone(e.target.value)}
-                        className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                        className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-on-surface mb-1.5">
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                     Physical Facility Address
                   </label>
                   <div className="relative">
-                    <MapPin className="w-4 h-4 text-outline absolute left-3.5 top-3.5" />
+                    <MapPin className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       placeholder="e.g. 500 Grand Avenue, Suite 100"
                       value={gymFormAddress}
                       onChange={(e) => setGymFormAddress(e.target.value)}
-                      className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                      className="w-full bg-zinc-950 border border-white/10 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       City
                     </label>
                     <input
@@ -1530,11 +1388,11 @@ Portal URL: ${window.location.origin}`;
                       placeholder="e.g. New York"
                       value={gymFormCity}
                       onChange={(e) => setGymFormCity(e.target.value)}
-                      className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl px-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                      className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-on-surface mb-1.5">
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                       State
                     </label>
                     <input
@@ -1542,7 +1400,7 @@ Portal URL: ${window.location.origin}`;
                       placeholder="e.g. NY"
                       value={gymFormState}
                       onChange={(e) => setGymFormState(e.target.value)}
-                      className="w-full bg-surface-container-lowest border border-surface-container-high/40 rounded-xl px-3.5 py-2.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                      className="w-full bg-zinc-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
                     />
                   </div>
                 </div>
@@ -1551,7 +1409,7 @@ Portal URL: ${window.location.origin}`;
                   <button
                     type="submit"
                     disabled={isSubmittingGym}
-                    className="w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-on-primary font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg active:scale-98 disabled:opacity-50"
+                    className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 active:scale-98 disabled:opacity-50"
                   >
                     {isSubmittingGym ? (
                       <>

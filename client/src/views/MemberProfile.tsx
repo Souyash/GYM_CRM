@@ -379,160 +379,162 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       )}
 
       {/* 1. ATHLETE STATUS & FACILITY CONTEXT CHIP */}
-      <div className="flex items-center justify-between gap-3 bg-surface-container-low p-3.5 rounded-2xl shadow-sm border border-slate-200/80 dark:border-carbon-700/60">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="material-symbols-outlined text-primary text-[22px] flex-shrink-0">apartment</span>
+      <div className="flex items-center justify-between gap-3 bg-zinc-900/60 backdrop-blur-xl p-3.5 sm:p-4 rounded-2xl border border-white/10 shadow-lg">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <span className="material-symbols-outlined text-[22px]">fitness_center</span>
+          </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-sans text-sm text-slate-900 dark:text-on-surface font-bold truncate leading-tight">
+            <span className="text-sm font-bold text-white truncate">
               {user?.gym?.name || 'IronVault Downtown'}
             </span>
-            <span className="font-mono text-[11px] text-slate-500 dark:text-on-surface-variant leading-tight truncate">
-              FACILITY CODE: #{user?.gym?.inviteCode || '100001'}
+            <span className="text-xs text-zinc-400 truncate">
+              Access Code: #{user?.gym?.inviteCode || '100001'}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 bg-surface-container-high px-2.5 py-1 rounded-lg border border-primary/20">
-          <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-          <span className="font-mono text-[10px] text-primary uppercase font-bold tracking-wider">GEOLINK OK</span>
+        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[11px] font-bold text-emerald-400 tracking-wide uppercase">Geolink Active</span>
         </div>
       </div>
 
       {/* 2. SEGMENTED ATHLETE CONTROLS */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1" role="tablist">
+      <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar" role="tablist">
         <button
           onClick={() => setActiveSubpart('PASS')}
-          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
             activeSubpart === 'PASS'
-              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
-              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          Turnstile Pass
+          <span className="material-symbols-outlined text-[18px]">badge</span>
+          <span>Digital Pass</span>
         </button>
         <button
           onClick={() => setActiveSubpart('FITNESS')}
-          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
             activeSubpart === 'FITNESS'
-              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
-              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          Body &amp; Fuel
+          <span className="material-symbols-outlined text-[18px]">monitor_heart</span>
+          <span>Body & Fuel</span>
         </button>
         <button
           onClick={() => setActiveSubpart('HISTORY')}
-          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
             activeSubpart === 'HISTORY'
-              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
-              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          Visits &amp; Streaks
+          <span className="material-symbols-outlined text-[18px]">history</span>
+          <span>Visits</span>
         </button>
         <button
           onClick={() => setActiveSubpart('COMMUNITY')}
-          className={`flex-shrink-0 px-4 py-2.5 rounded-xl font-bold text-xs transition-all active:scale-95 ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
             activeSubpart === 'COMMUNITY'
-              ? 'bg-primary text-on-primary shadow-[0_0_16px_rgba(78,222,163,0.35)]'
-              : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface'
+              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          Comms Feed
+          <span className="material-symbols-outlined text-[18px]">forum</span>
+          <span>Community</span>
         </button>
       </div>
 
-      {/* 3. RENEWAL WARNING PILL BANNER (shows if expiring soon or expired) */}
+      {/* 3. RENEWAL WARNING BANNER (if expiring soon or expired) */}
       {(!isSubActive || daysRemaining <= 7) && (
-        <div className="flex items-center justify-between gap-3 bg-error-container/20 border border-error/30 px-3.5 py-2.5 rounded-xl">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="material-symbols-outlined text-error text-[20px] flex-shrink-0">warning</span>
-            <span className="text-xs text-error truncate font-bold">
-              {!isSubActive ? 'Membership Expired — Auto-Bill Pending' : `Expires in ${daysRemaining} Days — Auto-Bill Pending`}
+        <div className="flex items-center justify-between gap-3 bg-amber-500/10 border border-amber-500/30 px-4 py-3 rounded-2xl">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="material-symbols-outlined text-amber-400 text-[22px] shrink-0">info</span>
+            <span className="text-xs text-amber-300 font-semibold truncate">
+              {!isSubActive ? 'Membership Expired — Please renew to enter' : `Pass expires in ${daysRemaining} days`}
             </span>
           </div>
           <button
             onClick={() => setActiveSubpart('FITNESS')}
-            className="flex-shrink-0 font-mono text-[10px] text-on-error-container bg-error/20 hover:bg-error/30 px-2.5 py-1 rounded font-bold uppercase tracking-wider transition-colors"
+            className="shrink-0 text-xs font-bold text-zinc-950 bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-xl transition"
             type="button"
           >
-            Renew
+            Renew Now
           </button>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* SUBPART A: PASS & TURNSTILE ACCESS PORTAL                                 */}
+      {/* SUBPART A: APPLE WALLET STYLE DIGITAL PASS                                */}
       {/* ========================================================================= */}
       {activeSubpart === 'PASS' && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          {/* HERO DYNAMIC TURNSTILE PASS CARD */}
-          <div className="relative w-full rounded-2xl bg-surface-container-lowest p-5 sm:p-6 shadow-2xl overflow-hidden border border-surface-container-high group">
-            {/* Background subtle glow */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#4edea3_1px,transparent_1px)] [background-size:12px_12px]" />
-            <div className="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+          {/* HERO APPLE WALLET VIP DIGITAL PASS CARD */}
+          <div className="relative w-full rounded-3xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-black p-6 sm:p-7 shadow-2xl border border-white/15 overflow-hidden">
+            {/* Ambient Glass Glows */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col gap-4">
-              {/* Header: Member status & Pass ID */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="font-mono text-[10px] text-primary font-bold uppercase tracking-wider">
-                    {isSubActive ? `Active Member • ${activeSub?.planName || 'Annual Pass'}` : 'Renewal Needed'}
+            <div className="relative z-10 flex flex-col gap-5">
+              {/* Pass Top Bar */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-400/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400">
+                    <span className="material-symbols-outlined text-[18px]">verified</span>
+                  </div>
+                  <span className="text-xs font-black tracking-wider uppercase text-white">
+                    {user?.gym?.name || 'IRONVAULT GYM'}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-on-surface-variant font-mono text-[11px]">
-                  <span>PASS ID:</span>
-                  <span className="font-semibold text-on-surface">IV-{user?.id ? user.id.substring(0, 5).toUpperCase() : '88294'}</span>
-                </div>
+                <span className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  VIP ALL-ACCESS
+                </span>
               </div>
 
-              {/* Member Name & Level */}
-              <div className="flex items-center justify-between pt-1">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black text-on-surface leading-tight tracking-tight">
-                    {user?.fullName || 'Alex Mercer'}
-                  </h1>
-                  <p className="text-xs text-on-surface-variant mt-0.5">
-                    {user?.gym?.name || 'IronVault Downtown'} Member
-                  </p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center text-primary flex-shrink-0">
-                  <span className="material-symbols-outlined text-[20px]">verified</span>
-                </div>
+              {/* Member Name */}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">
+                  {user?.fullName || 'Alex Mercer'}
+                </h1>
+                <p className="text-xs text-zinc-400 mt-1">
+                  {isSubActive ? `Active Pass • ${activeSub?.planName || 'Full Facility Access'}` : 'Membership Expired'}
+                </p>
               </div>
 
-              {/* Center High-Contrast QR Frame */}
-              <div className="my-1 p-4 bg-surface-container rounded-xl flex flex-col items-center justify-center border border-surface-container-high relative">
-                <div className="relative p-3 bg-surface-container-lowest rounded-lg border-2 border-primary/40 shadow-inner">
-                  {/* High Contrast Optical QR Visual */}
-                  <svg className="w-40 h-40 text-on-surface" fill="currentColor" viewBox="0 0 100 100">
-                    <rect className="text-primary" height="26" rx="4" width="26" x="5" y="5" />
-                    <rect fill="#0c0e13" height="18" width="18" x="9" y="9" />
-                    <rect className="text-primary" height="10" width="10" x="13" y="13" />
-                    <rect className="text-primary" height="26" rx="4" width="26" x="69" y="5" />
-                    <rect fill="#0c0e13" height="18" width="18" x="73" y="9" />
-                    <rect className="text-primary" height="10" width="10" x="77" y="13" />
-                    <rect className="text-primary" height="26" rx="4" width="26" x="5" y="69" />
-                    <rect fill="#0c0e13" height="18" width="18" x="9" y="73" />
-                    <rect className="text-primary" height="10" width="10" x="13" y="77" />
+              {/* High-Contrast Optical Scannable QR Frame */}
+              <div className="my-1 flex flex-col items-center justify-center">
+                <div className="p-4 bg-white rounded-2xl shadow-2xl relative group flex flex-col items-center">
+                  <svg className="w-44 h-44 sm:w-48 sm:h-48 text-zinc-950" fill="currentColor" viewBox="0 0 100 100">
+                    <rect className="text-zinc-950" height="26" rx="4" width="26" x="5" y="5" />
+                    <rect fill="#ffffff" height="18" width="18" x="9" y="9" />
+                    <rect className="text-zinc-950" height="10" width="10" x="13" y="13" />
+                    <rect className="text-zinc-950" height="26" rx="4" width="26" x="69" y="5" />
+                    <rect fill="#ffffff" height="18" width="18" x="73" y="9" />
+                    <rect className="text-zinc-950" height="10" width="10" x="77" y="13" />
+                    <rect className="text-zinc-950" height="26" rx="4" width="26" x="5" y="69" />
+                    <rect fill="#ffffff" height="18" width="18" x="9" y="73" />
+                    <rect className="text-zinc-950" height="10" width="10" x="13" y="77" />
                     <rect height="5" width="5" x="36" y="8" />
                     <rect height="5" width="5" x="44" y="12" />
                     <rect height="5" width="5" x="54" y="8" />
                     <rect height="5" width="5" x="36" y="24" />
-                    <rect className="text-primary" height="6" width="6" x="48" y="24" />
+                    <rect className="text-emerald-600" height="6" width="6" x="48" y="24" />
                     <rect height="5" width="5" x="58" y="20" />
                     <rect height="5" width="5" x="8" y="38" />
                     <rect height="5" width="5" x="18" y="44" />
                     <rect height="5" width="5" x="26" y="52" />
                     <rect height="6" width="6" x="8" y="58" />
-                    <rect className="text-primary" height="8" width="8" x="38" y="38" />
+                    <rect className="text-emerald-600" height="8" width="8" x="38" y="38" />
                     <rect height="6" width="6" x="52" y="36" />
-                    <rect fill="#111319" height="8" width="8" x="46" y="48" />
-                    <rect className="text-primary" height="4" width="4" x="48" y="50" />
+                    <rect fill="#ffffff" height="8" width="8" x="46" y="48" />
+                    <rect className="text-emerald-600" height="4" width="4" x="48" y="50" />
                     <rect height="5" width="5" x="60" y="44" />
                     <rect height="6" width="6" x="70" y="36" />
                     <rect height="5" width="5" x="82" y="40" />
@@ -548,117 +550,150 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                     <rect height="5" width="5" x="88" y="74" />
                     <rect height="5" width="5" x="70" y="88" />
                   </svg>
-                  {/* Laser Scan Guide line */}
-                  <div className="absolute left-1.5 right-1.5 h-0.5 bg-primary shadow-[0_0_12px_#4edea3] animate-[bounce_2.5s_infinite_ease-in-out] opacity-90 pointer-events-none" />
+                  {/* Subtle animated scanning laser line */}
+                  <div className="absolute left-3 right-3 h-0.5 bg-emerald-500 shadow-[0_0_12px_#10b981] animate-[bounce_2.5s_infinite_ease-in-out] opacity-80 pointer-events-none" />
                 </div>
-                <p className="text-xs text-on-surface font-medium mt-3 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-primary text-[18px]">contactless</span>
-                  Hold phone near turnstile reader or scan gate below
-                </p>
+
+                {/* Rotating Security Countdown Pill */}
+                <div className="mt-4 flex items-center justify-between w-full max-w-xs bg-zinc-900/90 border border-white/10 px-3.5 py-2 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs text-zinc-300 font-medium">
+                      Rotates in <strong className="text-emerald-400 font-mono font-bold">{syncTimerSeconds}s</strong>
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">
+                    Anti-Clone
+                  </span>
+                </div>
               </div>
 
-              {/* Code refresh & reassurance note */}
-              <div className="flex items-center justify-between bg-surface-container-high/60 px-3 py-2 rounded-lg">
-                <div className="flex items-center gap-1.5 text-on-surface-variant">
-                  <span className="material-symbols-outlined text-primary text-[16px] animate-spin" style={{ animationDuration: '6s' }}>
-                    autorenew
-                  </span>
-                  <span className="font-mono text-[11px] text-on-surface">
-                    Barcode updates in <span className="text-primary font-bold">00:{syncTimerSeconds < 10 ? `0${syncTimerSeconds}` : syncTimerSeconds}s</span>
-                  </span>
+              {/* Pass Card Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-zinc-400">
+                <div>
+                  <span className="text-[10px] uppercase block tracking-wider text-zinc-400 font-semibold">Pass ID</span>
+                  <span className="font-mono font-bold text-white">IV-{user?.id ? user.id.substring(0, 6).toUpperCase() : '88294'}</span>
                 </div>
-                <span className="font-mono text-[11px] text-primary flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span> Instant Entry
-                </span>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase block tracking-wider text-zinc-400 font-semibold">Status</span>
+                  <span className="font-bold text-emerald-400">{isSubActive ? 'Valid & Armed' : 'Expired'}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ATTENDANCE STREAK HUD MODULE */}
-          <div className="flex flex-col gap-2 bg-surface-container rounded-2xl p-5 shadow-md">
+          {/* 1-TAP BIG ACTION BUTTON */}
+          <button
+            onClick={() => onOpenScanner(activeSession ? 'EXIT' : 'ENTER')}
+            className="w-full min-h-[56px] py-4 rounded-2xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-400 hover:from-emerald-300 hover:to-emerald-400 text-zinc-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-500/25 active:scale-[0.98] transition-all cursor-pointer"
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[24px]">bolt</span>
+            <span>{activeSession ? '⚡ Tap to Exit Turnstile' : '⚡ Tap to Open Turnstile Gate'}</span>
+          </button>
+
+          {/* ATTENDANCE STREAK MODULE */}
+          <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-5 border border-white/10 shadow-lg space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-[22px]">local_fire_department</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
+                  <Flame className="w-5 h-5 fill-current" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-on-surface leading-tight">6-Day Workout Streak</h2>
-                  <p className="text-xs text-on-surface-variant">{history.length || 18} visits logged this month</p>
+                  <h2 className="text-base font-bold text-white">5-Day Workout Streak!</h2>
+                  <p className="text-xs text-zinc-400">{history.length || 18} check-ins logged this month</p>
                 </div>
               </div>
-              <div className="bg-primary/20 text-primary px-2.5 py-1 rounded-lg font-mono text-[10px] font-bold tracking-wider uppercase">
-                Top 4% Consistent
-              </div>
+              <span className="text-[11px] font-bold text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2.5 py-1 rounded-full">
+                🔥 On Fire
+              </span>
             </div>
 
-            <div className="mt-2 flex flex-col gap-1.5">
-              <div className="flex justify-between items-center text-on-surface-variant font-mono text-[10px]">
-                <span>PAST 30 DAYS ACTIVITY</span>
-                <span className="text-primary font-bold">60% OF DAYS</span>
+            {/* 7-Day Day Pills (Mon - Sun) */}
+            <div className="grid grid-cols-7 gap-2 pt-1 text-center font-bold text-xs">
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
+                const isCompleted = idx < 5;
+                const isToday = idx === 4;
+                return (
+                  <div
+                    key={idx}
+                    className={`py-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+                      isToday
+                        ? 'bg-emerald-500 text-zinc-950 ring-2 ring-emerald-400 shadow-lg shadow-emerald-500/25'
+                        : isCompleted
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-zinc-800/40 text-zinc-400 border border-white/5'
+                    }`}
+                  >
+                    <span className="text-[10px] uppercase opacity-80">{day}</span>
+                    <span className="material-symbols-outlined text-[14px]">
+                      {isCompleted ? 'check' : 'remove'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 30-day activity dot overview */}
+            <div className="pt-2 border-t border-white/5">
+              <div className="flex justify-between items-center text-[10px] text-zinc-400 font-semibold mb-1.5">
+                <span>PAST 30 DAYS OVERVIEW</span>
+                <span className="text-emerald-400">65% Consistency</span>
               </div>
-              <div className="grid grid-cols-10 gap-1.5 pt-0.5">
+              <div className="grid grid-cols-10 gap-1.5">
                 {past30Days.map((d, idx) => (
                   <span
                     key={idx}
-                    className={`h-3 rounded-sm transition-all ${
+                    className={`h-2.5 rounded-full transition-all ${
                       d.isToday
-                        ? 'bg-primary shadow-[0_0_8px_rgba(78,222,163,0.8)] animate-pulse'
+                        ? 'bg-emerald-400 ring-2 ring-emerald-300'
                         : d.visited || idx % 2 === 0
-                        ? 'bg-primary shadow-[0_0_6px_rgba(78,222,163,0.4)]'
-                        : 'bg-surface-container-high'
+                        ? 'bg-emerald-500/80'
+                        : 'bg-zinc-800/60'
                     }`}
-                    title={`Day ${idx + 1}`}
                   />
                 ))}
               </div>
             </div>
           </div>
 
-          {/* RECENT CHECK-IN VERIFIED TELEMETRY CARD */}
-          <div className="flex flex-col gap-2 bg-surface-container rounded-2xl p-4 sm:p-5 shadow-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-primary text-[20px]">history</span>
-                <span className="text-sm font-bold text-on-surface">Last Gym Visit</span>
+          {/* RECENT VISIT SUMMARY */}
+          <div className="bg-zinc-900/60 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/10 shadow-lg flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+                <span className="material-symbols-outlined text-[20px]">history</span>
               </div>
-              <span className="font-mono text-[10px] bg-secondary-container/20 text-secondary px-2 py-0.5 rounded uppercase font-bold">
-                Verified Entry
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 pt-1">
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-on-surface">
-                  {lastCheckIn ? new Date(lastCheckIn.scannedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Yesterday at 6:14 AM'}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold text-white truncate">
+                  {lastCheckIn ? new Date(lastCheckIn.scannedAt).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Today at 6:45 PM'}
                 </span>
-                <span className="text-[11px] text-on-surface-variant">
-                  {lastCheckIn?.facility?.name || 'Main Entrance'} • Gate 02 Turnstile
+                <span className="text-[11px] text-zinc-400 truncate">
+                  {lastCheckIn?.facility?.name || 'Main Entrance'} • Gate 01 Verified Entry
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-primary font-mono text-[10px] bg-surface-container-lowest px-2.5 py-1.5 rounded-lg">
-                <span className="material-symbols-outlined text-[14px]">speed</span>
-                <span>0.2s Entry</span>
-              </div>
             </div>
+            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg shrink-0">
+              ⚡ 0.2s Entry
+            </span>
           </div>
 
-          {/* ATHLETE QUICK ACTIONS STRIP */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* ATHLETE QUICK ACTIONS */}
+          <div className="grid grid-cols-2 gap-2.5">
             <button
-              onClick={() => setNotice('Locker #42 is assigned to your active pass. Passcode sent to SMS.')}
-              className="min-h-[44px] flex items-center justify-center gap-2 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2.5 rounded-xl transition-colors active:scale-98 border border-surface-container-high"
+              onClick={() => setNotice('Locker #42 is assigned to your active pass. Passcode sent to your phone.')}
+              className="min-h-[48px] flex items-center justify-center gap-2 bg-zinc-900/60 hover:bg-zinc-800/60 text-white px-4 py-3 rounded-2xl transition border border-white/10 text-xs font-bold active:scale-98"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px] text-primary">key</span>
-              <span className="text-xs font-semibold">My Locker #42</span>
+              <span className="material-symbols-outlined text-[18px] text-emerald-400">key</span>
+              <span>Locker #42</span>
             </button>
             <button
-              onClick={() => setNotice('Guest pass link generated! Share with your training partner for 1-day free access.')}
-              className="min-h-[44px] flex items-center justify-center gap-2 bg-surface-container hover:bg-surface-container-high text-on-surface px-3 py-2.5 rounded-xl transition-colors active:scale-98 border border-surface-container-high"
+              onClick={() => setNotice('Guest pass link copied! Share with your training partner for 1-day free access.')}
+              className="min-h-[48px] flex items-center justify-center gap-2 bg-zinc-900/60 hover:bg-zinc-800/60 text-white px-4 py-3 rounded-2xl transition border border-white/10 text-xs font-bold active:scale-98"
               type="button"
             >
-              <span className="material-symbols-outlined text-[18px] text-tertiary">confirmation_number</span>
-              <span className="text-xs font-semibold">Send Guest Pass</span>
+              <span className="material-symbols-outlined text-[18px] text-teal-400">confirmation_number</span>
+              <span>Send Guest Pass</span>
             </button>
           </div>
 
@@ -671,20 +706,6 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             hasCheckedInToday={hasCheckedInToday}
             isInGym={!!activeSession}
           />
-
-          {/* FLOATING SUB-SECOND QUICK-SCAN TRIGGER (Sticky Touch Target) */}
-          <div className="sticky bottom-2 w-full pt-2 pb-1 z-40">
-            <button
-              onClick={() => onOpenScanner(activeSession ? 'EXIT' : 'ENTER')}
-              className="w-full min-h-[52px] bg-primary text-on-primary rounded-xl font-sans text-sm flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(78,222,163,0.45)] hover:shadow-[0_0_32px_rgba(78,222,163,0.65)] active:scale-[0.98] transition-all cursor-pointer"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[24px]">bolt</span>
-              <span className="tracking-tight uppercase font-black">
-                {activeSession ? '⚡ Quick Scan Exit Gate' : '⚡ Quick Scan Gate'}
-              </span>
-            </button>
-          </div>
         </div>
       )}
 

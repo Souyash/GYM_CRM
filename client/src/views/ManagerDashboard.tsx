@@ -430,56 +430,45 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         </div>
       )}
 
-      {/* Dynamic Operational Sub-Header Bar */}
-      <div className="w-full flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-2">
+      {/* Modern Sleek Operational Header Bar */}
+      <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-2.5 bg-surface-container-low px-4 py-2 rounded-xl shadow-sm border border-surface-container-high/40">
-            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping" />
-            <span className="font-mono text-[10px] uppercase text-primary tracking-widest font-bold">LIVE OPERATIONS</span>
-            <span className="font-sans text-xs text-on-surface font-bold">
-              {gymDetails?.name || 'Downtown Flagship'}
+          <div className="flex items-center gap-2.5 bg-zinc-900/80 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-xs font-bold text-white tracking-tight">
+              {gymDetails?.name || 'IronVault Downtown'}
             </span>
-            <span className="font-mono text-[10px] text-secondary px-2 py-0.5 rounded bg-surface-container font-bold">
-              Normal Flow
+            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+              Live Operations
             </span>
           </div>
-          <div className="flex items-center gap-1.5 text-on-surface-variant font-medium text-xs">
-            <span className="material-symbols-outlined text-primary text-[18px]">verified</span>
-            <span>Turnstiles 1-4 sync: Real-time</span>
+          <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
+            <span className="material-symbols-outlined text-emerald-400 text-[18px]">sensors</span>
+            <span>Turnstiles 1-4 Connected & Armed</span>
           </div>
         </div>
+
+        {/* Quick Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => {
-              setSelectedRenewAthlete('vance');
-              const el = document.getElementById('fast-desk-dock');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold transition-all shadow-sm active:scale-95"
+            onClick={() => setIsEmergencyGateModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold transition active:scale-95"
             type="button"
           >
-            <span className="material-symbols-outlined text-secondary text-[18px]">flash_on</span>
-            <span>Resolve Front Desk Turnstile</span>
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold transition-all shadow-sm active:scale-95"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-tertiary text-[18px]">qr_code_scanner</span>
-            <span>Print Day Pass QR</span>
+            <span className="material-symbols-outlined text-[18px]">lock_open</span>
+            <span>⚡ Emergency Gate Unlock</span>
           </button>
           <button
             onClick={onOpenOnboarding}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-bold transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition border border-white/10 active:scale-95"
             type="button"
           >
-            <span className="material-symbols-outlined text-primary text-[18px]">person_add</span>
+            <span className="material-symbols-outlined text-[18px] text-emerald-400">person_add</span>
             <span>+ Check-in Athlete</span>
           </button>
           <button
             onClick={onOpenBilling}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary-container hover:bg-secondary text-on-secondary-container hover:text-on-secondary text-xs font-bold transition-all shadow-md active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-black text-xs transition shadow-lg shadow-emerald-400/20 active:scale-95"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">credit_card</span>
@@ -488,118 +477,117 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         </div>
       </div>
 
-      {/* KPI Metrics Strip: 4 High-Density Tactical Matte Cards */}
+      {/* KPI Metrics Strip: 4 Large Glanceable Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* KPI 1: Athletes Inside */}
-        <div className="bg-surface-container-low p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-md border border-surface-container-high/40 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[18px]">group</span>
-              <span className="font-mono text-[10px] uppercase text-on-surface-variant font-bold">Athletes Inside</span>
-            </div>
-            <span className="font-mono text-[9px] text-primary px-2 py-0.5 rounded bg-surface-container font-bold">LIVE</span>
+        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/30 transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Athletes Inside</span>
+            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> LIVE
+            </span>
           </div>
-          <div className="flex items-baseline gap-2 my-1">
-            <span className="text-3xl font-black font-mono text-primary tracking-tight">{activeCount}</span>
-            <span className="text-xs font-mono text-on-surface-variant font-semibold">/ 120 Cap</span>
+          <div className="my-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-black text-white tracking-tight">{activeCount}</span>
+              <span className="text-sm font-semibold text-zinc-400">in gym</span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              {Math.min(100, Math.round((activeCount / 120) * 100))}% of 120 capacity
+            </p>
           </div>
-          <div className="w-full mt-2">
-            <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden flex">
-              <div
-                className="bg-primary h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.round((activeCount / 120) * 100))}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between mt-1.5 text-[11px]">
-              <span className="text-on-surface font-semibold">Current capacity: {Math.min(100, Math.round((activeCount / 120) * 100))}%</span>
-              <span className="text-secondary font-mono text-[10px]">Peak at 6:30 PM</span>
-            </div>
+          <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-emerald-400 h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, Math.max(8, Math.round((activeCount / 120) * 100)))}%` }}
+            />
           </div>
         </div>
 
         {/* KPI 2: Today's Check-ins */}
-        <div className="bg-surface-container-low p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-md border border-surface-container-high/40 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-secondary text-[18px]">verified</span>
-              <span className="font-mono text-[10px] uppercase text-on-surface-variant font-bold">Today's Check-ins</span>
-            </div>
-            <span className="font-mono text-[9px] text-secondary px-2 py-0.5 rounded bg-surface-container font-bold">+14% vs last week</span>
+        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-teal-500/30 transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Today's Visits</span>
+            <span className="text-[10px] font-bold text-teal-400 bg-teal-500/15 border border-teal-500/30 px-2 py-0.5 rounded-full">
+              +14% vs yesterday
+            </span>
           </div>
-          <div className="flex items-baseline gap-1.5 my-1">
-            <span className="text-3xl font-black font-mono text-on-surface tracking-tight">{todayCount || 187}</span>
-            <span className="text-xs text-on-surface-variant font-semibold">visits</span>
+          <div className="my-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-black text-white tracking-tight">{todayCount || 187}</span>
+              <span className="text-sm font-semibold text-zinc-400">check-ins</span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">Total turnstile admissions today</p>
           </div>
-          <div className="flex items-center gap-2 mt-2 pt-1 border-t border-surface-container-high/30">
-            <div className="flex items-center gap-1 px-2 py-1 rounded bg-surface-container text-primary font-mono text-[10px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <span>{Math.max(0, (todayCount || 187) - 5)} Approved</span>
-            </div>
-            <div className="flex items-center gap-1 px-2 py-1 rounded bg-surface-container text-error font-mono text-[10px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-error" />
-              <span>5 Blocked/Alerts</span>
-            </div>
+          <div className="flex items-center gap-2 pt-2 border-t border-white/5 text-xs">
+            <span className="text-emerald-400 font-bold">✓ {Math.max(0, (todayCount || 187) - 2)} Approved</span>
+            <span className="text-zinc-600">•</span>
+            <span className="text-zinc-400">2 Cooldown holds</span>
           </div>
         </div>
 
         {/* KPI 3: Memberships Expiring */}
-        <div className="bg-surface-container-low p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-md border border-surface-container-high/40 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary text-[18px]">hourglass_top</span>
-              <span className="font-mono text-[10px] uppercase text-on-surface-variant font-bold">Memberships Expiring</span>
+        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/30 transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Expiring Soon</span>
+            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+              Action Needed
+            </span>
+          </div>
+          <div className="my-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-black text-amber-300 tracking-tight">12</span>
+              <span className="text-sm font-semibold text-zinc-400">this week</span>
             </div>
-            <span className="font-mono text-[9px] text-error px-2 py-0.5 rounded bg-surface-container animate-pulse font-bold">ACTION REQD</span>
+            <p className="text-xs text-zinc-400 mt-1">Athletes requiring renewal</p>
           </div>
-          <div className="flex items-baseline gap-1.5 my-1">
-            <span className="text-3xl font-black font-mono text-tertiary tracking-tight">12</span>
-            <span className="text-xs text-on-surface-variant font-semibold">this week</span>
-          </div>
-          <div className="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high/30 text-on-surface-variant text-[11px]">
-            <span>At-Desk Conversion</span>
-            <span className="font-mono font-bold text-primary">83.3% Saved</span>
+          <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs text-zinc-400">
+            <span>Desk Conversion:</span>
+            <span className="font-bold text-emerald-400">83% Renewed</span>
           </div>
         </div>
 
         {/* KPI 4: Monthly Revenue */}
-        <div className="bg-surface-container-low p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-md border border-surface-container-high/40 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[18px]">payments</span>
-              <span className="font-mono text-[10px] uppercase text-on-surface-variant font-bold">Monthly Revenue</span>
+        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/30 transition">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Monthly Revenue</span>
+            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+              +8.2% Growth
+            </span>
+          </div>
+          <div className="my-3">
+            <div className="flex items-baseline gap-1">
+              <span className="text-4xl font-black text-white tracking-tight">$14,850</span>
+              <span className="text-sm font-semibold text-zinc-400">/ mo</span>
             </div>
-            <span className="font-mono text-[9px] text-primary px-2 py-0.5 rounded bg-surface-container font-bold">+8.2% this month</span>
+            <p className="text-xs text-zinc-400 mt-1">Active recurring subscriptions</p>
           </div>
-          <div className="flex items-baseline gap-1 my-1">
-            <span className="text-3xl font-black font-mono text-on-surface tracking-tight">$14,850</span>
-            <span className="font-mono text-[10px] text-on-surface-variant">/ month</span>
-          </div>
-          <div className="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high/30 text-on-surface-variant text-[11px]">
-            <span>Auto-Collect Success</span>
-            <span className="font-mono font-bold text-on-surface">97.4% Synced</span>
+          <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs text-zinc-400">
+            <span>Collection Status:</span>
+            <span className="font-bold text-white">97.4% Synced</span>
           </div>
         </div>
       </div>
 
-      {/* Master Telemetry Hub: Live Turnstile Stream (8 cols) & Fast Desk Renewal Dock (4 cols) */}
+      {/* Master Operational Hub: Live Ingress Feed (8 cols) & Fast Desk Renewal Dock (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left 8 Columns: Turnstile Feed Table */}
-        <div className="lg:col-span-8 flex flex-col bg-surface-container-low rounded-2xl shadow-lg p-5 border border-surface-container-high/40">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 gap-3 border-b border-surface-container-high/40">
+        {/* Left 8 Columns: Live Activity Stream */}
+        <div className="lg:col-span-8 flex flex-col bg-zinc-900/60 backdrop-blur-xl rounded-3xl shadow-xl p-5 sm:p-6 border border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3 border-b border-white/5">
             <div className="flex items-center gap-2.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-              <h2 className="text-base font-bold text-on-surface tracking-tight">Real-Time Activity Feed</h2>
-              <span className="font-mono text-[10px] text-primary bg-surface-container px-2 py-0.5 rounded font-bold">
-                GATES 01-04 ACTIVE
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <h2 className="text-base font-bold text-white tracking-tight">Live Attendance Feed</h2>
+              <span className="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
+                Gates 01-04 Active
               </span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5 bg-zinc-950/80 p-1 rounded-xl border border-white/5">
               <button
                 onClick={() => setActiveTab('ON_FLOOR')}
-                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all ${
+                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
                   activeTab === 'ON_FLOOR'
-                    ? 'bg-primary text-on-primary shadow-sm'
-                    : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+                    ? 'bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-400/20'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
                 type="button"
               >
@@ -607,10 +595,10 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('DEPARTED')}
-                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all ${
+                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
                   activeTab === 'DEPARTED'
-                    ? 'bg-primary text-on-primary shadow-sm'
-                    : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
+                    ? 'bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-400/20'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
                 type="button"
               >
@@ -620,63 +608,63 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
 
           <div className="w-full overflow-x-auto mt-2">
-            <table className="w-full text-left">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-surface-container-lowest font-mono text-[10px] text-outline uppercase tracking-wider">
-                  <th className="py-2.5 px-3">Member</th>
-                  <th className="py-2.5 px-3">Access Tier</th>
-                  <th className="py-2.5 px-3">Time</th>
-                  <th className="py-2.5 px-3">Gate</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
+                <tr className="text-zinc-400 font-semibold border-b border-white/5 uppercase text-[10px] tracking-wider">
+                  <th className="py-3 px-3">Athlete</th>
+                  <th className="py-3 px-3">Membership Plan</th>
+                  <th className="py-3 px-3">Time</th>
+                  <th className="py-3 px-3">Gate</th>
+                  <th className="py-3 px-3">Status</th>
+                  <th className="py-3 px-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-container-high/30 text-xs font-sans">
+              <tbody className="divide-y divide-white/5 font-sans">
                 {activeTab === 'ON_FLOOR' ? (
                   activeOnFloor.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-zinc-400">
-                        <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-primary" />
-                        <p className="font-bold text-xs text-on-surface">No athletes currently on the gym floor</p>
-                        <p className="text-[11px] text-on-surface-variant">Live entrance scans will populate here automatically</p>
+                      <td colSpan={6} className="py-12 text-center text-zinc-400">
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-emerald-400" />
+                        <p className="font-bold text-xs text-white">No athletes currently on the gym floor</p>
+                        <p className="text-[11px] text-zinc-400">Live entrance scans will appear here in real-time</p>
                       </td>
                     </tr>
                   ) : (
                     activeOnFloor.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-surface-container/60 transition-colors group">
-                        <td className="py-3 px-3">
+                      <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="py-3.5 px-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-black text-xs shrink-0">
-                              {entry.user?.fullName?.charAt(0) || 'M'}
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                              {entry.user?.fullName?.charAt(0) || 'A'}
                             </div>
                             <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-on-surface truncate">{entry.user?.fullName || 'Member'}</span>
-                              <span className="font-mono text-[10px] text-on-surface-variant">
-                                Phone Key • #IV-{entry.user?.id ? entry.user.id.substring(0, 5).toUpperCase() : '7729'}
+                              <span className="font-bold text-white truncate">{entry.user?.fullName || 'Athlete'}</span>
+                              <span className="text-[11px] text-zinc-400 font-mono">
+                                #IV-{entry.user?.id ? entry.user.id.substring(0, 5).toUpperCase() : '7729'}
                               </span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3">
-                          <span className="font-mono text-[10px] text-secondary bg-surface-container px-2 py-0.5 rounded font-bold">
-                            {entry.user?.subscriptions?.[0]?.planName || 'Black Vault Elite'}
+                        <td className="py-3.5 px-3">
+                          <span className="text-xs font-semibold text-zinc-300">
+                            {entry.user?.subscriptions?.[0]?.planName || 'Monthly Pro Access'}
                           </span>
                         </td>
-                        <td className="py-3 px-3 font-mono text-[11px] text-on-surface font-semibold">
+                        <td className="py-3.5 px-3 font-mono text-zinc-300">
                           {new Date(entry.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </td>
-                        <td className="py-3 px-3 text-on-surface">Gate 01 (Main)</td>
-                        <td className="py-3 px-3">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-mono text-[10px] font-bold">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            ✅ Entry Granted
+                        <td className="py-3.5 px-3 text-zinc-300">Gate 01 (Main)</td>
+                        <td className="py-3.5 px-3">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            Inside Gym
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-right">
+                        <td className="py-3.5 px-3 text-right">
                           <button
-                            onClick={() => handleDeskCheckout(entry.id, entry.user?.fullName || 'Member')}
+                            onClick={() => handleDeskCheckout(entry.id, entry.user?.fullName || 'Athlete')}
                             disabled={checkingOutId === entry.id}
-                            className="px-2.5 py-1 rounded-lg bg-surface-container-high hover:bg-error/20 hover:text-error text-on-surface font-mono text-[10px] transition font-bold"
+                            className="px-3 py-1 rounded-xl bg-zinc-800 hover:bg-rose-500 hover:text-white text-zinc-300 text-xs font-semibold transition active:scale-95 border border-white/10"
                           >
                             {checkingOutId === entry.id ? 'Checking Out...' : 'Check Out'}
                           </button>
@@ -686,42 +674,39 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                   )
                 ) : departedToday.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-zinc-400">
-                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-secondary" />
-                      <p className="font-bold text-xs text-on-surface">No completed sessions recorded today yet</p>
+                    <td colSpan={6} className="py-12 text-center text-zinc-400">
+                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-emerald-400" />
+                      <p className="font-bold text-xs text-white">No completed sessions recorded today yet</p>
                     </td>
                   </tr>
                 ) : (
                   departedToday.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-surface-container/60 transition-colors group">
-                      <td className="py-3 px-3">
+                    <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="py-3.5 px-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-black text-xs shrink-0">
-                            {entry.user?.fullName?.charAt(0) || 'M'}
+                          <div className="w-8 h-8 rounded-xl bg-zinc-800 text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            {entry.user?.fullName?.charAt(0) || 'A'}
                           </div>
                           <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-on-surface truncate">{entry.user?.fullName || 'Member'}</span>
-                            <span className="font-mono text-[10px] text-on-surface-variant">Completed Workout</span>
+                            <span className="font-bold text-white truncate">{entry.user?.fullName || 'Athlete'}</span>
+                            <span className="text-[11px] text-zinc-400">Session Finished</span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-3">
-                        <span className="font-mono text-[10px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded font-semibold">
-                          {entry.user?.subscriptions?.[0]?.planName || 'Standard 24/7'}
-                        </span>
+                      <td className="py-3.5 px-3 text-zinc-400">
+                        {entry.user?.subscriptions?.[0]?.planName || 'Monthly Access'}
                       </td>
-                      <td className="py-3 px-3 font-mono text-[11px] text-on-surface">
+                      <td className="py-3.5 px-3 font-mono text-zinc-400">
                         {new Date(entry.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </td>
-                      <td className="py-3 px-3 text-on-surface">Exit Turnstile 02</td>
-                      <td className="py-3 px-3">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-mono text-[10px] font-bold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-outline" />
-                          🚪 Exit Recorded
+                      <td className="py-3.5 px-3 text-zinc-400">Exit Gate 02</td>
+                      <td className="py-3.5 px-3">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[10px] font-bold">
+                          🚪 Exit Logged
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-right">
-                        <span className="font-mono text-[10px] text-primary">{entry.sessionDurationMinutes || 45}m</span>
+                      <td className="py-3.5 px-3 text-right font-mono text-emerald-400">
+                        {entry.sessionDurationMinutes || 45} mins
                       </td>
                     </tr>
                   ))
@@ -730,169 +715,157 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
             </table>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-surface-container-high/30 flex flex-col sm:flex-row items-center justify-between text-xs text-on-surface-variant gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-primary font-semibold flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                Live sync active
-              </span>
-              <span>•</span>
-              <span>Fast scan response: 18ms</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleExportAttendanceCsv}
-                className="py-1 px-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-mono text-[10px] flex items-center gap-1 font-bold border border-surface-container-high transition"
-              >
-                <Download className="w-3 h-3 text-primary" />
-                <span>Export CSV</span>
-              </button>
-              <span className="font-mono text-[10px] text-outline">Showing real-time records</span>
-            </div>
+          <div className="mt-4 pt-3 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 gap-2">
+            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Live floor stream connected • Real-time sync
+            </span>
+            <button
+              onClick={handleExportAttendanceCsv}
+              className="py-1.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 transition active:scale-95"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export Today's CSV</span>
+            </button>
           </div>
         </div>
 
         {/* Right 4 Columns: 3-Tap Fast Desk Renewal Dock */}
-        <div id="fast-desk-dock" className="lg:col-span-4 flex flex-col bg-surface-container-low rounded-2xl shadow-lg p-5 border border-surface-container-high/40">
+        <div id="fast-desk-dock" className="lg:col-span-4 flex flex-col bg-zinc-900/60 backdrop-blur-xl rounded-3xl shadow-xl p-5 sm:p-6 border border-white/10">
           <div className="flex items-center justify-between pb-2">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-secondary text-[22px]">flash_on</span>
-              <h2 className="text-base font-bold text-on-surface">Fast Desk Renew</h2>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
+                <CreditCard className="w-4 h-4" />
+              </div>
+              <h2 className="text-base font-bold text-white">Fast Desk Renewal</h2>
             </div>
-            <span className="font-mono text-[9px] uppercase text-primary px-2 py-0.5 rounded bg-surface-container font-bold">
-              3-STEP DESK CHECK-IN
+            <span className="text-[10px] font-bold uppercase text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+              3-Tap Action
             </span>
           </div>
-          <p className="text-xs text-on-surface-variant mb-4">
-            Renew expired members and instantly release turnstile in 3 quick steps.
+          <p className="text-xs text-zinc-400 mb-4">
+            Renew an expired member and unlock turnstiles instantly at the desk.
           </p>
 
           <div className="flex flex-col gap-4">
             {/* Step 1: Select Member */}
             <div className="flex flex-col gap-1.5">
-              <label className="font-mono text-[10px] text-outline uppercase font-bold" htmlFor="athlete-selector">
-                Step 1: Select Member
+              <label className="text-xs font-bold text-zinc-300 uppercase tracking-wide" htmlFor="athlete-selector">
+                1. Select Member
               </label>
               <select
                 id="athlete-selector"
                 value={selectedRenewAthlete}
                 onChange={(e) => setSelectedRenewAthlete(e.target.value)}
-                className="w-full bg-surface-container-lowest text-on-surface text-xs font-semibold px-3 py-2.5 rounded-xl border border-surface-container-high focus:outline-none focus:ring-1 focus:ring-secondary cursor-pointer"
+                className="w-full bg-zinc-950 text-white text-xs font-semibold px-3.5 py-3 rounded-xl border border-white/15 focus:outline-none focus:border-emerald-400 cursor-pointer"
               >
                 <option value="vance">Marcus Vance • Expired Yesterday (Waiting at Gate 01)</option>
                 <option value="torres">Camila Torres • Expires in 3 Days</option>
                 <option value="hudson">Hudson Rivera • Expired 2 hours ago</option>
-                <option value="custom">Search member name or card ID...</option>
+                <option value="custom">Search athlete name or ID...</option>
               </select>
-              <div className="flex items-center gap-1.5 mt-1 p-2 rounded-xl bg-surface-container text-on-surface text-xs border border-error/20">
-                <span className="material-symbols-outlined text-error text-[16px]">warning</span>
-                <span className="text-error font-semibold text-[11px]">Turnstile Locked • Renewal required for entry</span>
-              </div>
             </div>
 
             {/* Step 2: Choose Plan */}
             <div className="flex flex-col gap-1.5">
-              <span className="font-mono text-[10px] text-outline uppercase font-bold">Step 2: Choose Plan</span>
+              <span className="text-xs font-bold text-zinc-300 uppercase tracking-wide">2. Select Duration</span>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedRenewPlan('1month')}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
                     selectedRenewPlan === '1month'
-                      ? 'bg-surface-container-high border-secondary'
-                      : 'bg-surface-container border-transparent hover:bg-surface-container-high'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
+                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="font-mono text-[9px] text-outline font-bold">1 MONTH</span>
-                  <span className="font-mono text-sm font-bold text-on-surface">$65</span>
+                  <span className="text-[10px] font-bold">1 MONTH</span>
+                  <span className="text-base font-black text-white mt-0.5">$65</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewPlan('3months')}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl border relative transition-all ${
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border relative transition-all ${
                     selectedRenewPlan === '3months'
-                      ? 'bg-surface-container-high border-secondary shadow-sm'
-                      : 'bg-surface-container border-transparent hover:bg-surface-container-high'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
+                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="absolute -top-2 bg-secondary text-on-secondary font-mono text-[8px] px-1.5 rounded-full font-bold uppercase">
+                  <span className="absolute -top-2 bg-emerald-400 text-zinc-950 text-[9px] px-1.5 rounded-full font-black uppercase">
                     Popular
                   </span>
-                  <span className="font-mono text-[9px] text-secondary font-bold">3 MONTHS</span>
-                  <span className="font-mono text-sm font-bold text-primary">$175</span>
+                  <span className="text-[10px] font-bold text-emerald-400">3 MONTHS</span>
+                  <span className="text-base font-black text-white mt-0.5">$175</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewPlan('1year')}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
                     selectedRenewPlan === '1year'
-                      ? 'bg-surface-container-high border-secondary'
-                      : 'bg-surface-container border-transparent hover:bg-surface-container-high'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
+                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="font-mono text-[9px] text-outline font-bold">1 YEAR</span>
-                  <span className="font-mono text-sm font-bold text-on-surface">$599</span>
+                  <span className="text-[10px] font-bold">1 YEAR</span>
+                  <span className="text-base font-black text-white mt-0.5">$599</span>
                 </button>
               </div>
             </div>
 
             {/* Step 3: Payment Method */}
             <div className="flex flex-col gap-1.5">
-              <span className="font-mono text-[10px] text-outline uppercase font-bold">Step 3: Payment Method</span>
+              <span className="text-xs font-bold text-zinc-300 uppercase tracking-wide">3. Payment Tender</span>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedRenewTender('card')}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition-all ${
                     selectedRenewTender === 'card'
-                      ? 'bg-surface-container-high border-primary text-on-surface'
-                      : 'bg-surface-container border-transparent text-on-surface-variant hover:text-on-surface'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
+                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px] text-primary">credit_card</span>
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">credit_card</span>
                   <span className="text-[11px]">Card POS</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewTender('cash')}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition-all ${
                     selectedRenewTender === 'cash'
-                      ? 'bg-surface-container-high border-primary text-on-surface'
-                      : 'bg-surface-container border-transparent text-on-surface-variant hover:text-on-surface'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
+                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">payments</span>
+                  <span className="material-symbols-outlined text-[18px] text-teal-400">payments</span>
                   <span className="text-[11px]">Cash Desk</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewTender('sms')}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition-all ${
                     selectedRenewTender === 'sms'
-                      ? 'bg-surface-container-high border-primary text-on-surface'
-                      : 'bg-surface-container border-transparent text-on-surface-variant hover:text-on-surface'
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
+                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">send_to_mobile</span>
+                  <span className="material-symbols-outlined text-[18px] text-primary">send_to_mobile</span>
                   <span className="text-[11px]">SMS Link</span>
                 </button>
               </div>
             </div>
 
             {/* Summary Box */}
-            <div className="p-3 rounded-xl bg-surface-container-lowest flex flex-col gap-1 border border-surface-container-high/40">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-on-surface-variant">Selected Term</span>
-                <span className="text-on-surface font-semibold">
-                  {selectedRenewPlan === '1month' ? '1 Month (30 Days)' : selectedRenewPlan === '3months' ? '3 Months (90 Days)' : '1 Year (365 Days)'}
+            <div className="p-4 rounded-2xl bg-zinc-950 border border-white/10 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] text-zinc-400 uppercase font-bold block">Total Due</span>
+                <span className="text-xs text-zinc-300">
+                  {selectedRenewPlan === '1month' ? '30 Days Access' : selectedRenewPlan === '3months' ? '90 Days Access' : '365 Days VIP Access'}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-on-surface-variant">Total Due Now</span>
-                <span className="text-base font-black font-mono text-primary">
-                  {selectedRenewPlan === '1month' ? '$65.00' : selectedRenewPlan === '3months' ? '$175.00' : '$599.00'}
-                </span>
-              </div>
+              <span className="text-2xl font-black text-emerald-400 font-mono">
+                {selectedRenewPlan === '1month' ? '$65.00' : selectedRenewPlan === '3months' ? '$175.00' : '$599.00'}
+              </span>
             </div>
 
             {/* Action Button */}
@@ -902,31 +875,31 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
               onClick={async () => {
                 try {
                   setIsRenewingAtDesk(true);
-                  await new Promise((r) => setTimeout(r, 800));
-                  setRenewSuccessNotice('Membership renewed! Gate 01 unlocked for Marcus Vance.');
+                  await new Promise((r) => setTimeout(r, 600));
+                  setRenewSuccessNotice('Membership renewed! Gate 01 barrier unlocked for Marcus Vance.');
                   setTimeout(() => setRenewSuccessNotice(null), 4000);
                 } finally {
                   setIsRenewingAtDesk(false);
                 }
               }}
-              className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-secondary text-on-primary font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-wider shadow-xl shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
             >
               {isRenewingAtDesk ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-                  <span>Transmitting Access Token...</span>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Unlocking Gate Barrier...</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">lock_open</span>
-                  <span>Unlock Gate &amp; Renew</span>
+                  <span className="material-symbols-outlined text-[20px]">lock_open</span>
+                  <span>⚡ Unlock Gate &amp; Renew Member</span>
                 </>
               )}
             </button>
 
             {renewSuccessNotice && (
-              <div className="p-3 rounded-xl bg-primary-container text-on-primary-container flex items-center gap-2 text-xs font-bold animate-bounce">
-                <span className="material-symbols-outlined text-primary text-[18px]">task_alt</span>
+              <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-2 text-xs font-bold animate-fade-in">
+                <span className="material-symbols-outlined text-emerald-400 text-[20px]">check_circle</span>
                 <span>{renewSuccessNotice}</span>
               </div>
             )}

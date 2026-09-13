@@ -798,36 +798,46 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </div>
         </div>
 
-        {/* Live Optical Telemetry Rail */}
+        {/* Clean Friendly Scanning Instruction */}
         <div className="px-4 sm:px-6 pt-3">
-          <div className="grid grid-cols-4 gap-2 bg-surface-container-low p-2.5 rounded-2xl shadow-sm border border-surface-container-high/40">
-            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
-              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">FPS RATE</span>
-              <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="font-mono text-sm text-primary font-bold">59.8</span>
-                <span className="font-mono text-[8px] text-on-surface-variant">HZ</span>
-              </div>
+          <div className="flex items-center justify-between bg-zinc-900/80 border border-white/10 px-4 py-2.5 rounded-2xl">
+            <div className="flex items-center gap-2 text-xs text-zinc-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Align the turnstile QR code inside the frame</span>
             </div>
-            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
-              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">LATENCY</span>
-              <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="font-mono text-sm text-secondary font-bold">0.042</span>
-                <span className="font-mono text-[8px] text-on-surface-variant">SEC</span>
-              </div>
-            </div>
-            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
-              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">PRECISION</span>
-              <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="font-mono text-sm text-tertiary font-bold">±1.4</span>
-                <span className="font-mono text-[8px] text-on-surface-variant">MET</span>
-              </div>
-            </div>
-            <div className="flex flex-col min-w-0 bg-surface-container p-2 rounded-xl">
-              <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">OPTICS</span>
-              <div className="flex items-baseline gap-1 mt-0.5">
-                <span className="font-mono text-sm text-on-surface font-bold">f/1.8</span>
-                <span className="font-mono text-[8px] text-primary">ISO80</span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              {hasTorch && (
+                <button
+                  onClick={toggleTorch}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition active:scale-95 ${
+                    isTorchOn ? 'bg-amber-400 text-zinc-950 font-bold' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                  }`}
+                  type="button"
+                  title="Flashlight"
+                >
+                  <span className="material-symbols-outlined text-[18px]">flash_on</span>
+                </button>
+              )}
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition active:scale-95 ${
+                  soundEnabled ? 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700' : 'bg-zinc-800/40 text-zinc-500'
+                }`}
+                type="button"
+                title={soundEnabled ? 'Mute' : 'Unmute'}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {soundEnabled ? 'volume_up' : 'volume_off'}
+                </span>
+              </button>
+              <button
+                onClick={toggleCamera}
+                className="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center transition active:scale-95"
+                type="button"
+                title="Flip Camera"
+              >
+                <span className="material-symbols-outlined text-[18px]">flip_camera_ios</span>
+              </button>
             </div>
           </div>
         </div>
@@ -836,13 +846,13 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         <div className="p-4 sm:p-6 space-y-4 overflow-y-auto max-h-[75vh]">
           {/* Active Status Display (Verifying Spinner) */}
           {verificationState === 'VERIFYING' && (
-            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-3 animate-fade-in">
-              <RefreshCw className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-spin" />
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 animate-fade-in text-emerald-400">
+              <RefreshCw className="w-5 h-5 animate-spin" />
               <div>
-                <p className="font-bold text-xs text-emerald-800 dark:text-emerald-300">
-                  Verifying Optical Turnstile QR...
+                <p className="font-bold text-xs text-white">
+                  Verifying Gate Pass...
                 </p>
-                <p className="text-[11px] text-emerald-600 dark:text-emerald-400">{resultMessage}</p>
+                <p className="text-[11px] text-emerald-400/90">{resultMessage || 'Communicating with IronVault gate daemon'}</p>
               </div>
             </div>
           )}
@@ -870,127 +880,58 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             const isCooldown = effectiveVerdict === 'COOLDOWN';
 
             const glowBorderClass = isLockout
-              ? 'border-error shadow-crimson-glow'
+              ? 'border-rose-500/80 shadow-lg shadow-rose-500/20'
               : isMismatch
-              ? 'border-amber-500 shadow-amber-glow'
+              ? 'border-amber-500/80 shadow-lg shadow-amber-500/20'
               : isGeofence
-              ? 'border-orange-500'
+              ? 'border-orange-500/80 shadow-lg shadow-orange-500/20'
               : isCooldown
-              ? 'border-cyan-500'
-              : 'border-primary shadow-volt-glow';
+              ? 'border-cyan-500/80 shadow-lg shadow-cyan-500/20'
+              : 'border-emerald-500/80 shadow-lg shadow-emerald-500/20';
 
             return (
-              <div className={`relative w-full rounded-2xl overflow-hidden bg-surface-container-lowest shadow-2xl flex flex-col justify-between border-2 transition-all duration-300 ${glowBorderClass}`} style={{ minHeight: '340px' }}>
-                {/* Diagonal Hazard Banding (Shown on Lockout) */}
-                <div
-                  className={`absolute inset-0 pointer-events-none transition-opacity duration-300 bg-[repeating-linear-gradient(45deg,rgba(147,0,10,0.2),rgba(147,0,10,0.2)_14px,transparent_14px,transparent_28px)] ${
-                    isLockout ? 'opacity-100 z-10' : 'opacity-0'
-                  }`}
-                />
-
-                {/* Scanner Reticle Header Controls */}
-                <div className="relative z-20 flex items-center justify-between p-3 bg-surface-container-lowest/80 backdrop-blur-md">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full animate-ping ${isLockout ? 'bg-error' : 'bg-primary'}`} />
-                    <span className="font-mono text-[10px] text-primary tracking-widest uppercase font-bold">
-                      HUD OPTIC // {cameraFacing === 'environment' ? 'BACK' : 'FRONT'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {hasTorch && (
-                      <button
-                        onClick={toggleTorch}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors active:scale-95 ${
-                          isTorchOn ? 'bg-amber-500 text-black' : 'bg-surface-container-high text-on-surface hover:bg-surface-bright'
-                        }`}
-                        type="button"
-                        title="Toggle Flashlight"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">flash_on</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setSoundEnabled(!soundEnabled)}
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors active:scale-95 ${
-                        soundEnabled ? 'bg-surface-container-high text-on-surface' : 'bg-surface-container text-on-surface-variant'
-                      }`}
-                      type="button"
-                      title={soundEnabled ? 'Mute Audio' : 'Unmute Audio'}
-                    >
-                      <span className="material-symbols-outlined text-[16px]">
-                        {soundEnabled ? 'volume_up' : 'volume_off'}
-                      </span>
-                    </button>
-                    <button
-                      onClick={toggleCamera}
-                      className="w-7 h-7 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center transition-colors active:scale-95 hover:bg-surface-bright"
-                      type="button"
-                      title="Flip Camera"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">flip_camera_ios</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Viewfinder Center Core Box */}
-                <div className="relative z-10 mx-auto w-56 h-56 flex items-center justify-center my-2">
+              <div className={`relative w-full rounded-3xl overflow-hidden bg-black shadow-2xl flex flex-col justify-between border-2 transition-all duration-300 ${glowBorderClass}`} style={{ minHeight: '340px' }}>
+                {/* Scanner Viewport Center */}
+                <div className="relative z-10 mx-auto w-64 h-64 flex items-center justify-center my-6">
                   {/* Live Native Video feed */}
                   <video
                     ref={videoRef}
                     playsInline
                     autoPlay
                     muted
-                    className={`absolute inset-0 w-full h-full object-cover rounded-xl ${cameraActive ? 'opacity-100' : 'opacity-0'} transition-opacity`}
+                    className={`absolute inset-0 w-full h-full object-cover rounded-2xl ${cameraActive ? 'opacity-100' : 'opacity-0'} transition-opacity`}
                   />
 
-                  {/* Reticle Target Brackets */}
-                  <div className={`absolute -top-1 -left-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
-                  <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
-                  <div className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
-                  <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-sm ${isLockout ? 'bg-error' : isMismatch ? 'bg-amber-500' : 'bg-primary'}`} />
+                  {/* Clean Reticle Corner Brackets */}
+                  <div className="w-56 h-56 rounded-2xl relative flex items-center justify-center border-2 border-emerald-400/40">
+                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg" />
+                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg" />
+                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg" />
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-400 rounded-br-lg" />
 
-                  {/* Inner cutout visual framing */}
-                  <div className="w-52 h-52 bg-surface-container-lowest/20 backdrop-blur-[1px] rounded-lg relative overflow-hidden flex items-center justify-center border border-white/10">
-                    {/* Vertical Laser Scanner Beam */}
-                    <div
-                      className={`absolute w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_rgba(78,222,163,0.9)] animate-pulse pointer-events-none`}
-                      style={{ animation: 'bounce 2.2s ease-in-out infinite' }}
-                    />
+                    {/* Smooth Animated Laser Scanner Line */}
+                    <div className="absolute left-2 right-2 h-0.5 bg-emerald-400 shadow-[0_0_12px_#10b981] animate-[bounce_2s_infinite_ease-in-out] opacity-90 pointer-events-none" />
 
-                    {/* Center Crosshair & Tracking Data */}
-                    <div className="relative flex flex-col items-center justify-center gap-1 pointer-events-none">
-                      <span className="material-symbols-outlined text-primary text-[36px] opacity-75 animate-spin" style={{ animationDuration: '10s' }}>
-                        qr_code_scanner
-                      </span>
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase tracking-widest font-bold">
-                        LOCK TARGET
-                      </span>
-                    </div>
-
-                    {/* Corner Measurement Coordinates */}
-                    <span className="absolute top-1.5 left-2 font-mono text-[8px] text-primary/80">X: 194.22</span>
-                    <span className="absolute top-1.5 right-2 font-mono text-[8px] text-primary/80">Y: 881.04</span>
-                    <span className="absolute bottom-1.5 left-2 font-mono text-[8px] text-primary/80">Z: 1.002</span>
-                    <span className="absolute bottom-1.5 right-2 font-mono text-[8px] text-primary/80">LOCK: 99.4%</span>
+                    {/* Center Icon */}
+                    <span className="material-symbols-outlined text-emerald-400/60 text-[40px] pointer-events-none">
+                      qr_code_scanner
+                    </span>
                   </div>
                 </div>
 
-                {/* Dynamic Optical Exposure Bar Slider */}
-                <div className="relative z-20 px-4 py-2 bg-surface-container-lowest/80 backdrop-blur-md flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[15px] text-on-surface-variant">exposure</span>
-                    <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">EXPOSURE</span>
+                {/* Sub-status strip */}
+                <div className="relative z-20 px-5 py-3 bg-zinc-950/80 backdrop-blur-md flex items-center justify-between text-xs text-zinc-400 border-t border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-white font-medium">Smart Scanner Ready</span>
                   </div>
-                  <div className="flex-1 max-w-[140px] bg-surface-container-high h-1.5 rounded-full overflow-hidden flex items-center">
-                    <div className="bg-primary h-full w-2/3 rounded-full" />
-                  </div>
-                  <span className="font-mono text-[9px] text-on-surface uppercase font-bold">+0.7 EV</span>
+                  <span className="text-zinc-400">{cameraFacing === 'environment' ? 'Back Camera' : 'Front Camera'}</span>
                 </div>
               </div>
             );
           })()}
 
-          {/* Dynamic Verdict Resolution Module */}
+          {/* Clean Dynamic Verdict Resolution Card */}
           {(() => {
             const effectiveVerdict =
               selectedVerdictTab !== 'AUTO'
@@ -1009,77 +950,36 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
             if (effectiveVerdict === 'GRANTED') {
               return (
-                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-primary/30 animate-fade-in">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-[24px]">verified</span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black uppercase text-primary leading-tight">
-                            Access Granted
-                          </span>
-                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-primary uppercase font-bold">
-                            Haptic Ok
-                          </span>
-                        </div>
-                        <span className="text-xs text-on-surface-variant mt-0.5">
-                          {resultMessage || 'Welcome to IronVault Downtown • Member validated'}
-                        </span>
-                      </div>
+                <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between gap-3 animate-fade-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 text-zinc-950 flex items-center justify-center font-bold">
+                      <span className="material-symbols-outlined text-[24px]">check</span>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white leading-tight">Access Granted</h4>
+                      <p className="text-xs text-emerald-400 mt-0.5">
+                        {resultMessage || 'Welcome to the gym! Turnstile barrier is open.'}
+                      </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Timecode Scan</span>
-                      <span className="font-mono text-xs text-on-surface mt-0.5">07:32:15.842 AM</span>
-                    </div>
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
-                      <span className="font-mono text-xs text-primary mt-0.5 font-bold">
-                        UNLOCKED: GATE 01
-                      </span>
-                    </div>
-                  </div>
+                  <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/20 px-3 py-1.5 rounded-xl shrink-0">
+                    Gate 01 Open
+                  </span>
                 </div>
               );
             }
 
             if (effectiveVerdict === 'MISMATCH') {
               return (
-                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-amber-500/40 animate-fade-in">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-[24px]">domain_disabled</span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black uppercase text-amber-400 leading-tight">
-                            Cross-Gym Mismatch
-                          </span>
-                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-amber-400 uppercase font-bold">
-                            Haptic Alert
-                          </span>
-                        </div>
-                        <span className="text-xs text-on-surface-variant mt-0.5">
-                          {resultMessage || 'Membership registered at Northgate Flagship. Cannot enter Downtown location.'}
-                        </span>
-                      </div>
-                    </div>
+                <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-start gap-3 animate-fade-in">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">domain_disabled</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Registered Gym</span>
-                      <span className="font-mono text-xs text-on-surface mt-0.5">IronVault Northgate</span>
-                    </div>
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
-                      <span className="font-mono text-xs text-amber-400 mt-0.5 font-bold">
-                        INTERCEPT: GATE LOCKED
-                      </span>
-                    </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-amber-300 leading-tight">Different Gym Branch</h4>
+                    <p className="text-xs text-zinc-300 mt-1">
+                      {resultMessage || 'Your pass is registered to a different branch. Ask front desk for multi-location access.'}
+                    </p>
                   </div>
                 </div>
               );
@@ -1087,38 +987,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
             if (effectiveVerdict === 'GEOFENCE') {
               return (
-                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-orange-500/40 animate-fade-in">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-[24px]">pin_drop</span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black uppercase text-orange-400 leading-tight">
-                            Geofence Breach
-                          </span>
-                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-orange-400 uppercase font-bold">
-                            Haptic Warn
-                          </span>
-                        </div>
-                        <span className="text-xs text-on-surface-variant mt-0.5">
-                          {resultMessage || 'Physical device GPS is 850m outside authorized turnstile boundary.'}
-                        </span>
-                      </div>
-                    </div>
+                <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-2xl flex items-start gap-3 animate-fade-in">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">pin_drop</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">GPS Perimeter</span>
-                      <span className="font-mono text-xs text-on-surface mt-0.5">Radius: 150m (Actual 850m)</span>
-                    </div>
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
-                      <span className="font-mono text-xs text-orange-400 mt-0.5 font-bold">
-                        INTERCEPT: OUT OF BOUNDS
-                      </span>
-                    </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-orange-300 leading-tight">Outside Gym Perimeter</h4>
+                    <p className="text-xs text-zinc-300 mt-1">
+                      {resultMessage || 'Please step closer to the gym turnstile entrance to complete check-in.'}
+                    </p>
                   </div>
                 </div>
               );
@@ -1126,38 +1003,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
             if (effectiveVerdict === 'COOLDOWN') {
               return (
-                <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-cyan-500/40 animate-fade-in">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-[24px]">schedule</span>
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black uppercase text-cyan-400 leading-tight">
-                            Anti-Passback Cooldown
-                          </span>
-                          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-surface-container-high text-cyan-400 uppercase font-bold">
-                            Haptic Mute
-                          </span>
-                        </div>
-                        <span className="text-xs text-on-surface-variant mt-0.5">
-                          {resultMessage || 'Pass scanned 42s ago. Cooldown enforced to prevent barcode sharing.'}
-                        </span>
-                      </div>
-                    </div>
+                <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-2xl flex items-start gap-3 animate-fade-in">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[24px]">schedule</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Cooldown Remaining</span>
-                      <span className="font-mono text-xs text-cyan-400 mt-0.5 font-bold">02:18s</span>
-                    </div>
-                    <div className="flex flex-col p-1">
-                      <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
-                      <span className="font-mono text-xs text-on-surface mt-0.5 font-bold">
-                        HOLD TURNSTILE
-                      </span>
-                    </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-cyan-300 leading-tight">Recent Check-in</h4>
+                    <p className="text-xs text-zinc-300 mt-1">
+                      {resultMessage || 'You scanned recently. Please wait a couple minutes before scanning again.'}
+                    </p>
                   </div>
                 </div>
               );
@@ -1165,38 +1019,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
             // Default: LOCKOUT
             return (
-              <div className="bg-surface-container-low p-4 rounded-2xl shadow-md flex flex-col gap-3 border border-error/50 animate-fade-in">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-error-container text-white flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined text-[24px]">shield_alert</span>
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-black uppercase text-error leading-tight">
-                          Security Lockout
-                        </span>
-                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-error/20 text-error uppercase font-bold">
-                          Critical Lock
-                        </span>
-                      </div>
-                      <span className="text-xs text-on-surface-variant mt-0.5">
-                        {resultMessage || 'Multi-device clone detected. Pass temporarily locked for fraud protection.'}
-                      </span>
-                    </div>
-                  </div>
+              <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl flex items-start gap-3 animate-fade-in">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[24px]">shield_alert</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 bg-surface-container p-2 rounded-xl">
-                  <div className="flex flex-col p-1">
-                    <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Exploit Vector</span>
-                    <span className="font-mono text-xs text-error mt-0.5 font-bold">DEVICE_CLONE_SHA256</span>
-                  </div>
-                  <div className="flex flex-col p-1">
-                    <span className="font-mono text-[9px] text-on-surface-variant uppercase font-bold">Turnstile Verdict</span>
-                    <span className="font-mono text-xs text-error mt-0.5 font-bold">
-                      GATE LOCKOUT • CALL DESK
-                    </span>
-                  </div>
+                <div>
+                  <h4 className="text-sm font-bold text-rose-300 leading-tight">Account Review Required</h4>
+                  <p className="text-xs text-zinc-300 mt-1">
+                    {resultMessage || 'Your pass needs a quick review. Please speak to the front desk team.'}
+                  </p>
                 </div>
               </div>
             );
