@@ -749,7 +749,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               </div>
               <h3 className="text-xl font-bold text-white tracking-tight">Sub-Second Biometric Screen Authorization</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                Ephemeral time-based QR codes refresh every 30 seconds inside Apple Wallet and native app. Zero hardware scanners needed—runs on any low-cost tablet camera.
+                Ephemeral time-based QR codes refresh every 30 seconds inside digital pass and native app. Zero hardware scanners needed—runs on any low-cost tablet camera.
               </p>
             </div>
             <div className="my-6 p-4 rounded-2xl bg-zinc-950/80 border border-white/5 space-y-2.5">

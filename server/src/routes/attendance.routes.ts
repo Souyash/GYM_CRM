@@ -8,7 +8,7 @@ import { authenticateJWT, requireRole } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.get('/live', authenticateJWT, requireRole('MANAGER', 'SUPER_ADMIN'), getLiveAttendance);
+router.get('/live', authenticateJWT, getLiveAttendance);
 router.post('/:id/checkout', authenticateJWT, requireRole('MANAGER', 'SUPER_ADMIN'), manualDeskCheckout);
 router.get('/my-history', authenticateJWT, getMyAttendanceHistory);
 
