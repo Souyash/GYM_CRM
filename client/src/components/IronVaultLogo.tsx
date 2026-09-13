@@ -45,3 +45,4 @@ export const IronVaultLogo: React.FC<IronVaultLogoProps> = ({
     </svg>
   );
 };
+

@@ -138,5 +138,27 @@ export function emitClassBookingUpdated(data: { classId: string; bookedSeats: nu
   io.emit('community:class_booking_updated', data);
 }
 
-
-
+/**
+ * Real-time push notification broadcast (Zomato/Swiggy style delivery and alerts)
+ */
+export function emitPushNotification(payload: {
+  title: string;
+  message: string;
+  type?: 'streak' | 'gate' | 'perk' | 'billing' | 'system';
+  priority?: 'high' | 'normal';
+  avatarIcon?: string;
+  badgeLabel?: string;
+  actionText?: string;
+  actionTab?: string;
+  userId?: string;
+  role?: string;
+}) {
+  if (!io) return;
+  if (payload.userId) {
+    io.to(`user:${payload.userId}`).emit('notification:push', payload);
+  } else if (payload.role) {
+    io.to(`role:${payload.role}`).emit('notification:push', payload);
+  } else {
+    io.emit('notification:push', payload);
+  }
+}

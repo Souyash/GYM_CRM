@@ -1,6 +1,7 @@
 import React from 'react';
-import { MessageSquare, QrCode, Calendar, User, Shield, HeartPulse } from 'lucide-react';
+import { MessageSquare, QrCode, Calendar, User, Shield, HeartPulse, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 
 interface MobileBottomNavProps {
   currentTab: string;
@@ -14,6 +15,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenScanner
 }) => {
   const { user } = useAuth();
+  const { unreadCount, setIsCenterOpen } = useNotifications();
 
   if (!user) return null;
 
@@ -59,6 +61,22 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             >
               <User className="w-5 h-5" />
               <span className="text-[10px]">My Pass</span>
+            </button>
+
+            {/* Zomato Activity & Notifications */}
+            <button
+              onClick={() => setIsCenterOpen(true)}
+              className="relative flex flex-col items-center gap-1 p-1.5 transition text-slate-500 dark:text-zinc-400 hover:text-emerald-500"
+            >
+              <div className="relative">
+                <Bell className="w-5 h-5 text-emerald-500" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-2 flex h-3.5 min-w-[14px] px-1 items-center justify-center rounded-full bg-rose-500 text-white text-[8px] font-black animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px]">Alerts</span>
             </button>
           </>
         ) : (

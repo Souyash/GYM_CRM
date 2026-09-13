@@ -17,6 +17,8 @@ import { LandingPageView } from './views/LandingPageView';
 import { HealthIntelligenceView } from './views/HealthIntelligenceView';
 import { PreloaderScreen } from './components/PreloaderScreen';
 import { MemberRosterView } from './views/MemberRosterView';
+import { ZomatoLiveBanner } from './components/ZomatoLiveBanner';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
 import {
   Users,
   CreditCard,
@@ -193,6 +195,15 @@ export const AppContent: React.FC = () => {
       {/* Real-Time WebSocket Red Alert Drop-Down Banner */}
       <RedAlertBanner />
 
+      {/* Zomato / Swiggy-Style Floating Dynamic Island Live Activity Banner */}
+      <ZomatoLiveBanner
+        onNavigateTab={(tab) => setCurrentTab(tab)}
+        onOpenScanner={() => {
+          setScannerInitialMode('ENTER');
+          setIsScannerOpen(true);
+        }}
+      />
+
       {/* Main Top Navigation */}
       <Navbar
         currentTab={currentTab}
@@ -316,6 +327,15 @@ export const AppContent: React.FC = () => {
         onClose={() => setIsBillingModalOpen(false)}
         onSuccess={() => {
           loadMembers();
+        }}
+      />
+
+      {/* Zomato-Style Notification Center Modal & Live Activity Drawer */}
+      <NotificationCenterModal
+        onNavigateTab={(tab) => setCurrentTab(tab)}
+        onOpenScanner={() => {
+          setScannerInitialMode('ENTER');
+          setIsScannerOpen(true);
         }}
       />
     </div>

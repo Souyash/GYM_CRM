@@ -14,10 +14,12 @@ import {
   HelpCircle,
   MessageSquare,
   Globe,
-  HeartPulse
+  HeartPulse,
+  Bell
 } from 'lucide-react';
 import { IronVaultLogo } from './IronVaultLogo';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 
 interface NavbarProps {
   currentTab: string;
@@ -33,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onViewPublicSite
 }) => {
   const { user, logout } = useAuth();
+  const { unreadCount, setIsCenterOpen } = useNotifications();
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gym_theme');
@@ -235,6 +238,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Sun className="w-4 h-4 text-emerald-400" />
               ) : (
                 <Moon className="w-4 h-4 text-emerald-600" />
+              )}
+            </button>
+
+            {/* Zomato / Swiggy Style Real-Time Notification Bell */}
+            <button
+              onClick={() => setIsCenterOpen(true)}
+              className="relative p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-200 transition active:scale-95"
+              title="Real-Time Notifications & Live Activity"
+            >
+              <Bell className="w-4 h-4 text-emerald-500" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-500 text-white text-[9px] font-black shadow-md shadow-rose-500/50 animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
               )}
             </button>
 
