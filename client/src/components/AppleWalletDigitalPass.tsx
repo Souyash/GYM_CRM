@@ -25,38 +25,6 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
 
   const formattedCountdown = `0:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`;
 
-  // 2. Interactive NFC Tap to Enter Simulation
-  const [nfcState, setNfcState] = useState<'IDLE' | 'APPROACHING' | 'GRANTED'>('IDLE');
-
-  const handleNfcTap = () => {
-    if (nfcState !== 'IDLE') return;
-
-    // Trigger haptic if available on mobile
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate([40, 60, 40]);
-    }
-
-    setNfcState('APPROACHING');
-
-    setTimeout(() => {
-      setNfcState('GRANTED');
-      playChime();
-
-      showNotification({
-        title: '⚡ Gate 01 Unlocked via Smart Pass',
-        message: 'NFC reader confirmed your entry. Turnstile 01 unlocked. Enjoy your session!',
-        type: 'gate',
-        avatarIcon: 'zap',
-        badgeLabel: 'LIVE ACCESS',
-        actionText: 'View Session'
-      });
-
-      // Reset back to idle after 3.5 seconds
-      setTimeout(() => {
-        setNfcState('IDLE');
-      }, 3500);
-    }, 1000);
-  };
 
   // 3. Interactive Locker Unlock Simulation
   const [lockerStatus, setLockerStatus] = useState<'LOCKED' | 'UNLOCKING' | 'OPEN'>('LOCKED');
@@ -240,13 +208,13 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
             </div>
           </div>
 
-          {/* Turnstile Scanning Helper */}
+          {/* Gate Scanning Helper */}
           <div className="flex items-center gap-2 mt-4 text-[#bacbbe]">
             <span className="material-symbols-outlined text-[20px] text-[#6dffba]">
-              contactless
+              qr_code_scanner
             </span>
             <span className="text-xs font-medium">
-              Hold phone near gate reader or tap below to enter
+              Show this QR pass at the entrance camera to check in
             </span>
           </div>
 
@@ -266,36 +234,14 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
         </div>
       </div>
 
-      {/* Primary Instant Haptic Action Button (NFC / Gate Tap) */}
+      {/* Primary Action Button (Camera Scanner) */}
       <button
-        onClick={handleNfcTap}
-        disabled={nfcState !== 'IDLE'}
-        className={`w-full py-4 px-6 rounded-full font-bold text-sm sm:text-base flex items-center justify-center gap-3 shadow-[0_4px_24px_rgba(109,255,186,0.22)] active:scale-[0.98] transition-all cursor-pointer select-none ${
-          nfcState === 'GRANTED'
-            ? 'bg-emerald-500 text-black ring-4 ring-emerald-400/40'
-            : nfcState === 'APPROACHING'
-            ? 'bg-[#6dffba]/80 text-[#003822] cursor-wait'
-            : 'bg-[#6dffba] hover:bg-[#5ef5af] text-[#003822]'
-        }`}
+        onClick={() => onOpenScanner && onOpenScanner('ENTER')}
+        type="button"
+        className="w-full py-4 px-6 rounded-full font-bold text-sm sm:text-base flex items-center justify-center gap-3 bg-[#6dffba] hover:bg-[#5ef5af] text-[#003822] shadow-[0_4px_24px_rgba(109,255,186,0.22)] active:scale-[0.98] transition-all cursor-pointer select-none"
       >
-        {nfcState === 'APPROACHING' ? (
-          <>
-            <span className="material-symbols-outlined text-[24px] animate-spin">
-              autorenew
-            </span>
-            <span>Connecting to Gate...</span>
-          </>
-        ) : nfcState === 'GRANTED' ? (
-          <>
-            <span className="material-symbols-outlined text-[24px]">check_circle</span>
-            <span>Access Granted • Gate 01 Open</span>
-          </>
-        ) : (
-          <>
-            <span className="material-symbols-outlined text-[24px]">contactless</span>
-            <span>Tap Phone to Open Gate (NFC)</span>
-          </>
-        )}
+        <span className="material-symbols-outlined text-[24px]">qr_code_scanner</span>
+        <span>Open Camera Scanner to Check In</span>
       </button>
 
       {/* Essential Quick Utility Cards (2-Column Grid) */}

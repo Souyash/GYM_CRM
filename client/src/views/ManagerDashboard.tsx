@@ -913,7 +913,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           <div className="bg-surface-container-low max-w-md w-full rounded-2xl p-6 shadow-2xl flex flex-col gap-4 border border-surface-container-high">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[24px]">contactless</span>
+                <span className="material-symbols-outlined text-primary text-[24px]">lock_open</span>
                 <h3 className="text-base font-bold text-on-surface">Quick Gate Release</h3>
               </div>
               <button
