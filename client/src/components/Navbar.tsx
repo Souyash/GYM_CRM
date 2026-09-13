@@ -119,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }`}
                   >
                     <Shield className="w-3.5 h-3.5" />
-                    <span>🛠️ Dev Team Console</span>
+                    <span>⚙️ Admin Dashboard</span>
                   </button>
                 )}
 

@@ -421,15 +421,15 @@ Portal URL: ${window.location.origin}`;
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                  Super Admin Console
+                  Gym System Management
                 </h1>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Live Fleet
+                  All Active Gyms
                 </span>
               </div>
               <p className="text-xs text-zinc-400">
-                Multi-tenant workspace orchestration, turnstile gateways & cross-gym security
+                Manage all gym locations, check-in gates, and member pass accounts
               </p>
             </div>
           </div>
@@ -440,13 +440,13 @@ Portal URL: ${window.location.origin}`;
               type="button"
               onClick={() => {
                 loadData();
-                showToast('Synchronized with edge cloud.');
+                showToast('Data refreshed.');
               }}
               disabled={isLoading}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 text-xs font-semibold border border-white/10 transition-all active:scale-95 disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Sync Cloud</span>
+              <span>Refresh Data</span>
             </button>
 
             <button
@@ -657,16 +657,16 @@ Portal URL: ${window.location.origin}`;
             </div>
             <div>
               <h2 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                Security Alerts: Anti-Passback & Fraud Protection
+                Pass Protection & Shared Pass Alerts
               </h2>
               <p className="text-xs text-zinc-400">
-                Automated detection of shared passes, impossible velocity breaches, and cloned QR codes
+                Automatic alerts when a pass is scanned twice or shared across different locations
               </p>
             </div>
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-xs font-semibold self-start sm:self-auto">
             <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
-            2 Active Incidents
+            2 Active Alerts
           </span>
         </div>
 
@@ -681,10 +681,10 @@ Portal URL: ${window.location.origin}`;
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <span className="text-[10px] font-mono text-rose-400 font-semibold uppercase tracking-wider">
-                  Incident #SEC-9021 • 14:02 UTC
+                  Alert #SEC-9021 • 14:02 UTC
                 </span>
                 <h4 className="text-sm font-bold text-white mt-0.5">
-                  Impossible Travel Velocity Detected
+                  Simultaneous Check-In at Two Branches
                 </h4>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold">
@@ -695,7 +695,7 @@ Portal URL: ${window.location.origin}`;
               Member <strong className="text-white">Marcus Sterling</strong> checked in at <strong className="text-white">Downtown Branch</strong> and then at <strong className="text-white">Northgate Branch (12.4 km away)</strong> within 3 minutes 57 seconds. Pass is likely being shared with another person.
             </p>
             <div className="flex items-center justify-between pt-3 border-t border-white/5">
-              <span className="text-xs text-zinc-500 font-mono">Gate 02 Breach</span>
+              <span className="text-xs text-zinc-500 font-mono">Gate 02 Alert</span>
               <button
                 type="button"
                 onClick={() => {
@@ -725,10 +725,10 @@ Portal URL: ${window.location.origin}`;
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
                 <span className="text-[10px] font-mono text-amber-400 font-semibold uppercase tracking-wider">
-                  Incident #SEC-9019 • 13:48 UTC
+                  Alert #SEC-9019 • 13:48 UTC
                 </span>
                 <h4 className="text-sm font-bold text-white mt-0.5">
-                  Possible QR Screenshot / Secondary Device
+                  Unregistered Phone / Screenshot Used
                 </h4>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold">
@@ -736,7 +736,7 @@ Portal URL: ${window.location.origin}`;
               </span>
             </div>
             <p className="text-xs text-zinc-300 leading-relaxed mb-4">
-              Member <strong className="text-white">Elena Rostova</strong>'s pass was scanned from a Samsung Galaxy S23 while their verified primary device is an iPhone 15 Pro. The QR code displayed delayed token rotation.
+              Member <strong className="text-white">Elena Rostova</strong>'s pass was scanned from a Samsung Galaxy S23 while their verified phone is an iPhone 15 Pro. The QR code displayed an expired pass code.
             </p>
             <div className="flex items-center justify-between pt-3 border-t border-white/5 gap-2">
               <span className="text-xs text-zinc-500 font-mono">Turnstile Gate 01</span>

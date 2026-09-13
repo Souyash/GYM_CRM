@@ -222,10 +222,10 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
           </div>
           <div>
             <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-              Gym Location & Geofence
+              Gym Location & Check-In Area
             </h3>
             <p className="text-xs text-slate-500 dark:text-zinc-400">
-              Anchor your turnstile QR code to this physical building
+              Ensure members must be at the gym building to check in
             </p>
           </div>
         </div>
@@ -244,13 +244,13 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
           <div>
             <span className="font-bold block">
               {isLocationConfigured
-                ? 'Geofence Active & Turnstile Locked'
-                : 'Gym Coordinates Not Configured'}
+                ? 'Location Check Active & Secure'
+                : 'Gym Location Not Set Yet'}
             </span>
             <span className="text-[11px] opacity-90 block mt-0.5">
               {isLocationConfigured
-                ? `Members must be physically within ${radius}m of (${lat}, ${lng}) to check in.`
-                : 'Turnstile check-ins currently allow scans without GPS restriction. Set your coordinates below to activate anti-fraud geofencing.'}
+                ? `Members must be physically within ${radius} meters of the gym to check in.`
+                : 'Check-ins currently allow scans from anywhere. Save your gym location below to make sure scans only work at the gym doors.'}
             </span>
           </div>
         </div>
@@ -338,7 +338,7 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                Turnstile Geofence Radius
+                Check-In Distance Radius
               </label>
               <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
                 {radius} meters (~{Math.round(radius * 3.28)} ft)

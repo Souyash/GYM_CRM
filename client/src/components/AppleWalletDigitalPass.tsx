@@ -246,7 +246,7 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
               contactless
             </span>
             <span className="text-xs font-medium">
-              Hold near turnstile reader or tap below to enter
+              Hold phone near gate reader or tap below to enter
             </span>
           </div>
 
@@ -256,17 +256,17 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
               <span className="material-symbols-outlined text-[#6dffba] text-[18px]">
                 verified_user
               </span>
-              <span className="text-xs font-bold text-[#e0e2ed]">Active &amp; verified</span>
+              <span className="text-xs font-bold text-[#e0e2ed]">Active &amp; Ready</span>
             </div>
             <div className="flex items-center gap-1.5 text-[#bacbbe] text-xs font-medium">
-              <span>Refreshes in</span>
+              <span>Code refreshes in</span>
               <span className="font-mono font-bold text-[#6dffba]">{formattedCountdown}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Primary Instant Haptic Action Button (NFC / Turnstile Tap) */}
+      {/* Primary Instant Haptic Action Button (NFC / Gate Tap) */}
       <button
         onClick={handleNfcTap}
         disabled={nfcState !== 'IDLE'}
@@ -283,17 +283,17 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
             <span className="material-symbols-outlined text-[24px] animate-spin">
               autorenew
             </span>
-            <span>Approaching Reader...</span>
+            <span>Connecting to Gate...</span>
           </>
         ) : nfcState === 'GRANTED' ? (
           <>
             <span className="material-symbols-outlined text-[24px]">check_circle</span>
-            <span>Access Granted • Turnstile 01</span>
+            <span>Access Granted • Gate 01 Open</span>
           </>
         ) : (
           <>
             <span className="material-symbols-outlined text-[24px]">contactless</span>
-            <span>Tap to Enter with Phone (NFC)</span>
+            <span>Tap Phone to Open Gate (NFC)</span>
           </>
         )}
       </button>
@@ -396,7 +396,7 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
         <div className="flex items-center justify-between">
           <div className="text-left">
             <h2 className="text-sm sm:text-base font-bold text-[#e0e2ed]">
-              Weekly Rhythm
+              This Week's Goal
             </h2>
             <p className="text-xs text-[#bacbbe]">4 of 5 workouts completed</p>
           </div>
@@ -407,7 +407,7 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
             >
               local_fire_department
             </span>
-            <span className="text-[11px] font-bold">On Streak</span>
+            <span className="text-[11px] font-bold">On a Streak</span>
           </div>
         </div>
 
@@ -541,3 +541,4 @@ export const AppleWalletDigitalPass: React.FC<AppleWalletDigitalPassProps> = ({
     </div>
   );
 };
+

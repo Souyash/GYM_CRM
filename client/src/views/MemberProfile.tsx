@@ -397,7 +397,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
         <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[11px] font-bold text-emerald-400 tracking-wide uppercase">Geolink Active</span>
+          <span className="text-[11px] font-bold text-emerald-400 tracking-wide uppercase">Location Verified</span>
         </div>
       </div>
 
@@ -603,7 +603,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                     </span>
                   </div>
                   <span className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider">
-                    Anti-Clone
+                    Secure Auto-Refresh
                   </span>
                 </div>
               </div>
@@ -616,7 +616,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] uppercase block tracking-wider text-zinc-400 font-semibold">Status</span>
-                  <span className="font-bold text-emerald-400">{isSubActive ? 'Valid & Armed' : 'Expired'}</span>
+                  <span className="font-bold text-emerald-400">{isSubActive ? 'Active & Ready' : 'Expired'}</span>
                 </div>
               </div>
             </div>

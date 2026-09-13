@@ -664,32 +664,32 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-black text-white font-mono">4.8M+</div>
-            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">Monthly Gate Turnstile Flips</div>
+            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">Monthly Gym Check-Ins</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono">142ms</div>
-            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-mono">P99 Edge Verification</div>
+            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-mono">Instant Entry Speed</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-black text-teal-400 font-mono">840+</div>
-            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-mono">Active High-Volume Arenas</div>
+            <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider font-mono">Active Gyms &amp; Fitness Clubs</div>
           </div>
           <div className="space-y-1">
             <div className="text-3xl sm:text-4xl font-black text-white font-mono">$0</div>
-            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">Proprietary Reader Lock-in</div>
+            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider font-mono">No Hardware Lock-In</div>
           </div>
         </div>
       </section>
 
-      {/* SIMULATION SPLIT HUD SHOWCASE */}
+      {/* SIMULATION SPLIT SHOWCASE */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-2">
-          <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest font-mono">Real-Time Access Audit</span>
+          <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest font-mono">Live Comparison</span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            Turnstiles Powered by Pure Software. Zero Keyfobs.
+            Turnstiles &amp; Doors Powered by Your Phone. Zero Keyfobs.
           </h2>
           <p className="text-sm text-slate-600 dark:text-zinc-400">
-            Compare outdated plastic badge readers against IronVault's sub-second cryptographic camera HUD.
+            Compare slow plastic cards against IronVault's instant, phone-based smart gym check-in.
           </p>
         </div>
 
@@ -796,41 +796,41 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
-          {/* Pillar 1: Sub-Second QR (Span 7) */}
+          {/* Pillar 1: Fast QR & Scanner (Span 7) */}
           <div className="lg:col-span-7 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
             <div className="space-y-3">
               <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
                 <QrCode className="w-5 h-5" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Sub-Second QR & Laser Reticle HUD</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Instant QR &amp; Camera Scanner</h3>
               <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                Dynamic cryptographic tokens refresh with high-entropy hashes every 30 seconds. Screenshots and recorded videos fail instantly. If network cables are cut, our in-browser WebAssembly engine evaluates encrypted local state keys locally in under 12 milliseconds.
+                Pass codes refresh securely every 30 seconds so screenshots and pictures never work. If internet or Wi-Fi drops, our offline technology validates member passes right on your phone or front desk tablet in milliseconds.
               </p>
             </div>
             <div className="mt-6 p-4 rounded-2xl bg-zinc-950 border border-white/5 space-y-2">
               <div className="flex justify-between items-center font-mono text-xs">
-                <span className="text-teal-400">OPTICAL CAM RETICLE: 60FPS ACTIVE</span>
-                <span className="text-zinc-400">HASH: ED25519-SIG</span>
+                <span className="text-teal-400">CAMERA SCANNER: READY &amp; FAST</span>
+                <span className="text-zinc-400">SECURITY: ACTIVE</span>
               </div>
               <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-400 w-5/6 animate-pulse" />
               </div>
               <div className="flex justify-between font-mono text-[10px] text-zinc-500">
-                <span>LOCAL WASM CACHE: SYNCED</span>
-                <span>GATE FLIP LATENCY: 0.14s</span>
+                <span>OFFLINE SCANNING: ENABLED</span>
+                <span>DOOR OPEN SPEED: 0.14s</span>
               </div>
             </div>
           </div>
 
-          {/* Pillar 2: Anti-Passback (Span 5) */}
+          {/* Pillar 2: Pass Protection (Span 5) */}
           <div className="lg:col-span-5 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
             <div className="space-y-3">
               <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
                 <Shield className="w-5 h-5" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Cross-Facility Anti-Passback</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Pass Sharing Protection</h3>
               <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                Geo-telemetry and time-velocity heuristics instantly flag unauthorized account transfers. If Member A scans at Downtown at 09:00, their pass is physically locked out of Midtown until real-world transit velocity permits.
+                Smart location checks prevent pass sharing. If a member checks in at your Downtown gym at 9:00 AM, their friend cannot use the same pass at your Midtown branch 2 minutes later.
               </p>
             </div>
             <div className="mt-6 p-3.5 rounded-2xl bg-zinc-950 border border-rose-500/20 flex items-center gap-3">
@@ -838,8 +838,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1 font-mono text-xs">
-                <div className="text-white font-bold truncate">PASSBACK_EVENT_REJECTED</div>
-                <div className="text-rose-400 text-[10px]">DELTA: +4.2s (IMPOSSIBLE TRAVEL)</div>
+                <div className="text-white font-bold truncate">SECOND_SCAN_PREVENTED</div>
+                <div className="text-rose-400 text-[10px]">REASON: PASS ALREADY IN USE</div>
               </div>
             </div>
           </div>
@@ -864,23 +864,23 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             </div>
           </div>
 
-          {/* Pillar 4: Edge Node Relays (Span 7) */}
+          {/* Pillar 4: Automatic Gate Openers (Span 7) */}
           <div className="lg:col-span-7 rounded-3xl bg-zinc-900/60 border border-white/10 p-6 sm:p-8 flex flex-col justify-between shadow-xl backdrop-blur-xl group hover:border-emerald-500/30 transition-all">
             <div className="space-y-3">
               <div className="w-11 h-11 rounded-2xl bg-zinc-800 border border-white/10 flex items-center justify-center text-emerald-400 shadow-md">
                 <Activity className="w-5 h-5" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Edge Node Hardware Relays</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">Automatic Gate &amp; Door Openers</h3>
               <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                Zero rewiring. Connect our universal $49 dry-contact IoT trigger module to Hayward turnstiles, Boon Edam optical gates, Alvarado tripod arms, or magnetic glass doors. Fires physical relay signals over local WebSocket in under 18 milliseconds.
+                Zero complex rewiring. Easily connects to any existing gym turnstile, optical speed gate, tripod arm, or magnetic glass door. Automatically unlocks the gate in milliseconds whenever a verified member taps or scans.
               </p>
             </div>
             <div className="mt-6 p-4 rounded-2xl bg-zinc-950 border border-white/5 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-zinc-300">COMPATIBLE: HAYWARD, ALVARADO, BOON EDAM</span>
+                <span className="text-zinc-300">COMPATIBLE: ALL GATES, TURNSTILES &amp; DOORS</span>
               </div>
-              <span className="text-emerald-400 font-bold">DRY-CONTACT NO/NC RELAY</span>
+              <span className="text-emerald-400 font-bold">UNIVERSAL CONTROLLER</span>
             </div>
           </div>
         </div>

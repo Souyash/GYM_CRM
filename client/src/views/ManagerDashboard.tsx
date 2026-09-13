@@ -333,13 +333,13 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
             type="button"
             onClick={() => setIsLocationModalOpen(true)}
             className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
-            title="Configure physical GPS coordinates and turnstile geofence radius"
+            title="Configure gym building location and check-in distance range"
           >
             <MapPin className={`w-4 h-4 ${gymDetails?.latitude && gymDetails.latitude !== 0 ? 'text-emerald-500' : 'text-amber-500 animate-pulse'}`} />
             <span>
               {gymDetails?.latitude && gymDetails.latitude !== 0
-                ? `📍 GPS Active (${gymDetails.geofenceRadiusMeters || 100}m)`
-                : '⚠️ Set Gym GPS Location'}
+                ? `📍 Location Active (${gymDetails.geofenceRadiusMeters || 100}m)`
+                : '⚠️ Set Gym Location'}
             </span>
           </button>
 

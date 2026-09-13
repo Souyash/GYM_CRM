@@ -770,7 +770,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 }`}
                 type="button"
               >
-                Geofence
+                Location
               </button>
               <button
                 onClick={() => setSelectedVerdictTab('COOLDOWN')}
@@ -781,7 +781,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 }`}
                 type="button"
               >
-                Cooldown
+                Repeat
               </button>
               <button
                 onClick={() => setSelectedVerdictTab('LOCKOUT')}
@@ -792,7 +792,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 }`}
                 type="button"
               >
-                Lockout
+                Expired
               </button>
             </div>
           </div>
@@ -992,9 +992,9 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                     <span className="material-symbols-outlined text-[24px]">pin_drop</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-orange-300 leading-tight">Outside Gym Perimeter</h4>
+                    <h4 className="text-sm font-bold text-orange-300 leading-tight">Too Far from Entrance</h4>
                     <p className="text-xs text-zinc-300 mt-1">
-                      {resultMessage || 'Please step closer to the gym turnstile entrance to complete check-in.'}
+                      {resultMessage || 'Please step closer to the gym entrance doors to complete check-in.'}
                     </p>
                   </div>
                 </div>
@@ -1008,9 +1008,9 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                     <span className="material-symbols-outlined text-[24px]">schedule</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-cyan-300 leading-tight">Recent Check-in</h4>
+                    <h4 className="text-sm font-bold text-cyan-300 leading-tight">Already Checked In</h4>
                     <p className="text-xs text-zinc-300 mt-1">
-                      {resultMessage || 'You scanned recently. Please wait a couple minutes before scanning again.'}
+                      {resultMessage || 'Your pass was just scanned. If entering with a workout partner, each athlete needs their own pass.'}
                     </p>
                   </div>
                 </div>
