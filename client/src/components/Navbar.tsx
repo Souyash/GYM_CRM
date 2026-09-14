@@ -87,7 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, [onOpenScanner]);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#050507]/90 backdrop-blur-xl border-b border-white/10 transition-colors duration-200 navbar-notch-safe">
+    <>
+      <header className="sticky top-0 z-40 bg-[#050507]/90 backdrop-blur-xl border-b border-white/10 transition-colors duration-200 navbar-notch-safe">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Brand & Gym Tenant Badge */}
@@ -327,11 +328,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
-
-      <WhatsAppDeviceLinkModal
-        isOpen={isWhatsAppModalOpen}
-        onClose={() => setIsWhatsAppModalOpen(false)}
-      />
     </header>
-  );
+
+    <WhatsAppDeviceLinkModal
+      isOpen={isWhatsAppModalOpen}
+      onClose={() => setIsWhatsAppModalOpen(false)}
+    />
+  </>
+);
 };

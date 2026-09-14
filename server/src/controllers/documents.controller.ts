@@ -274,3 +274,4 @@ export async function resendMemberDocumentsWhatsAppController(req: Authenticated
     res.status(500).json({ error: 'Failed to resend documents via WhatsApp.' });
   }
 }
+

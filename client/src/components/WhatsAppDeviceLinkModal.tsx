@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
-  QrCode,
   Smartphone,
   CheckCircle2,
-  AlertTriangle,
   RefreshCw,
   LogOut,
   Send,
@@ -68,10 +67,16 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
     // Poll every 3.5 seconds while modal is open to detect phone QR scan instantly
     pollingRef.current = setInterval(fetchStatus, 3500);
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   const handleDisconnect = async () => {
     if (!window.confirm('Are you sure you want to unlink this WhatsApp phone? Automated messages will pause until a new phone is linked.')) {
@@ -106,27 +111,35 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-[#0c0d12] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-lg bg-[#0c0d12] border border-white/15 rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col my-auto max-h-[90vh] font-['Poppins',sans-serif]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/10 bg-[#12141a]">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-white/10 bg-[#12141a] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold text-white font-['Poppins']">
+                <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
                   WhatsApp Device Link
                 </h3>
                 {deviceStatus.isConnected ? (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     ONLINE
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                     AWAITING SCAN
                   </span>
@@ -139,25 +152,27 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            title="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-6">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 space-y-5">
           {isLoading ? (
-            <div className="py-16 flex flex-col items-center justify-center text-center space-y-3">
+            <div className="py-14 flex flex-col items-center justify-center text-center space-y-3">
               <RefreshCw className="w-8 h-8 text-[#ccff00] animate-spin" />
               <p className="text-sm text-neutral-400">Connecting to WhatsApp Socket...</p>
             </div>
           ) : deviceStatus.isConnected ? (
             /* Connected State */
-            <div className="space-y-5 animate-fadeIn">
-              <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 flex items-start gap-3.5">
-                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 mt-0.5">
+            <div className="space-y-4 animate-fadeIn">
+              <div className="p-4 rounded-2xl bg-emerald-950/25 border border-emerald-500/30 flex items-start gap-3.5">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 mt-0.5 shrink-0">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
@@ -171,7 +186,7 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
               </div>
 
               {/* Linked Device Info Card */}
-              <div className="p-4 rounded-2xl bg-[#14161f] border border-white/5 space-y-3">
+              <div className="p-4 rounded-2xl bg-[#14161f] border border-white/5 space-y-2.5">
                 <div className="flex items-center justify-between text-xs text-neutral-400">
                   <span>Linked Phone Number</span>
                   <span className="text-white font-mono font-bold text-sm bg-black/40 px-2.5 py-1 rounded-lg border border-white/10">
@@ -209,7 +224,7 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
                   <button
                     type="submit"
                     disabled={testStatus.type === 'sending' || !testPhone.trim()}
-                    className="px-4 py-2 rounded-xl bg-[#ccff00] text-black text-xs font-bold hover:bg-[#b8e600] transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-[#ccff00] text-black text-xs font-bold hover:bg-[#b8e600] transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
                   >
                     {testStatus.type === 'sending' ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -226,12 +241,12 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
               </div>
 
               {/* Unlink Button */}
-              <div className="pt-2">
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={handleDisconnect}
                   disabled={isDisconnecting}
-                  className="w-full py-2.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-semibold flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   {isDisconnecting ? 'Unlinking Device...' : 'Unlink / Switch WhatsApp Phone'}
@@ -240,48 +255,46 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
             </div>
           ) : (
             /* Unlinked / Scan QR State */
-            <div className="space-y-5 animate-fadeIn">
+            <div className="space-y-4 animate-fadeIn">
               {/* QR Display Card */}
-              <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-b from-[#141722] to-[#0d0f17] border border-white/10 text-center space-y-4">
+              <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-[#12141c] border border-white/10 text-center space-y-3.5">
                 {deviceStatus.qrCode ? (
-                  <div className="relative group">
-                    <div className="p-3 bg-white rounded-2xl shadow-xl border-4 border-white/10">
-                      <img
-                        src={deviceStatus.qrCode}
-                        alt="WhatsApp QR Code"
-                        className="w-56 h-56 sm:w-64 sm:h-64 object-contain rounded-lg"
-                      />
-                    </div>
-                    <div className="absolute inset-0 rounded-2xl pointer-events-none border-2 border-emerald-400/40 animate-pulse" />
+                  <div className="p-3 bg-white rounded-2xl shadow-xl border-2 border-emerald-400/40 relative">
+                    <img
+                      src={deviceStatus.qrCode}
+                      alt="WhatsApp QR Code"
+                      className="w-44 h-44 sm:w-52 sm:h-52 object-contain rounded-lg block mx-auto"
+                    />
                   </div>
                 ) : (
-                  <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-2xl bg-black/40 border border-white/10 flex flex-col items-center justify-center space-y-3">
-                    <RefreshCw className="w-8 h-8 text-neutral-400 animate-spin" />
-                    <p className="text-xs text-neutral-400">Generating fresh QR code...</p>
+                  <div className="w-44 h-44 sm:w-52 sm:h-52 rounded-2xl bg-black/40 border border-white/10 flex flex-col items-center justify-center space-y-2.5">
+                    <RefreshCw className="w-7 h-7 text-neutral-400 animate-spin" />
+                    <p className="text-xs text-neutral-400 font-medium">Generating fresh QR code...</p>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 pt-0.5">
                   <button
+                    type="button"
                     onClick={fetchStatus}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 text-xs transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 text-xs font-semibold border border-white/10 transition-colors cursor-pointer active:scale-95"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     Refresh QR
                   </button>
-                  <span className="text-[11px] text-neutral-500 flex items-center gap-1">
+                  <span className="text-[11px] text-neutral-400 flex items-center gap-1 font-mono">
                     <Wifi className="w-3 h-3 text-emerald-400" /> Auto-syncing
                   </span>
                 </div>
               </div>
 
               {/* Instructions Guide */}
-              <div className="p-4 rounded-2xl bg-[#14161f] border border-white/5 space-y-3">
+              <div className="p-4 rounded-2xl bg-[#14161f] border border-white/5 space-y-2.5">
                 <div className="flex items-center gap-2 text-xs font-bold text-white">
                   <Info className="w-4 h-4 text-[#ccff00]" />
                   <span>How to scan from your phone:</span>
                 </div>
-                <ol className="text-xs text-neutral-300 space-y-2 list-decimal list-inside pl-1 leading-relaxed">
+                <ol className="text-xs text-neutral-300 space-y-1.5 list-decimal list-inside pl-1 leading-relaxed">
                   <li>Open <strong className="text-white">WhatsApp</strong> or <strong className="text-white">WhatsApp Business</strong> on your phone.</li>
                   <li>Tap <strong className="text-white">Settings</strong> (iOS) or <strong className="text-white">⋮ More options</strong> (Android).</li>
                   <li>Tap <strong className="text-white">Linked devices</strong> &rarr; <strong className="text-white">Link a device</strong>.</li>
@@ -289,7 +302,7 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
                 </ol>
               </div>
 
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-950/20 border border-blue-500/20 text-blue-300 text-[11px]">
+              <div className="flex items-center gap-2.5 p-3 rounded-xl bg-blue-950/20 border border-blue-500/20 text-blue-300 text-[11px]">
                 <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>Your phone remains normal. Messages sent by the CRM will appear right in your phone's WhatsApp chat history!</span>
               </div>
@@ -298,11 +311,12 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-white/10 bg-[#0e0f14] flex items-center justify-between text-[11px] text-neutral-500">
+        <div className="px-5 sm:px-6 py-3 border-t border-white/10 bg-[#0e0f14] flex items-center justify-between text-[11px] text-neutral-500 shrink-0">
           <span>Powered by FIDGIT Multi-Device Engine</span>
           <button
+            type="button"
             onClick={onClose}
-            className="text-neutral-400 hover:text-white transition-colors font-medium"
+            className="text-neutral-400 hover:text-white transition-colors font-semibold px-2 py-1 rounded-md hover:bg-white/5 cursor-pointer"
           >
             Close
           </button>
@@ -310,5 +324,8 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
       </div>
     </div>
   );
-};
 
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
+};
