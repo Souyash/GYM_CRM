@@ -61,48 +61,50 @@ export const DeviceApprovalsView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-poppins">
+    <div className="space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl app-card">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          <div className="p-3 rounded-2xl bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20">
             <Smartphone className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-900 dark:text-white">Daily Visit Review & Access Approvals</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+              Daily Visit Review & Access Approvals
+            </h1>
+            <p className="text-xs text-white/50 mt-0.5">
               Review and grant entry for members checking in more than once in a single day
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 p-1 bg-[#121418] rounded-full border border-white/5">
           <button
             onClick={() => setStatusFilter('PENDING')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
               statusFilter === 'PENDING'
-                ? 'bg-amber-500 text-black font-extrabold shadow-sm'
-                : 'btn-secondary-gym'
+                ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             Pending ({requests.filter(r => r.status === 'PENDING').length})
           </button>
           <button
             onClick={() => setStatusFilter('APPROVED')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
               statusFilter === 'APPROVED'
-                ? 'bg-emerald-500 text-black font-extrabold shadow-sm'
-                : 'btn-secondary-gym'
+                ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             Approved
           </button>
           <button
             onClick={() => setStatusFilter('REJECTED')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
               statusFilter === 'REJECTED'
-                ? 'bg-rose-500 text-white font-extrabold shadow-sm'
-                : 'btn-secondary-gym'
+                ? 'bg-rose-500 text-white font-black shadow-[0_0_15px_rgba(244,63,94,0.3)]'
+                : 'text-white/60 hover:text-white'
             }`}
           >
             Declined

@@ -500,13 +500,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-poppins pt-safe pb-safe">
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-['Plus_Jakarta_Sans',sans-serif] pt-safe pb-safe">
       {/* Top Bar Navigation */}
       <div className="absolute top-notch-safe left-4 sm:left-6 z-20">
         {onBackToWebsite && (
           <button
             onClick={onBackToWebsite}
-            className="px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-700 dark:text-zinc-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition flex items-center gap-1.5 shadow-sm active:scale-95"
+            className="px-4 py-2 rounded-full bg-[#0e1015] border border-white/10 text-xs font-bold text-white/80 hover:text-white transition flex items-center gap-1.5 shadow-sm active:scale-95"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Website</span>
@@ -518,19 +518,21 @@ export const LoginView: React.FC<LoginViewProps> = ({
       <div className="absolute top-notch-safe right-4 sm:right-6 z-20">
         <button
           onClick={toggleTheme}
-          className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-slate-200 shadow-sm transition active:scale-95"
+          className="p-3 rounded-full bg-[#0e1015] border border-white/10 text-white/80 hover:text-white shadow-sm transition active:scale-95"
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
-          {isDark ? <Sun className="w-5 h-5 text-emerald-400" /> : <Moon className="w-5 h-5 text-emerald-600" />}
+          {isDark ? <Sun className="w-5 h-5 text-[#ccff00]" /> : <Moon className="w-5 h-5 text-[#ccff00]" />}
         </button>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <IronVaultLogo className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl shadow-xl shadow-emerald-500/20 mb-3 mx-auto" />
-        <h1 className="text-3xl font-black tracking-tight">
-          IRON<span className="text-emerald-500">VAULT</span>
+        <div className="w-16 h-16 rounded-3xl bg-[#0e1015] border border-white/10 flex items-center justify-center shadow-xl shadow-[#ccff00]/10 mb-3 mx-auto">
+          <IronVaultLogo className="w-10 h-10" />
+        </div>
+        <h1 className="text-3xl font-black font-['Syne',sans-serif] uppercase tracking-tight text-white">
+          PRO<span className="text-[#ccff00]">FITNESS</span>
         </h1>
-        <p className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+        <p className="mt-1 text-xs font-black uppercase tracking-widest text-white/40 font-['Syne',sans-serif]">
           MULTI-TENANT FITNESS CRM & SAAS
         </p>
       </div>
@@ -538,12 +540,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-lg space-y-4">
         {/* Selected Plan Notification */}
         {preselectedPlan && (
-          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-between">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-500" />
-              <span>Selected Plan: <strong>{preselectedPlan}</strong></span>
+          <div className="p-3.5 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/30 text-white text-xs font-bold flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#ccff00]" />
+              <span>Selected Plan: <strong className="text-[#ccff00]">{preselectedPlan}</strong></span>
             </span>
-            <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2 py-0.5 rounded-full">
+            <span className="text-[10px] uppercase tracking-wider font-extrabold bg-[#ccff00] text-black px-2.5 py-0.5 rounded-full">
               Ready
             </span>
           </div>
@@ -726,17 +728,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
           ) : (
             <>
               {/* 3-Tab Multi-Tenant Navigation */}
-              <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-zinc-900 p-1.5 rounded-2xl mb-6">
+              <div className="grid grid-cols-3 gap-1.5 bg-[#121418] p-1.5 rounded-full border border-white/5 mb-6">
                 <button
                   type="button"
                   onClick={() => {
                     setActiveTab('MEMBER_LOGIN');
                     setErrorMsg(null);
                   }}
-                  className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                  className={`py-2 px-2 rounded-full text-xs font-black transition flex items-center justify-center gap-1.5 ${
                     activeTab === 'MEMBER_LOGIN'
-                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                      : 'text-white/60 hover:text-white'
                   }`}
                 >
                   <span>🏃</span>
@@ -749,10 +751,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     setActiveTab('STAFF_LOGIN');
                     setErrorMsg(null);
                   }}
-                  className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                  className={`py-2 px-2 rounded-full text-xs font-black transition flex items-center justify-center gap-1.5 ${
                     activeTab === 'STAFF_LOGIN'
-                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                      : 'text-white/60 hover:text-white'
                   }`}
                 >
                   <span>👑</span>
@@ -765,10 +767,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     setActiveTab('SIGNUP');
                     setErrorMsg(null);
                   }}
-                  className={`py-2 px-1 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 ${
+                  className={`py-2 px-2 rounded-full text-xs font-black transition flex items-center justify-center gap-1.5 ${
                     activeTab === 'SIGNUP'
-                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-black shadow-sm'
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                      : 'text-white/60 hover:text-white'
                   }`}
                 >
                   <span>🤝</span>
@@ -824,17 +826,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
           {activeTab === 'MEMBER_LOGIN' && (
             <div className="space-y-4">
               {/* Login Method Toggle */}
-              <div className="flex bg-slate-100 dark:bg-zinc-900 p-1 rounded-xl text-xs font-bold">
+              <div className="flex bg-[#121418] p-1 rounded-full border border-white/5 text-xs font-bold mb-4">
                 <button
                   type="button"
                   onClick={() => {
                     setMemberLoginMode('OTP');
                     setErrorMsg(null);
                   }}
-                  className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-2 rounded-full transition flex items-center justify-center gap-1.5 ${
                     memberLoginMode === 'OTP'
-                      ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                      : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.2)]'
+                      : 'text-white/60 hover:text-white'
                   }`}
                 >
                   <Mail className="w-3.5 h-3.5" />
@@ -846,10 +848,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     setMemberLoginMode('PASSWORD');
                     setErrorMsg(null);
                   }}
-                  className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-2 rounded-full transition flex items-center justify-center gap-1.5 ${
                     memberLoginMode === 'PASSWORD'
-                      ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                      : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.2)]'
+                      : 'text-white/60 hover:text-white'
                   }`}
                 >
                   <Lock className="w-3.5 h-3.5" />
@@ -1520,33 +1522,33 @@ export const LoginView: React.FC<LoginViewProps> = ({
     </div>
 
         {/* Single Super Admin Master Credentials */}
-        <div className="p-4 rounded-3xl bg-white dark:bg-zinc-900/80 border border-slate-200/80 dark:border-zinc-800 shadow-sm">
-          <div className="flex items-center justify-between mb-2.5">
-            <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-emerald-500" />
+        <div className="p-5 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-extrabold uppercase font-['Syne',sans-serif] tracking-wider text-white flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#ccff00]" />
               <span>Platform Super Admin</span>
             </span>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold px-2 py-0.5 rounded-full">
+            <span className="text-[10px] bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20 font-mono font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               Root Level
             </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-950/60 border border-slate-200/60 dark:border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="space-y-1 text-xs">
+          <div className="p-4 rounded-2xl bg-[#121418] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1.5 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-500 dark:text-zinc-400">ID / Username:</span>
-                <code className="font-mono font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">superadmin@ironvault.com</code>
+                <span className="font-bold text-white/50">ID / Username:</span>
+                <code className="font-mono font-black text-[#ccff00] bg-black/40 px-2 py-0.5 rounded-md border border-[#ccff00]/20">superadmin@ironvault.com</code>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-500 dark:text-zinc-400">Password:</span>
-                <code className="font-mono font-bold text-slate-800 dark:text-zinc-200 bg-slate-200/60 dark:bg-zinc-900 px-1.5 py-0.5 rounded">superadmin123</code>
+                <span className="font-bold text-white/50">Password:</span>
+                <code className="font-mono font-bold text-white/90 bg-black/40 px-2 py-0.5 rounded-md border border-white/10">superadmin123</code>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => fillDemoLogin('superadmin@ironvault.com', 'superadmin123')}
-              className="py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition shadow-sm flex items-center justify-center gap-1.5 active:scale-95 flex-shrink-0"
+              className="py-2.5 px-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs transition shadow-[0_0_15px_rgba(204,255,0,0.25)] flex items-center justify-center gap-1.5 active:scale-95 flex-shrink-0"
             >
               <KeyRound className="w-3.5 h-3.5" />
               <span>Autofill Super Admin</span>

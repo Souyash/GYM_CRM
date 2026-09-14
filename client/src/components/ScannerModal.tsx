@@ -647,8 +647,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 dark:bg-black/90 backdrop-blur-md animate-fade-in font-sans pt-safe pb-safe">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-carbon-700/80 bg-white dark:bg-carbon-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Plus_Jakarta_Sans',sans-serif] pt-safe pb-safe">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl shadow-2xl flex flex-col relative border border-white/10 bg-[#0e1015]">
         {/* Hidden Canvas and File Input for scanning */}
         <canvas ref={canvasRef} className="hidden" />
         <input
@@ -660,29 +660,29 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
         />
 
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-carbon-700/80 flex items-center justify-between bg-slate-50/80 dark:bg-carbon-850">
+        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#0e1015]">
           <div className="flex items-center gap-3">
             <div
-              className={`p-2.5 rounded-2xl ${
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
                 gateMode === 'ENTER'
-                  ? 'bg-volt-500/10 text-volt-400 border border-volt-500/20'
+                  ? 'bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20'
                   : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
               }`}
             >
               {gateMode === 'ENTER' ? <LogIn className="w-5 h-5" /> : <LogOut className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-carbon-50 tracking-tight">
+              <h3 className="font-extrabold font-['Syne',sans-serif] uppercase text-base sm:text-lg text-white tracking-wide">
                 {gateMode === 'ENTER' ? 'Scan Entrance Gate' : 'Scan Exit Gate'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-carbon-400">
+              <p className="text-xs text-white/50">
                 Point camera at the official turnstile poster
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-carbon-50 hover:bg-slate-100 dark:hover:bg-carbon-800 transition"
+            className="p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -690,17 +690,17 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
         {/* Gate Mode Selector Tab */}
         <div className="px-4 sm:px-6 pt-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-carbon-800 rounded-2xl border border-transparent dark:border-carbon-700/50">
+          <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-[#121418] rounded-full border border-white/5">
             <button
               onClick={() => {
                 setGateMode('ENTER');
                 setVerificationState('IDLE');
                 setResultMessage('');
               }}
-              className={`py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
+              className={`py-2 px-3 rounded-full font-black text-xs flex items-center justify-center gap-2 transition ${
                 gateMode === 'ENTER'
-                  ? 'bg-volt-500 text-black font-extrabold shadow-sm'
-                  : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50'
+                  ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -712,10 +712,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 setVerificationState('IDLE');
                 setResultMessage('');
               }}
-              className={`py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition ${
+              className={`py-2 px-3 rounded-full font-black text-xs flex items-center justify-center gap-2 transition ${
                 gateMode === 'EXIT'
-                  ? 'bg-volt-500 text-black font-extrabold shadow-sm'
-                  : 'text-slate-600 dark:text-carbon-400 hover:text-slate-900 dark:hover:text-carbon-50'
+                  ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -800,17 +800,17 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
         {/* Clean Friendly Scanning Instruction */}
         <div className="px-4 sm:px-6 pt-3">
-          <div className="flex items-center justify-between bg-zinc-900/80 border border-white/10 px-4 py-2.5 rounded-2xl">
-            <div className="flex items-center gap-2 text-xs text-zinc-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="flex items-center justify-between bg-[#121418] border border-white/10 px-4 py-2.5 rounded-full">
+            <div className="flex items-center gap-2 text-xs text-white/80">
+              <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-pulse" />
               <span>Align the turnstile QR code inside the frame</span>
             </div>
             <div className="flex items-center gap-1.5">
               {hasTorch && (
                 <button
                   onClick={toggleTorch}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition active:scale-95 ${
-                    isTorchOn ? 'bg-amber-400 text-zinc-950 font-bold' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 ${
+                    isTorchOn ? 'bg-[#ccff00] text-black font-bold' : 'bg-white/10 text-white/70 hover:bg-white/20'
                   }`}
                   type="button"
                   title="Flashlight"
@@ -820,8 +820,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               )}
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`w-8 h-8 rounded-xl flex items-center justify-center transition active:scale-95 ${
-                  soundEnabled ? 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700' : 'bg-zinc-800/40 text-zinc-500'
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 ${
+                  soundEnabled ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-white/30'
                 }`}
                 type="button"
                 title={soundEnabled ? 'Mute' : 'Unmute'}
@@ -832,7 +832,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               </button>
               <button
                 onClick={toggleCamera}
-                className="w-8 h-8 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 flex items-center justify-center transition active:scale-95"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition active:scale-95"
                 type="button"
                 title="Flip Camera"
               >

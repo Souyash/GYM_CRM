@@ -129,24 +129,24 @@ export const HealthIntelligenceView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Top Header & Action Controls */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-zinc-900 via-zinc-900/90 to-zinc-950 p-6 rounded-2xl border border-zinc-800 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#0e1015] p-6 rounded-3xl border border-white/10 shadow-xl">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm">
+          <div className="flex items-center gap-3 mb-1.5">
+            <span className="p-2.5 rounded-2xl bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20 shadow-sm">
               <HeartPulse className="w-6 h-6" />
             </span>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-white tracking-tight">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
                 Health Intelligence & Lead Hub
               </h1>
-              <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full">
+              <span className="px-3 py-1 text-[10px] font-black uppercase font-mono tracking-wider bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 rounded-full">
                 Marketing Intelligence
               </span>
             </div>
           </div>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-2xl">
+          <p className="text-xs sm:text-sm text-white/50 max-w-2xl">
             Demographic, physiological, and marketing intelligence repository. Analyze lead goals,
             acquisition channels, health conditions, and export high-conversion targeting datasets.
           </p>
@@ -156,16 +156,16 @@ export const HealthIntelligenceView: React.FC = () => {
           <button
             onClick={handleExportCsv}
             disabled={isExporting}
-            className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white font-semibold rounded-xl text-xs border border-zinc-700 shadow flex items-center gap-2 transition disabled:opacity-50"
+            className="px-5 py-2.5 bg-[#ccff00] hover:bg-[#b8e600] text-black font-black rounded-full text-xs shadow-[0_0_20px_rgba(204,255,0,0.25)] flex items-center gap-2 transition active:scale-95 disabled:opacity-50"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-black" />
             <span>{isExporting ? 'Exporting...' : 'Export Marketing CSV'}</span>
           </button>
         </div>
       </div>
 
       {errorMessage && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm flex items-center gap-3">
+        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-400 text-sm flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
@@ -174,72 +174,72 @@ export const HealthIntelligenceView: React.FC = () => {
       {/* KPI Highlight Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Total Profiles */}
-        <div className="p-4 bg-zinc-900/60 border border-zinc-800/90 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>Onboarded Leads</span>
-            <User className="w-4 h-4 text-amber-400" />
+        <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition">
+          <div className="flex items-center justify-between text-white/40 text-xs mb-2">
+            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Onboarded Leads</span>
+            <User className="w-4 h-4 text-[#ccff00]" />
           </div>
-          <div className="text-2xl font-black text-white">
+          <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
             {summary?.totalProfiles ?? 0}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
+          <div className="text-[11px] text-white/50 mt-1">
             {summary?.onboardingCompletionRate ?? 0}% of all members
           </div>
         </div>
 
         {/* Top Goal */}
-        <div className="p-4 bg-zinc-900/60 border border-zinc-800/90 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>Top Fitness Goal</span>
-            <Target className="w-4 h-4 text-emerald-400" />
+        <div className="p-4 sm:p-5 bg-[#0e1015] border border-[#ccff00]/30 rounded-2xl shadow-lg hover:border-[#ccff00]/50 transition">
+          <div className="flex items-center justify-between text-[#ccff00] text-xs mb-2">
+            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest text-[#ccff00]">Top Fitness Goal</span>
+            <Target className="w-4 h-4 text-[#ccff00]" />
           </div>
-          <div className="text-lg font-bold text-emerald-400 truncate">
+          <div className="text-lg font-black font-['Syne',sans-serif] text-[#ccff00] truncate">
             {summary?.goalsBreakdown?.[0]?.goal || 'None yet'}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
+          <div className="text-[11px] text-white/50 mt-1">
             {summary?.goalsBreakdown?.[0]?.percentage ?? 0}% of total leads
           </div>
         </div>
 
         {/* Top Acquisition Channel */}
-        <div className="p-4 bg-zinc-900/60 border border-zinc-800/90 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>Top Lead Source</span>
+        <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition">
+          <div className="flex items-center justify-between text-white/40 text-xs mb-2">
+            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Top Lead Source</span>
             <Share2 className="w-4 h-4 text-sky-400" />
           </div>
-          <div className="text-lg font-bold text-sky-400 truncate">
+          <div className="text-lg font-black font-['Syne',sans-serif] text-sky-400 truncate">
             {summary?.referralBreakdown?.[0]?.source || 'None'}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
+          <div className="text-[11px] text-white/50 mt-1">
             {summary?.referralBreakdown?.[0]?.percentage ?? 0}% acquisition ROI
           </div>
         </div>
 
         {/* Avg BMI */}
-        <div className="p-4 bg-zinc-900/60 border border-zinc-800/90 rounded-2xl">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>Average BMI</span>
+        <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition">
+          <div className="flex items-center justify-between text-white/40 text-xs mb-2">
+            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Average BMI</span>
             <Scale className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl font-black text-purple-400">
+          <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-purple-400">
             {summary?.averageBmi ?? 'N/A'}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
+          <div className="text-[11px] text-white/50 mt-1">
             Avg Age: {summary?.averageAge ?? 'N/A'} yrs
           </div>
         </div>
 
         {/* Medical / Injury Flags */}
-        <div className="p-4 bg-zinc-900/60 border border-zinc-800/90 rounded-2xl col-span-2 lg:col-span-1">
-          <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-            <span>Medical Alerts</span>
+        <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between text-white/40 text-xs mb-2">
+            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Medical Alerts</span>
             <ShieldAlert className="w-4 h-4 text-rose-400" />
           </div>
-          <div className="text-2xl font-black text-rose-400">
+          <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-rose-400">
             {summary?.medicalAlertCount ?? 0}
           </div>
-          <div className="text-[11px] text-zinc-400 mt-1">
-            Require specialized trainer care
+          <div className="text-[11px] text-white/50 mt-1">
+            Specialized trainer care
           </div>
         </div>
       </div>
@@ -247,12 +247,12 @@ export const HealthIntelligenceView: React.FC = () => {
       {/* Visual Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 1. Goals Distribution */}
-        <div className="p-5 bg-zinc-900/50 border border-zinc-800 rounded-2xl space-y-4">
+        <div className="p-6 bg-[#0e1015] border border-white/10 rounded-3xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Target className="w-4 h-4 text-amber-400" /> Goal Demand Demographics
+            <h3 className="text-sm font-extrabold font-['Syne',sans-serif] uppercase text-white flex items-center gap-2">
+              <Target className="w-4 h-4 text-[#ccff00]" /> Goal Demand Demographics
             </h3>
-            <span className="text-[11px] text-zinc-400">Target campaigns</span>
+            <span className="text-[11px] text-white/40">Target campaigns</span>
           </div>
 
           <div className="space-y-3">
@@ -260,30 +260,30 @@ export const HealthIntelligenceView: React.FC = () => {
               summary.goalsBreakdown.slice(0, 5).map((g) => (
                 <div key={g.goal} className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-zinc-300 font-medium truncate">{g.goal}</span>
-                    <span className="text-amber-400 font-bold">{g.percentage}% ({g.count})</span>
+                    <span className="text-white/80 font-medium truncate">{g.goal}</span>
+                    <span className="text-[#ccff00] font-black">{g.percentage}% ({g.count})</span>
                   </div>
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#121418] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-500"
+                      className="h-full bg-[#ccff00] rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(204,255,0,0.5)]"
                       style={{ width: `${g.percentage}%` }}
                     />
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-zinc-400 py-6 text-center">No goal data recorded yet.</p>
+              <p className="text-xs text-white/40 py-6 text-center">No goal data recorded yet.</p>
             )}
           </div>
         </div>
 
         {/* 2. Referral / Lead Sources */}
-        <div className="p-5 bg-zinc-900/50 border border-zinc-800 rounded-2xl space-y-4">
+        <div className="p-6 bg-[#0e1015] border border-white/10 rounded-3xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-extrabold font-['Syne',sans-serif] uppercase text-white flex items-center gap-2">
               <Share2 className="w-4 h-4 text-sky-400" /> Marketing Acquisition Channels
             </h3>
-            <span className="text-[11px] text-zinc-400">Channel ROI</span>
+            <span className="text-[11px] text-white/40">Channel ROI</span>
           </div>
 
           <div className="space-y-3">
@@ -291,10 +291,10 @@ export const HealthIntelligenceView: React.FC = () => {
               summary.referralBreakdown.slice(0, 5).map((r) => (
                 <div key={r.source} className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-zinc-300 font-medium truncate">{r.source}</span>
+                    <span className="text-white/80 font-medium truncate">{r.source}</span>
                     <span className="text-sky-400 font-bold">{r.percentage}% ({r.count})</span>
                   </div>
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#121418] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-sky-500 to-blue-500 rounded-full transition-all duration-500"
                       style={{ width: `${r.percentage}%` }}
@@ -303,18 +303,18 @@ export const HealthIntelligenceView: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-zinc-400 py-6 text-center">No referral channels recorded.</p>
+              <p className="text-xs text-white/40 py-6 text-center">No referral channels recorded.</p>
             )}
           </div>
         </div>
 
         {/* 3. Clinical & Health Conditions */}
-        <div className="p-5 bg-zinc-900/50 border border-zinc-800 rounded-2xl space-y-4">
+        <div className="p-6 bg-[#0e1015] border border-white/10 rounded-3xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-extrabold font-['Syne',sans-serif] uppercase text-white flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-rose-400" /> Top Health Conditions Reported
             </h3>
-            <span className="text-[11px] text-zinc-400">Diet & Trainer Niche</span>
+            <span className="text-[11px] text-white/40">Diet & Trainer Niche</span>
           </div>
 
           <div className="space-y-3">
@@ -322,10 +322,10 @@ export const HealthIntelligenceView: React.FC = () => {
               summary.conditionsBreakdown.slice(0, 5).map((c) => (
                 <div key={c.condition} className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-zinc-300 font-medium truncate">{c.condition}</span>
+                    <span className="text-white/80 font-medium truncate">{c.condition}</span>
                     <span className="text-rose-400 font-bold">{c.percentage}% ({c.count})</span>
                   </div>
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#121418] rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-rose-500 to-red-500 rounded-full transition-all duration-500"
                       style={{ width: `${c.percentage}%` }}
@@ -334,14 +334,14 @@ export const HealthIntelligenceView: React.FC = () => {
                 </div>
               ))
             ) : (
-              <p className="text-xs text-zinc-400 py-6 text-center">No conditions reported by members.</p>
+              <p className="text-xs text-white/40 py-6 text-center">No conditions reported by members.</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Filterable Member Records Table */}
-      <div className="bg-zinc-900/70 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl space-y-4 p-5">
+      <div className="bg-[#0e1015] border border-white/10 rounded-3xl overflow-hidden shadow-xl space-y-5 p-5 sm:p-6">
         {/* Table Search & Filter Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
@@ -350,9 +350,9 @@ export const HealthIntelligenceView: React.FC = () => {
               placeholder="Search member name, email, or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-zinc-800/80 border border-zinc-700 rounded-xl text-white text-xs placeholder-zinc-500 focus:outline-none focus:border-amber-500"
+              className="w-full pl-10 pr-4 py-2.5 bg-[#121418] border border-white/10 rounded-full text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-[#ccff00]"
             />
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
           </form>
 
           {/* Filters */}
@@ -361,7 +361,7 @@ export const HealthIntelligenceView: React.FC = () => {
             <select
               value={selectedGoal}
               onChange={(e) => setSelectedGoal(e.target.value)}
-              className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-300 focus:outline-none focus:border-amber-500"
+              className="px-4 py-2 bg-[#121418] border border-white/10 rounded-full text-white/80 focus:outline-none focus:border-[#ccff00]"
             >
               <option value="ALL">All Goals</option>
               <option value="Weight Loss & Fat Burn">Weight Loss</option>
@@ -377,7 +377,7 @@ export const HealthIntelligenceView: React.FC = () => {
             <select
               value={selectedReferral}
               onChange={(e) => setSelectedReferral(e.target.value)}
-              className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-xl text-zinc-300 focus:outline-none focus:border-amber-500"
+              className="px-4 py-2 bg-[#121418] border border-white/10 rounded-full text-white/80 focus:outline-none focus:border-[#ccff00]"
             >
               <option value="ALL">All Lead Sources</option>
               <option value="Instagram / Social Media">Instagram / Social</option>
@@ -391,7 +391,7 @@ export const HealthIntelligenceView: React.FC = () => {
             {/* Refresh */}
             <button
               onClick={fetchData}
-              className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl border border-zinc-700 transition"
+              className="px-4 py-2 bg-[#121418] hover:bg-white/10 text-white rounded-full border border-white/10 font-bold transition active:scale-95"
             >
               Apply Filter
             </button>
@@ -399,20 +399,20 @@ export const HealthIntelligenceView: React.FC = () => {
         </div>
 
         {/* Member Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0e1015]">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-zinc-800 text-zinc-400 font-semibold bg-zinc-950/40 uppercase tracking-wider">
-                <th className="py-3 px-4">Member Lead</th>
-                <th className="py-3 px-4">Age / Gender</th>
-                <th className="py-3 px-4">Primary Goal</th>
-                <th className="py-3 px-4">Body Metrics</th>
-                <th className="py-3 px-4">Health Conditions</th>
-                <th className="py-3 px-4">Acquisition Channel</th>
-                <th className="py-3 px-4 text-right">Action</th>
+              <tr className="border-b border-white/10 text-white/50 font-bold bg-[#121418] uppercase tracking-wider text-[10px] font-['Syne',sans-serif]">
+                <th className="py-3.5 px-4">Member Lead</th>
+                <th className="py-3.5 px-4">Age / Gender</th>
+                <th className="py-3.5 px-4">Primary Goal</th>
+                <th className="py-3.5 px-4">Body Metrics</th>
+                <th className="py-3.5 px-4">Health Conditions</th>
+                <th className="py-3.5 px-4">Acquisition Channel</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60">
+            <tbody className="divide-y divide-white/5">
               {isLoading ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-zinc-500">

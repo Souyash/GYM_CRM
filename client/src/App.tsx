@@ -191,7 +191,7 @@ export const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-100 flex flex-col font-poppins transition-colors duration-200">
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ccff00] selection:text-black antialiased transition-colors duration-200">
       {/* Real-Time WebSocket Red Alert Drop-Down Banner */}
       <RedAlertBanner />
 
@@ -251,17 +251,17 @@ export const AppContent: React.FC = () => {
         {/* Community Feed Tab for All Roles */}
         {currentTab === 'community_feed' && (
           <div className="space-y-6 max-w-5xl mx-auto">
-            <div className="p-6 rounded-3xl app-card border border-slate-200/80 dark:border-zinc-800 bg-gradient-to-r from-emerald-500/10 via-transparent to-teal-500/5">
+            <div className="p-6 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-wider mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-xs font-black uppercase tracking-wider mb-2">
                     <MessageSquare className="w-3.5 h-3.5" />
-                    IronVault Community & Feed
+                    PROFITNESS Community &amp; Feed
                   </div>
-                  <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Official Announcements & Member Buzz
+                  <h1 className="text-2xl sm:text-3xl font-['Syne',sans-serif] font-black text-white uppercase tracking-tight">
+                    Official Announcements &amp; Member Buzz
                   </h1>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1">
+                  <p className="text-xs sm:text-sm text-zinc-400 mt-1">
                     {user?.role === 'SUPER_ADMIN' || user?.role === 'MANAGER'
                       ? 'Publish official gym updates, pin announcements to top, celebrate member PRs, and moderate posts.'
                       : 'Share your PR milestones, ask questions, join fitness challenges, and high-five your gym family.'}

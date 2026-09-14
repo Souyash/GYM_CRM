@@ -380,33 +380,33 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       )}
 
       {/* 1. ATHLETE STATUS & FACILITY CONTEXT CHIP */}
-      <div className="flex items-center justify-between gap-3 bg-zinc-900/60 backdrop-blur-xl p-3.5 sm:p-4 rounded-2xl border border-white/10 shadow-lg">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-            <span className="material-symbols-outlined text-[22px]">fitness_center</span>
+      <div className="flex items-center justify-between gap-3 bg-[#0e1015] p-4 sm:p-5 rounded-3xl border border-white/10 shadow-xl">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-11 h-11 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] shrink-0">
+            <span className="material-symbols-outlined text-[24px]">fitness_center</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-sm font-bold text-white truncate">
-              {user?.gym?.name || 'IronVault Downtown'}
+            <span className="text-sm sm:text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight truncate">
+              {user?.gym?.name || 'PROFITNESS Elite Club'}
             </span>
             <span className="text-xs text-zinc-400 truncate">
-              Access Code: #{user?.gym?.inviteCode || '100001'}
+              Access Pass: #{user?.gym?.inviteCode || '100001'}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[11px] font-bold text-emerald-400 tracking-wide uppercase">Location Verified</span>
+        <div className="flex items-center gap-2 bg-[#ccff00]/15 border border-[#ccff00]/30 px-3.5 py-1.5 rounded-full">
+          <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-pulse" />
+          <span className="text-[11px] font-black text-[#ccff00] tracking-wide uppercase">Location Verified</span>
         </div>
       </div>
 
       {/* 2. SEGMENTED ATHLETE CONTROLS */}
-      <div className="flex items-center gap-1.5 bg-zinc-900/80 p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar" role="tablist">
+      <div className="flex items-center gap-2 bg-[#0e1015] p-1.5 rounded-full border border-white/10 overflow-x-auto no-scrollbar" role="tablist">
         <button
           onClick={() => setActiveSubpart('PASS')}
-          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'PASS'
-              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
@@ -416,21 +416,21 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </button>
         <button
           onClick={() => setActiveSubpart('FITNESS')}
-          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'FITNESS'
-              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
           <span className="material-symbols-outlined text-[18px]">monitor_heart</span>
-          <span>Body & Fuel</span>
+          <span>Body &amp; Fuel</span>
         </button>
         <button
           onClick={() => setActiveSubpart('HISTORY')}
-          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'HISTORY'
-              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
@@ -440,9 +440,9 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </button>
         <button
           onClick={() => setActiveSubpart('COMMUNITY')}
-          className={`flex-1 min-h-[42px] px-4 py-2 rounded-xl font-bold text-xs transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'COMMUNITY'
-              ? 'bg-emerald-400 text-zinc-950 shadow-lg shadow-emerald-400/20'
+              ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
@@ -551,17 +551,17 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           />
         </div>
       ) : (
-        <div className="community-card p-5 sm:p-6 bg-white dark:bg-[#0d0d10] border border-amber-500/20 rounded-3xl shadow-lg space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80 pb-3">
+        <div className="p-5 sm:p-6 bg-[#0e1015] border border-white/10 rounded-3xl shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
             <div className="flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              <span className="p-2 rounded-2xl bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30">
                 <HeartPulse className="w-5 h-5" />
               </span>
               <div>
-                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  My Fitness Assessment & Target Goals
+                <h3 className="text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight flex items-center gap-2">
+                  My Fitness Assessment &amp; Target Goals
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400">
+                <p className="text-xs text-zinc-400">
                   Body composition, BMI, and personalized milestones
                 </p>
               </div>
@@ -570,14 +570,14 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsOnboardFormExpanded(true)}
-                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 transition shadow-sm"
+                className="px-4 py-2 bg-[#ccff00] hover:bg-[#b8e600] text-black font-black rounded-full text-xs flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(204,255,0,0.25)] cursor-pointer active:scale-95"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>Edit Full Profile</span>
               </button>
               <button
                 onClick={() => setIsHealthEditOpen(true)}
-                className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 font-bold rounded-xl text-xs border border-amber-500/30 flex items-center gap-1.5 transition self-start sm:self-auto"
+                className="px-4 py-2 bg-[#121418] hover:bg-zinc-800 text-zinc-200 font-bold rounded-full text-xs border border-white/10 flex items-center gap-1.5 transition self-start sm:self-auto cursor-pointer active:scale-95"
               >
                 <span>Quick Metrics</span>
               </button>
@@ -587,34 +587,34 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             {/* Current Weight */}
-            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <div className="p-4 bg-[#121418] rounded-2xl border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-zinc-400 block">
                 Current Weight
               </span>
-              <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">
+              <span className="text-base sm:text-lg font-mono font-black text-white mt-0.5 block">
                 {healthProfile?.currentWeightKg ? `${healthProfile.currentWeightKg} kg` : 'Not recorded'}
               </span>
               {healthProfile?.heightCm && (
-                <span className="text-[10px] text-zinc-400">Height: {healthProfile.heightCm} cm</span>
+                <span className="text-[10px] text-zinc-500">Height: {healthProfile.heightCm} cm</span>
               )}
             </div>
 
             {/* BMI */}
-            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <div className="p-4 bg-[#121418] rounded-2xl border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-zinc-400 block">
                 Calculated BMI
               </span>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-base font-black text-slate-900 dark:text-white">
+                <span className="text-base sm:text-lg font-mono font-black text-white">
                   {healthProfile?.bmi ? healthProfile.bmi : '—'}
                 </span>
                 {healthProfile?.bmi && (
                   <span
-                    className={`px-2 py-0.5 rounded text-[9px] font-extrabold border ${
+                    className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${
                       healthProfile.bmi < 18.5
                         ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                         : healthProfile.bmi < 25
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        ? 'bg-[#ccff00]/15 text-[#ccff00] border-[#ccff00]/30'
                         : healthProfile.bmi < 30
                         ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
                         : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
@@ -630,32 +630,32 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                   </span>
                 )}
               </div>
-              <span className="text-[10px] text-zinc-400">Metric Index</span>
+              <span className="text-[10px] text-zinc-500">Metric Index</span>
             </div>
 
             {/* Primary Goal */}
-            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <div className="p-4 bg-[#121418] rounded-2xl border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-zinc-400 block">
                 Primary Goal
               </span>
-              <span className="text-sm font-bold text-amber-500 truncate mt-0.5 block">
+              <span className="text-sm font-bold text-[#ccff00] truncate mt-0.5 block">
                 {healthProfile?.primaryGoal || 'General Fitness'}
               </span>
-              <span className="text-[10px] text-zinc-400">
+              <span className="text-[10px] text-zinc-500">
                 Timeline: {healthProfile?.targetTimeline || '3 Months'}
               </span>
             </div>
 
             {/* Target Weight */}
-            <div className="p-3 bg-slate-50 dark:bg-zinc-900/60 rounded-xl border border-slate-200/60 dark:border-zinc-800">
-              <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 block">
+            <div className="p-4 bg-[#121418] rounded-2xl border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-zinc-400 block">
                 Target Goal Weight
               </span>
-              <span className="text-base font-black text-emerald-500 mt-0.5 block">
+              <span className="text-base sm:text-lg font-mono font-black text-[#ccff00] mt-0.5 block">
                 {healthProfile?.targetWeightKg ? `${healthProfile.targetWeightKg} kg` : 'Not set'}
               </span>
               {healthProfile?.currentWeightKg && healthProfile?.targetWeightKg && (
-                <span className="text-[10px] text-zinc-400 font-semibold">
+                <span className="text-[10px] text-zinc-500 font-semibold">
                   Delta: {Math.round((healthProfile.targetWeightKg - healthProfile.currentWeightKg) * 10) / 10} kg
                 </span>
               )}
@@ -707,20 +707,20 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       {/* 🦾 PRO PHYSIQUE ARCHITECTURE & DAILY FUEL TRACKER                          */}
       {/* ========================================================================= */}
       {healthProfile && (
-        <div className="community-card p-5 sm:p-7 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black border-2 border-emerald-500/30 rounded-3xl shadow-2xl relative overflow-hidden space-y-6">
+        <div className="p-5 sm:p-7 bg-[#0e1015] border border-white/10 rounded-3xl shadow-2xl relative overflow-hidden space-y-6">
           {/* Subtle Ambient Lighting */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-[#ccff00]/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4 relative z-10">
             <div className="flex items-center gap-3">
-              <span className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span className="p-2.5 rounded-2xl bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30">
                 <Dumbbell className="w-5 h-5" />
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                  <span className="px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30">
                     Pro Physique Architecture
                   </span>
                   <span className="text-[11px] font-bold text-amber-400 flex items-center gap-1">
@@ -728,16 +728,16 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                     Gold Tier Lifter
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">
-                  Bodybuilding Targets & Daily Gym Fuel
+                <h3 className="text-lg sm:text-xl font-['Syne',sans-serif] font-black text-white uppercase tracking-tight mt-0.5">
+                  Bodybuilding Targets &amp; Daily Gym Fuel
                 </h3>
               </div>
             </div>
 
             {/* Split Day Badge */}
-            <div className="px-3.5 py-1.5 rounded-xl bg-black/60 border border-zinc-800 flex items-center gap-2 self-start sm:self-auto">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+            <div className="px-3.5 py-1.5 rounded-full bg-[#121418] border border-white/10 flex items-center gap-2 self-start sm:self-auto">
+              <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-ping" />
+              <span className="text-xs font-black uppercase tracking-wider text-[#ccff00]">
                 Today: {dailyMuscleSplit}
               </span>
             </div>
@@ -745,17 +745,17 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center relative z-10">
             {/* Left: Anatomical Physique Silhouette with Callouts */}
-            <div className="lg:col-span-5 p-5 rounded-2xl bg-black/50 border border-zinc-800/80 flex flex-col items-center justify-center relative">
+            <div className="lg:col-span-5 p-5 rounded-2xl bg-[#050507] border border-white/10 flex flex-col items-center justify-center relative">
               <span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest absolute top-3 left-3">
                 Physique Map
               </span>
 
               <div className="relative w-full max-w-[260px] h-[320px] flex items-center justify-center my-2">
-                <svg viewBox="0 0 240 380" className="w-full h-full drop-shadow-[0_4px_20px_rgba(16,185,129,0.2)]">
+                <svg viewBox="0 0 240 380" className="w-full h-full drop-shadow-[0_4px_20px_rgba(204,255,0,0.15)]">
                   <defs>
                     <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#047857" stopOpacity="0.4" />
+                      <stop offset="0%" stopColor="#ccff00" stopOpacity="0.8" />
+                      <stop offset="100%" stopColor="#84cc16" stopOpacity="0.4" />
                     </linearGradient>
                   </defs>
 
@@ -768,7 +768,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                   <path d="M165,90 C172,100 175,135 165,160 C160,165 152,155 152,135 C152,110 158,90 165,90 Z" fill="#1e293b" stroke="#334155" />
 
                   {/* Chest */}
-                  <path d="M96,88 C108,86 120,90 120,95 C120,90 132,86 144,88 C154,96 156,122 142,134 C132,142 122,138 120,140 C118,138 108,142 98,134 C84,122 86,96 96,88 Z" fill="url(#bodyGrad)" stroke="#34d399" strokeWidth="1.5" />
+                  <path d="M96,88 C108,86 120,90 120,95 C120,90 132,86 144,88 C154,96 156,122 142,134 C132,142 122,138 120,140 C118,138 108,142 98,134 C84,122 86,96 96,88 Z" fill="url(#bodyGrad)" stroke="#ccff00" strokeWidth="1.5" />
 
                   {/* Core / Waist */}
                   <path d="M104,142 L136,142 L132,198 C128,206 120,212 120,212 C120,212 112,206 108,198 Z" fill="#1e293b" stroke="#334155" strokeWidth="1.5" />
@@ -785,34 +785,34 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                   <path d="M146,320 L132,320 L136,370 L144,370 Z" fill="#1e293b" stroke="#334155" />
 
                   {/* Chest Callout Pin */}
-                  <line x1="142" y1="110" x2="200" y2="110" stroke="#34d399" strokeWidth="1.5" strokeDasharray="2,2" />
-                  <circle cx="142" cy="110" r="3" fill="#34d399" />
+                  <line x1="142" y1="110" x2="200" y2="110" stroke="#ccff00" strokeWidth="1.5" strokeDasharray="2,2" />
+                  <circle cx="142" cy="110" r="3" fill="#ccff00" />
 
                   {/* Waist Callout Pin */}
                   <line x1="106" y1="170" x2="40" y2="170" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="2,2" />
                   <circle cx="106" cy="170" r="3" fill="#f59e0b" />
 
                   {/* Hip Callout Pin */}
-                  <line x1="144" y1="225" x2="200" y2="225" stroke="#34d399" strokeWidth="1.5" strokeDasharray="2,2" />
-                  <circle cx="144" cy="225" r="3" fill="#34d399" />
+                  <line x1="144" y1="225" x2="200" y2="225" stroke="#ccff00" strokeWidth="1.5" strokeDasharray="2,2" />
+                  <circle cx="144" cy="225" r="3" fill="#ccff00" />
                 </svg>
 
                 {/* Floating Measurement Callout Badges */}
-                <div className="absolute top-[80px] -right-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-md">
+                <div className="absolute top-[80px] -right-2 bg-[#ccff00]/20 border border-[#ccff00]/40 text-[#ccff00] text-[10px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md">
                   Chest: {healthProfile.chestCm ? `${healthProfile.chestCm} cm` : '104 cm'}
                 </div>
 
-                <div className="absolute top-[138px] -left-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-md">
+                <div className="absolute top-[138px] -left-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md">
                   Waist: {healthProfile.waistCm ? `${healthProfile.waistCm} cm` : '82 cm'}
                 </div>
 
-                <div className="absolute top-[186px] -right-2 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-md backdrop-blur-md">
+                <div className="absolute top-[186px] -right-2 bg-[#ccff00]/20 border border-[#ccff00]/40 text-[#ccff00] text-[10px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md">
                   Hips: {healthProfile.hipCm ? `${healthProfile.hipCm} cm` : '96 cm'}
                 </div>
               </div>
 
               <span className="text-[11px] text-zinc-400 text-center font-medium mt-1">
-                Calibrated to IPF & Classic Bodybuilding Proportions
+                Calibrated to IPF &amp; Classic Bodybuilding Proportions
               </span>
             </div>
 
@@ -829,10 +829,10 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                       key={split}
                       type="button"
                       onClick={() => setDailyMuscleSplit(split)}
-                      className={`p-2.5 rounded-xl text-xs font-bold text-left transition border ${
+                      className={`p-2.5 rounded-full text-xs font-bold text-center transition border cursor-pointer active:scale-95 ${
                         dailyMuscleSplit === split
-                          ? 'bg-emerald-500 text-black border-emerald-500 shadow-md font-black'
-                          : 'bg-zinc-900/80 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                          ? 'bg-[#ccff00] text-black border-[#ccff00] shadow-[0_0_15px_rgba(204,255,0,0.25)] font-black'
+                          : 'bg-[#121418] text-zinc-300 border-white/5 hover:border-white/20'
                       }`}
                     >
                       {split}
@@ -842,22 +842,22 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
               </div>
 
               {/* Daily Fuel & Supplement Tracker Grid */}
-              <div className="space-y-3 pt-2 border-t border-zinc-800">
+              <div className="space-y-3 pt-2 border-t border-white/10">
                 <span className="text-xs font-black uppercase text-zinc-400 tracking-wider block">
-                  Daily Athlete Fuel & Supplements
+                  Daily Athlete Fuel &amp; Supplements
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {/* Protein */}
-                  <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl bg-[#121418] border border-white/10 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase text-zinc-400">Protein Intake</span>
-                        <span className="text-xs font-mono font-black text-emerald-400">{proteinGrams}g / 200g</span>
+                        <span className="text-xs font-mono font-black text-[#ccff00]">{proteinGrams}g / 200g</span>
                       </div>
                       <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden mt-2">
                         <div
-                          className="bg-emerald-500 h-full rounded-full transition-all duration-300"
+                          className="bg-[#ccff00] h-full rounded-full transition-all duration-300 shadow-[0_0_10px_rgba(204,255,0,0.4)]"
                           style={{ width: `${Math.min(100, (proteinGrams / 200) * 100)}%` }}
                         />
                       </div>
@@ -866,14 +866,14 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                       <button
                         type="button"
                         onClick={() => setProteinGrams((p) => Math.max(0, p - 10))}
-                        className="flex-1 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] font-bold text-zinc-300"
+                        className="flex-1 py-1 rounded-full bg-zinc-800 hover:bg-zinc-700 text-[10px] font-bold text-zinc-300 cursor-pointer"
                       >
                         -10g
                       </button>
                       <button
                         type="button"
                         onClick={() => setProteinGrams((p) => p + 25)}
-                        className="flex-1 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[10px] font-black"
+                        className="flex-1 py-1 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black text-[10px] font-black cursor-pointer shadow-[0_0_10px_rgba(204,255,0,0.2)]"
                       >
                         +25g Shake
                       </button>
@@ -881,7 +881,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                   </div>
 
                   {/* Water Hydration */}
-                  <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl bg-[#121418] border border-white/10 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase text-zinc-400">Hydration</span>
@@ -898,7 +898,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                       <button
                         type="button"
                         onClick={() => setWaterLiters((w) => parseFloat(Math.min(6, w + 0.5).toFixed(1)))}
-                        className="w-full py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[10px] font-black flex items-center justify-center gap-1"
+                        className="w-full py-1 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Droplets className="w-3 h-3" />
                         <span>+500 ml</span>
@@ -907,7 +907,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                   </div>
 
                   {/* Creatine & Multivitamin */}
-                  <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl bg-[#121418] border border-white/10 flex flex-col justify-between">
                     <div>
                       <span className="text-[10px] font-bold uppercase text-zinc-400 block">Supplements</span>
                       <div className="mt-2 space-y-1.5">
@@ -916,7 +916,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                             type="checkbox"
                             checked={creatineChecked}
                             onChange={(e) => setCreatineChecked(e.target.checked)}
-                            className="rounded text-amber-500 focus:ring-amber-500"
+                            className="rounded text-[#ccff00] focus:ring-[#ccff00]"
                           />
                           <span>5g Creapure Creatine</span>
                         </label>
@@ -1057,25 +1057,25 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       {/* SUBPART C: RECENT VISITS & WORKOUT SESSIONS LOG                           */}
       {/* ========================================================================= */}
       {activeSubpart === 'HISTORY' && (
-        <div className="community-card space-y-4 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <History className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Your Recent Visits & Sessions
+        <div className="p-5 sm:p-6 bg-[#0e1015] border border-white/10 rounded-3xl shadow-xl space-y-4 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 className="text-sm sm:text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight flex items-center gap-2">
+              <History className="w-4 h-4 text-[#ccff00]" />
+              Your Recent Visits &amp; Sessions
             </h3>
-            <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+            <span className="text-xs font-semibold text-zinc-400">
               {history.length} Total Visits Logged
             </span>
           </div>
 
           {isLoadingHistory ? (
-            <div className="py-6 text-center text-xs text-slate-400">Loading visit history...</div>
+            <div className="py-6 text-center text-xs text-zinc-400">Loading visit history...</div>
           ) : history.length === 0 ? (
-            <div className="py-6 text-center text-xs text-slate-400">
+            <div className="py-6 text-center text-xs text-zinc-400">
               No check-in history yet. Scan the entrance QR when you arrive at the gym!
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-zinc-800/80">
+            <div className="divide-y divide-white/5">
               {history.slice(0, 10).map((entry) => {
                 const isCurrentlyActive = entry.status === 'ACTIVE' || (!entry.exitedAt && !completedToday);
                 const durationMinutes = entry.sessionDurationMinutes;
@@ -1085,14 +1085,14 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                     <div className="flex items-center gap-3">
                       <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold ${
                         isCurrentlyActive
-                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30'
-                          : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
+                          ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.25)]'
+                          : 'bg-[#121418] text-[#ccff00] border border-white/10'
                       }`}>
                         {isCurrentlyActive ? <Activity className="w-4 h-4 animate-spin-slow" /> : <CheckCircle2 className="w-4 h-4" />}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 dark:text-white block">
+                          <span className="font-bold text-white block">
                             {new Date(entry.scannedAt).toLocaleDateString([], {
                               weekday: 'short',
                               month: 'short',
@@ -1100,31 +1100,31 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                             })}
                           </span>
                           {isCurrentlyActive && (
-                            <span className="badge-active-green text-[9px] py-0 px-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[9px] font-black uppercase">
                               Active Inside
                             </span>
                           )}
                           {durationMinutes && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300">
-                              <Clock className="w-3 h-3 text-emerald-500" />
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-[#121418] text-zinc-300 border border-white/5">
+                              <Clock className="w-3 h-3 text-[#ccff00]" />
                               {durationMinutes} mins
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 block mt-0.5">
-                          {entry.facility?.name || 'IronVault Apex'} • {entry.exitedAt ? 'Turnstile Check-Out Logged' : 'Entrance Gate'}
+                        <span className="text-[10px] text-zinc-400 block mt-0.5">
+                          {entry.facility?.name || 'PROFITNESS Apex'} • {entry.exitedAt ? 'Turnstile Check-Out Logged' : 'Entrance Gate'}
                         </span>
                       </div>
                     </div>
 
                     <div className="text-right">
-                      <span className="font-mono text-[11px] font-bold text-slate-800 dark:text-zinc-200 block">
+                      <span className="font-mono text-[11px] font-bold text-zinc-200 block">
                         {new Date(entry.scannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         {entry.exitedAt && (
                           <span> — {new Date(entry.exitedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         )}
                       </span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block">
+                      <span className="text-[10px] text-[#ccff00] font-medium block">
                         {isCurrentlyActive ? 'In-progress' : 'Completed'}
                       </span>
                     </div>
@@ -1143,15 +1143,15 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         <div id="community-section" className="space-y-3 pt-2 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
-                👥 IronVault Community
+              <h3 className="text-sm sm:text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight">
+                👥 PROFITNESS Community
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+              <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 uppercase">
                 Live Feed
               </span>
             </div>
-            <span className="text-xs text-slate-400 dark:text-zinc-500 hidden sm:inline">
-              Connect with trainers & find workout partners
+            <span className="text-xs text-zinc-400 hidden sm:inline">
+              Connect with master coaches &amp; find workout partners
             </span>
           </div>
 

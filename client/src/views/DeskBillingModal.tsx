@@ -163,19 +163,19 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="app-card dark:bg-carbon-900 w-full max-w-lg overflow-hidden shadow-2xl relative border border-slate-200/80 dark:border-carbon-800 rounded-3xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-['Plus_Jakarta_Sans',sans-serif]">
+      <div className="bg-[#0e1015] w-full max-w-lg overflow-hidden shadow-2xl relative border border-white/10 rounded-3xl">
         {/* Header */}
-        <div className="p-5 border-b border-slate-200 dark:border-carbon-800 flex items-center justify-between bg-slate-50/80 dark:bg-carbon-950/70">
+        <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-[#0e1015]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-volt-500/10 text-volt-600 dark:text-volt-400 border border-volt-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20 flex items-center justify-center">
               {mode === 'ONBOARD' ? <UserPlus className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-black text-lg text-slate-900 dark:text-white tracking-tight">
+              <h3 className="font-extrabold font-['Syne',sans-serif] uppercase text-lg text-white tracking-wide">
                 {mode === 'ONBOARD' ? 'Register New Member' : 'Desk Renewal & Quick Billing'}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-carbon-400">
+              <p className="text-xs text-white/50">
                 {mode === 'ONBOARD'
                   ? 'Register an athlete and dispatch gate access pass'
                   : 'Fast ≤3-tap desk renewal for active turnstile gate access'}
@@ -184,7 +184,7 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-carbon-800 transition"
+            className="p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -394,10 +394,10 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
                     type="button"
                     key={pm.id}
                     onClick={() => setPaymentMethod(pm.id)}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center border ${
+                    className={`py-2 px-3 rounded-full text-xs font-bold transition flex items-center justify-center border ${
                       paymentMethod === pm.id
-                        ? 'bg-slate-900 text-white dark:bg-volt-500 dark:text-black border-slate-900 dark:border-volt-500 shadow-sm'
-                        : 'bg-slate-50 dark:bg-carbon-800 text-slate-600 dark:text-carbon-300 border-slate-200 dark:border-carbon-700 hover:bg-slate-100 dark:hover:bg-carbon-700'
+                        ? 'bg-[#ccff00] text-black font-black border-[#ccff00] shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                        : 'bg-[#121418] text-white/70 border-white/10 hover:bg-white/10'
                     }`}
                   >
                     {pm.label}
@@ -407,12 +407,12 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
             </div>
 
             {/* Total Amount Box */}
-            <div className="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-carbon-950 border border-slate-200 dark:border-carbon-800 flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-carbon-400">
+            <div className="p-4 rounded-2xl bg-[#121418] border border-white/10 flex items-center justify-between">
+              <span className="text-xs font-black uppercase font-['Syne',sans-serif] tracking-widest text-white/40">
                 Amount to Collect
               </span>
-              <div className="flex items-center text-slate-900 dark:text-white font-mono tabular-nums font-black text-lg">
-                <DollarSign className="w-5 h-5 text-volt-500 mr-0.5" />
+              <div className="flex items-center text-white font-mono tabular-nums font-black text-xl">
+                <DollarSign className="w-5 h-5 text-[#ccff00] mr-0.5" />
                 {price}.00
               </div>
             </div>
@@ -421,7 +421,7 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 rounded-xl bg-volt-500 hover:bg-volt-400 text-black font-black text-sm shadow-volt-glow flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50"
+                className="w-full py-3.5 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-sm uppercase tracking-wide shadow-[0_0_20px_rgba(204,255,0,0.25)] flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

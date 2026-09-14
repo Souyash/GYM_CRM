@@ -375,16 +375,16 @@ Portal URL: ${window.location.origin}`;
   };
 
   return (
-    <div className="w-full min-h-screen bg-zinc-950 text-zinc-100 pb-28 pt-safe px-4 sm:px-6 lg:px-8 space-y-6">
+    <div className="w-full min-h-screen bg-[#050507] text-white pb-28 pt-safe px-4 sm:px-6 lg:px-8 space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
       {/* Toast Notification Banner */}
       {actionNotice && (
         <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 transition-all backdrop-blur-xl border ${
           isErrorNotice
             ? 'bg-rose-950/90 text-rose-200 border-rose-500/30'
-            : 'bg-zinc-900/95 text-white border-white/15'
+            : 'bg-[#0e1015] text-white border-[#ccff00]/30 shadow-[0_0_25px_rgba(204,255,0,0.15)]'
         }`}>
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-            isErrorNotice ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'
+            isErrorNotice ? 'bg-rose-500/20 text-rose-400' : 'bg-[#ccff00]/20 text-[#ccff00]'
           }`}>
             {isErrorNotice ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
           </div>
@@ -392,13 +392,13 @@ Portal URL: ${window.location.origin}`;
             <span className="text-xs font-bold text-white">
               {isErrorNotice ? 'Security Intercept' : 'Operation Success'}
             </span>
-            <span className="text-xs text-zinc-300">
+            <span className="text-xs text-white/70">
               {actionNotice}
             </span>
           </div>
           <button
             onClick={() => setActionNotice(null)}
-            className="ml-3 text-zinc-400 hover:text-white transition"
+            className="ml-3 text-white/40 hover:text-white transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -407,35 +407,35 @@ Portal URL: ${window.location.origin}`;
 
       {/* Ambient Glow */}
       <div className="relative w-full overflow-hidden pointer-events-none -mb-6">
-        <div className="absolute -top-16 left-1/3 w-[500px] h-36 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-12 right-12 w-96 h-40 bg-teal-500/10 rounded-full blur-3xl" />
+        <div className="absolute -top-16 left-1/3 w-[500px] h-36 bg-[#ccff00]/5 rounded-full blur-3xl" />
+        <div className="absolute top-12 right-12 w-96 h-40 bg-[#ccff00]/5 rounded-full blur-3xl" />
       </div>
 
       {/* Sleek Linear Header */}
       <div className="flex flex-col gap-4 w-full relative z-10">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-black font-bold shadow-lg shadow-emerald-500/20">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0e1015] p-5 sm:p-6 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20 flex items-center justify-center font-bold shadow-lg shadow-[#ccff00]/10 shrink-0">
               <Building2 className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                  Gym System Management
+              <div className="flex items-center gap-2.5 mb-1">
+                <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+                  Gym System Fleet Control
                 </h1>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[10px] font-black uppercase font-mono tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse" />
                   All Active Gyms
                 </span>
               </div>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-white/50">
                 Manage all gym locations, check-in gates, and member pass accounts
               </p>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={() => {
@@ -443,25 +443,25 @@ Portal URL: ${window.location.origin}`;
                 showToast('Data refreshed.');
               }}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 text-xs font-semibold border border-white/10 transition-all active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#121418] hover:bg-white/10 text-white text-xs font-bold border border-white/10 transition-all active:scale-95 disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-[#ccff00] ${isLoading ? 'animate-spin' : ''}`} />
               <span>Refresh Data</span>
             </button>
 
             <button
               type="button"
               onClick={handleExportMasterArchive}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 text-xs font-semibold border border-white/10 transition-all active:scale-95"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#121418] hover:bg-white/10 text-white text-xs font-bold border border-white/10 transition-all active:scale-95"
             >
-              <Download className="w-3.5 h-3.5 text-zinc-400" />
+              <Download className="w-3.5 h-3.5 text-[#ccff00]" />
               <span>Export CSV</span>
             </button>
 
             <button
               type="button"
               onClick={handleOpenCreateGymModal}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition-all shadow-lg shadow-emerald-500/25 active:scale-95"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs tracking-wide transition-all shadow-[0_0_20px_rgba(204,255,0,0.25)] active:scale-95"
             >
               <Sparkles className="w-4 h-4" />
               <span>Provision Gym Workspace</span>
@@ -471,65 +471,65 @@ Portal URL: ${window.location.origin}`;
 
         {/* 4 Glanceable KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
-          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+          <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Active Gyms</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Syne',sans-serif]">Active Gyms</span>
+              <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-pulse" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
               {gyms.length}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
-              <Globe className="w-3 h-3 text-emerald-400" />
+            <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
+              <Globe className="w-3 h-3 text-[#ccff00]" />
               <span>100% online across regions</span>
             </div>
           </div>
 
-          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+          <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Total Athletes</span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Syne',sans-serif]">Total Athletes</span>
+              <span className="px-2 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[10px] font-black font-mono">
                 +{totalActivePasses} Active
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
               {members.length.toLocaleString()}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
-              <Users className="w-3 h-3 text-teal-400" />
+            <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
+              <Users className="w-3 h-3 text-[#ccff00]" />
               <span>Platform-wide memberships</span>
             </div>
           </div>
 
-          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+          <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-[#ccff00]/30 hover:border-[#ccff00]/50 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Gateway Uptime</span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+              <span className="text-[10px] font-black text-[#ccff00] uppercase tracking-widest font-['Syne',sans-serif]">Gateway Uptime</span>
+              <span className="px-2 py-0.5 rounded-full bg-[#ccff00]/20 text-[#ccff00] text-[10px] font-black font-mono uppercase tracking-wider">
                 Operational
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight">
+            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-[#ccff00]">
               99.98%
             </div>
-            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
-              <Shield className="w-3 h-3 text-emerald-400" />
+            <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
+              <Shield className="w-3 h-3 text-[#ccff00]" />
               <span>Zero unplanned downtime</span>
             </div>
           </div>
 
-          <div className="bg-zinc-900/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-emerald-500/30 transition-all">
+          <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">Turnstile Speed</span>
-              <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 text-[10px] font-mono">
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Syne',sans-serif]">Turnstile Speed</span>
+              <span className="px-2 py-0.5 rounded-full bg-[#121418] text-white/70 border border-white/10 text-[10px] font-mono font-bold">
                 P99
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              18<span className="text-sm font-normal text-zinc-400 ml-0.5">ms</span>
+            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+              18<span className="text-sm font-normal text-white/40 ml-0.5">ms</span>
             </div>
-            <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
-              <Zap className="w-3 h-3 text-amber-400" />
-              <span>Sub-second biometric & QR verification</span>
+            <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
+              <Zap className="w-3 h-3 text-[#ccff00]" />
+              <span>Sub-second gate verification</span>
             </div>
           </div>
         </div>
@@ -772,14 +772,14 @@ Portal URL: ${window.location.origin}`;
       </div>
 
       {/* Multi-Tenant Facility Registry Grid / Data Table */}
-      <div className="bg-zinc-900/60 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl space-y-5">
+      <div className="bg-[#0e1015] p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-emerald-400" />
-              Multi-Tenant Gym Directory
+            <h2 className="text-base sm:text-lg font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide flex items-center gap-2.5">
+              <Building2 className="w-5 h-5 text-[#ccff00]" />
+              <span>Multi-Tenant Gym Fleet Directory</span>
             </h2>
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-white/50 mt-0.5">
               Manage enterprise gym instances, owner accounts, and athlete records
             </p>
           </div>
@@ -787,14 +787,14 @@ Portal URL: ${window.location.origin}`;
           {/* Tab Selector & Search Toolbar */}
           <div className="flex flex-wrap items-center gap-3">
             {/* View Switcher Pills */}
-            <div className="flex items-center bg-zinc-950/80 p-1 rounded-xl border border-white/10">
+            <div className="flex items-center bg-[#121418] p-1 rounded-full border border-white/5">
               <button
                 type="button"
                 onClick={() => setActiveTab('GYMS')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${
                   activeTab === 'GYMS'
-                    ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" />
@@ -803,10 +803,10 @@ Portal URL: ${window.location.origin}`;
               <button
                 type="button"
                 onClick={() => setActiveTab('MEMBERS')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${
                   activeTab === 'MEMBERS'
-                    ? 'bg-emerald-500 text-black shadow-md shadow-emerald-500/20'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.3)]'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -815,8 +815,8 @@ Portal URL: ${window.location.origin}`;
             </div>
 
             {/* Search Input */}
-            <div className="flex items-center gap-2 bg-zinc-950/80 px-3.5 py-2 rounded-xl border border-white/10">
-              <Search className="w-4 h-4 text-zinc-500" />
+            <div className="flex items-center gap-2.5 bg-[#121418] px-4 py-2 rounded-full border border-white/10">
+              <Search className="w-4 h-4 text-white/40" />
               <input
                 type="text"
                 placeholder={activeTab === 'GYMS' ? 'Search gym, code, owner...' : 'Search athlete, email, phone...'}
@@ -825,7 +825,7 @@ Portal URL: ${window.location.origin}`;
                   if (activeTab === 'GYMS') setGymSearch(e.target.value);
                   else setMemberSearch(e.target.value);
                 }}
-                className="bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none w-44 sm:w-56"
+                className="bg-transparent text-xs text-white placeholder:text-white/40 focus:outline-none w-44 sm:w-56"
               />
             </div>
           </div>
@@ -833,11 +833,11 @@ Portal URL: ${window.location.origin}`;
 
         {/* VIEW 1: GYM WORKSPACES DIRECTORY */}
         {activeTab === 'GYMS' && (
-          <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/50">
+          <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0e1015]">
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-zinc-900/80 text-zinc-400 uppercase tracking-wider text-[11px] font-semibold border-b border-white/10">
+                  <tr className="bg-[#121418] text-white/50 uppercase tracking-wider text-[10px] font-bold font-['Syne',sans-serif] border-b border-white/10">
                     <th className="py-3.5 px-4">Gym Facility</th>
                     <th className="py-3.5 px-4">Access Code</th>
                     <th className="py-3.5 px-4">Owner Contact</th>

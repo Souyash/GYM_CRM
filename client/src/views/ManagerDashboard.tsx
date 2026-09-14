@@ -300,27 +300,27 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
       )}
 
       {/* Multi-Tenant Gym Workspace & Invite Code Widget */}
-      <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-slate-100 dark:to-zinc-900 border border-emerald-500/20 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white dark:text-black shadow-md dark:shadow-glow-green shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] shadow-[0_0_15px_rgba(204,255,0,0.2)] shrink-0">
             <Building2 className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                {gymDetails?.name || 'Your Gym Workspace'}
+              <h2 className="text-base sm:text-lg font-['Syne',sans-serif] font-black uppercase text-white tracking-tight">
+                {gymDetails?.name || 'PROFITNESS Workspace'}
               </h2>
-              <span className="text-[10px] uppercase tracking-wider font-extrabold bg-emerald-500 text-black px-2 py-0.5 rounded-full">
+              <span className="text-[10px] uppercase tracking-wider font-black bg-[#ccff00] text-black px-2.5 py-0.5 rounded-full">
                 Tenant Active
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 flex flex-wrap items-center gap-1.5">
+            <p className="text-xs text-zinc-400 mt-0.5 flex flex-wrap items-center gap-1.5">
               <span>Member Onboarding Code:</span>
-              <span className="font-mono font-black text-slate-900 dark:text-emerald-400 text-sm bg-white dark:bg-zinc-800 px-2.5 py-0.5 rounded-md border border-slate-200 dark:border-zinc-700">
+              <span className="font-mono font-black text-[#ccff00] text-sm bg-[#121418] px-2.5 py-0.5 rounded-full border border-white/10">
                 {gymDetails?.inviteCode || '100001'}
               </span>
               {gymDetails?.city && (
-                <span className="text-[11px] text-slate-400 dark:text-zinc-500">
+                <span className="text-[11px] text-zinc-400">
                   • 📍 {gymDetails.city}, {gymDetails.state || ''}
                 </span>
               )}
@@ -332,10 +332,10 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           <button
             type="button"
             onClick={() => setIsLocationModalOpen(true)}
-            className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
+            className="w-full md:w-auto px-4 py-2.5 rounded-full bg-[#121418] hover:bg-zinc-800 border border-white/10 hover:border-[#ccff00]/50 text-xs font-bold text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"
             title="Configure gym building location and check-in distance range"
           >
-            <MapPin className={`w-4 h-4 ${gymDetails?.latitude && gymDetails.latitude !== 0 ? 'text-emerald-500' : 'text-amber-500 animate-pulse'}`} />
+            <MapPin className={`w-4 h-4 ${gymDetails?.latitude && gymDetails.latitude !== 0 ? 'text-[#ccff00]' : 'text-amber-500 animate-pulse'}`} />
             <span>
               {gymDetails?.latitude && gymDetails.latitude !== 0
                 ? `📍 Location Active (${gymDetails.geofenceRadiusMeters || 100}m)`
@@ -345,17 +345,17 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
 
           <button
             onClick={copyInviteLink}
-            className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95"
+            className="w-full md:w-auto px-4 py-2.5 rounded-full bg-[#121418] hover:bg-zinc-800 border border-white/10 hover:border-[#ccff00]/50 text-xs font-bold text-zinc-200 flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"
             title="Copy member signup invite URL with pre-filled gym access code"
           >
             {copiedLink ? (
               <>
-                <Check className="w-4 h-4 text-emerald-500" />
-                <span className="text-emerald-600 dark:text-emerald-400 font-black">Invite Link Copied!</span>
+                <Check className="w-4 h-4 text-[#ccff00]" />
+                <span className="text-[#ccff00] font-black">Invite Link Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-emerald-500" />
+                <Copy className="w-4 h-4 text-[#ccff00]" />
                 <span>Copy Client Invite Link</span>
               </>
             )}
@@ -433,18 +433,18 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
       {/* Modern Sleek Operational Header Bar */}
       <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-2.5 bg-zinc-900/80 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+          <div className="flex items-center gap-2.5 bg-[#0e1015] px-4 py-2 rounded-full border border-white/10 shadow-lg">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ccff00] animate-ping" />
             <span className="text-xs font-bold text-white tracking-tight">
-              {gymDetails?.name || 'IronVault Downtown'}
+              {gymDetails?.name || 'PROFITNESS Elite Club'}
             </span>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+            <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 px-2.5 py-0.5 rounded-full border border-[#ccff00]/30 uppercase">
               Live Operations
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
-            <span className="material-symbols-outlined text-emerald-400 text-[18px]">sensors</span>
-            <span>Turnstiles 1-4 Connected & Armed</span>
+            <span className="material-symbols-outlined text-[#ccff00] text-[18px]">sensors</span>
+            <span>Turnstiles 1-4 Connected &amp; Armed</span>
           </div>
         </div>
 
@@ -452,7 +452,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsEmergencyGateModalOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold transition active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold transition active:scale-95 cursor-pointer"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">lock_open</span>
@@ -460,15 +460,15 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </button>
           <button
             onClick={onOpenOnboarding}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition border border-white/10 active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#121418] hover:bg-zinc-800 text-white text-xs font-bold transition border border-white/10 active:scale-95 cursor-pointer"
             type="button"
           >
-            <span className="material-symbols-outlined text-[18px] text-emerald-400">person_add</span>
+            <span className="material-symbols-outlined text-[18px] text-[#ccff00]">person_add</span>
             <span>+ Check-in Athlete</span>
           </button>
           <button
             onClick={onOpenBilling}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-zinc-950 font-black text-xs transition shadow-lg shadow-emerald-400/20 active:scale-95"
+            className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs transition shadow-[0_0_20px_rgba(204,255,0,0.25)] active:scale-95 cursor-pointer select-none"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">credit_card</span>
@@ -480,16 +480,16 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
       {/* KPI Metrics Strip: 4 Large Glanceable Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* KPI 1: Athletes Inside */}
-        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/30 transition">
+        <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-[#ccff00]/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Athletes Inside</span>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> LIVE
+            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Athletes Inside</span>
+            <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full flex items-center gap-1 uppercase">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse" /> LIVE
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-white tracking-tight">{activeCount}</span>
+              <span className="text-4xl font-['Syne',sans-serif] font-black text-white tracking-tight">{activeCount}</span>
               <span className="text-sm font-semibold text-zinc-400">in gym</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">
@@ -498,66 +498,66 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
           <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
             <div
-              className="bg-emerald-400 h-full rounded-full transition-all duration-500"
+              className="bg-[#ccff00] h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(204,255,0,0.4)]"
               style={{ width: `${Math.min(100, Math.max(8, Math.round((activeCount / 120) * 100)))}%` }}
             />
           </div>
         </div>
 
         {/* KPI 2: Today's Check-ins */}
-        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-teal-500/30 transition">
+        <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-[#ccff00]/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Today's Visits</span>
-            <span className="text-[10px] font-bold text-teal-400 bg-teal-500/15 border border-teal-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Today's Visits</span>
+            <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full uppercase">
               +14% vs yesterday
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-white tracking-tight">{todayCount || 187}</span>
+              <span className="text-4xl font-['Syne',sans-serif] font-black text-white tracking-tight">{todayCount || 187}</span>
               <span className="text-sm font-semibold text-zinc-400">check-ins</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">Total turnstile admissions today</p>
           </div>
           <div className="flex items-center gap-2 pt-2 border-t border-white/5 text-xs">
-            <span className="text-emerald-400 font-bold">✓ {Math.max(0, (todayCount || 187) - 2)} Approved</span>
+            <span className="text-[#ccff00] font-bold">✓ {Math.max(0, (todayCount || 187) - 2)} Approved</span>
             <span className="text-zinc-600">•</span>
             <span className="text-zinc-400">2 Cooldown holds</span>
           </div>
         </div>
 
         {/* KPI 3: Memberships Expiring */}
-        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/30 transition">
+        <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Expiring Soon</span>
-            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Expiring Soon</span>
+            <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase">
               Action Needed
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-black text-amber-300 tracking-tight">12</span>
+              <span className="text-4xl font-['Syne',sans-serif] font-black text-amber-300 tracking-tight">12</span>
               <span className="text-sm font-semibold text-zinc-400">this week</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">Athletes requiring renewal</p>
           </div>
           <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs text-zinc-400">
             <span>Desk Conversion:</span>
-            <span className="font-bold text-emerald-400">83% Renewed</span>
+            <span className="font-bold text-[#ccff00]">83% Renewed</span>
           </div>
         </div>
 
         {/* KPI 4: Monthly Revenue */}
-        <div className="bg-zinc-900/60 backdrop-blur-xl p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-emerald-500/30 transition">
+        <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-[#ccff00]/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">Monthly Revenue</span>
-            <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Monthly Revenue</span>
+            <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full uppercase">
               +8.2% Growth
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-black text-white tracking-tight">$14,850</span>
+              <span className="text-4xl font-['Syne',sans-serif] font-black text-white tracking-tight">$14,850</span>
               <span className="text-sm font-semibold text-zinc-400">/ mo</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">Active recurring subscriptions</p>
@@ -572,21 +572,21 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
       {/* Master Operational Hub: Live Ingress Feed (8 cols) & Fast Desk Renewal Dock (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left 8 Columns: Live Activity Stream */}
-        <div className="lg:col-span-8 flex flex-col bg-zinc-900/60 backdrop-blur-xl rounded-3xl shadow-xl p-5 sm:p-6 border border-white/10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3 border-b border-white/5">
+        <div className="lg:col-span-8 flex flex-col bg-[#0e1015] rounded-3xl shadow-xl p-5 sm:p-6 border border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3 border-b border-white/10">
             <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <h2 className="text-base font-bold text-white tracking-tight">Live Attendance Feed</h2>
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ccff00] animate-pulse" />
+              <h2 className="text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight">Live Attendance Feed</h2>
+              <span className="text-[10px] text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full font-black uppercase">
                 Gates 01-04 Active
               </span>
             </div>
-            <div className="flex items-center gap-1.5 bg-zinc-950/80 p-1 rounded-xl border border-white/5">
+            <div className="flex items-center gap-1.5 bg-[#121418] p-1 rounded-full border border-white/10">
               <button
                 onClick={() => setActiveTab('ON_FLOOR')}
-                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
+                className={`px-4 py-1.5 rounded-full font-bold text-xs transition-all cursor-pointer ${
                   activeTab === 'ON_FLOOR'
-                    ? 'bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-400/20'
+                    ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.25)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
                 type="button"
@@ -595,9 +595,9 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('DEPARTED')}
-                className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all ${
+                className={`px-4 py-1.5 rounded-full font-bold text-xs transition-all cursor-pointer ${
                   activeTab === 'DEPARTED'
-                    ? 'bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-400/20'
+                    ? 'bg-[#ccff00] text-black font-black shadow-[0_0_15px_rgba(204,255,0,0.25)]'
                     : 'text-zinc-400 hover:text-white'
                 }`}
                 type="button"
@@ -624,7 +624,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                   activeOnFloor.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-zinc-400">
-                        <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-emerald-400" />
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#ccff00]" />
                         <p className="font-bold text-xs text-white">No athletes currently on the gym floor</p>
                         <p className="text-[11px] text-zinc-400">Live entrance scans will appear here in real-time</p>
                       </td>
@@ -634,13 +634,13 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                       <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors group">
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                            <div className="w-8 h-8 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 text-[#ccff00] flex items-center justify-center font-black text-xs shrink-0">
                               {entry.user?.fullName?.charAt(0) || 'A'}
                             </div>
                             <div className="flex flex-col min-w-0">
                               <span className="font-bold text-white truncate">{entry.user?.fullName || 'Athlete'}</span>
                               <span className="text-[11px] text-zinc-400 font-mono">
-                                #IV-{entry.user?.id ? entry.user.id.substring(0, 5).toUpperCase() : '7729'}
+                                #PF-{entry.user?.id ? entry.user.id.substring(0, 5).toUpperCase() : '7729'}
                               </span>
                             </div>
                           </div>
@@ -655,8 +655,8 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                         </td>
                         <td className="py-3.5 px-3 text-zinc-300">Gate 01 (Main)</td>
                         <td className="py-3.5 px-3">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[10px] font-black uppercase">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" />
                             Inside Gym
                           </span>
                         </td>
@@ -664,7 +664,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                           <button
                             onClick={() => handleDeskCheckout(entry.id, entry.user?.fullName || 'Athlete')}
                             disabled={checkingOutId === entry.id}
-                            className="px-3 py-1 rounded-xl bg-zinc-800 hover:bg-rose-500 hover:text-white text-zinc-300 text-xs font-semibold transition active:scale-95 border border-white/10"
+                            className="px-3.5 py-1.5 rounded-full bg-[#121418] hover:bg-rose-500 hover:text-white text-zinc-300 text-xs font-semibold transition active:scale-95 border border-white/10 cursor-pointer"
                           >
                             {checkingOutId === entry.id ? 'Checking Out...' : 'Check Out'}
                           </button>
@@ -675,7 +675,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                 ) : departedToday.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-zinc-400">
-                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-emerald-400" />
+                      <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-[#ccff00]" />
                       <p className="font-bold text-xs text-white">No completed sessions recorded today yet</p>
                     </td>
                   </tr>
@@ -684,7 +684,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                     <tr key={entry.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="py-3.5 px-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-zinc-800 text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-2xl bg-[#121418] text-zinc-400 flex items-center justify-center font-bold text-xs shrink-0">
                             {entry.user?.fullName?.charAt(0) || 'A'}
                           </div>
                           <div className="flex flex-col min-w-0">
@@ -701,11 +701,11 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                       </td>
                       <td className="py-3.5 px-3 text-zinc-400">Exit Gate 02</td>
                       <td className="py-3.5 px-3">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#121418] text-zinc-400 text-[10px] font-bold">
                           🚪 Exit Logged
                         </span>
                       </td>
-                      <td className="py-3.5 px-3 text-right font-mono text-emerald-400">
+                      <td className="py-3.5 px-3 text-right font-mono text-[#ccff00] font-black">
                         {entry.sessionDurationMinutes || 45} mins
                       </td>
                     </tr>
@@ -715,31 +715,31 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
             </table>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 gap-2">
-            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 gap-2">
+            <span className="flex items-center gap-1.5 text-[#ccff00] font-semibold">
+              <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-pulse" />
               Live floor stream connected • Real-time sync
             </span>
             <button
               onClick={handleExportAttendanceCsv}
-              className="py-1.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 transition active:scale-95"
+              className="py-2 px-4 rounded-full bg-[#121418] hover:bg-zinc-800 text-white text-xs font-bold flex items-center gap-1.5 border border-white/10 hover:border-[#ccff00]/50 transition active:scale-95 cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <Download className="w-3.5 h-3.5 text-[#ccff00]" />
               <span>Export Today's CSV</span>
             </button>
           </div>
         </div>
 
         {/* Right 4 Columns: 3-Tap Fast Desk Renewal Dock */}
-        <div id="fast-desk-dock" className="lg:col-span-4 flex flex-col bg-zinc-900/60 backdrop-blur-xl rounded-3xl shadow-xl p-5 sm:p-6 border border-white/10">
+        <div id="fast-desk-dock" className="lg:col-span-4 flex flex-col bg-[#0e1015] rounded-3xl shadow-xl p-5 sm:p-6 border border-white/10">
           <div className="flex items-center justify-between pb-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
+              <div className="w-8 h-8 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 text-[#ccff00] flex items-center justify-center font-bold">
                 <CreditCard className="w-4 h-4" />
               </div>
-              <h2 className="text-base font-bold text-white">Fast Desk Renewal</h2>
+              <h2 className="text-base font-['Syne',sans-serif] font-black uppercase text-white">Fast Desk Renewal</h2>
             </div>
-            <span className="text-[10px] font-bold uppercase text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-black uppercase text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full">
               3-Tap Action
             </span>
           </div>
@@ -757,7 +757,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                 id="athlete-selector"
                 value={selectedRenewAthlete}
                 onChange={(e) => setSelectedRenewAthlete(e.target.value)}
-                className="w-full bg-zinc-950 text-white text-xs font-semibold px-3.5 py-3 rounded-xl border border-white/15 focus:outline-none focus:border-emerald-400 cursor-pointer"
+                className="w-full bg-[#121418] text-white text-xs font-semibold px-4 py-3 rounded-2xl border border-white/15 focus:outline-none focus:border-[#ccff00] cursor-pointer"
               >
                 <option value="vance">Marcus Vance • Expired Yesterday (Waiting at Gate 01)</option>
                 <option value="torres">Camila Torres • Expires in 3 Days</option>
@@ -773,10 +773,10 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedRenewPlan('1month')}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer ${
                     selectedRenewPlan === '1month'
-                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
-                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
+                      ? 'bg-[#ccff00]/15 border-[#ccff00] text-white'
+                      : 'bg-[#121418] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
                   <span className="text-[10px] font-bold">1 MONTH</span>
@@ -785,25 +785,25 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedRenewPlan('3months')}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border relative transition-all ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border relative transition-all cursor-pointer ${
                     selectedRenewPlan === '3months'
-                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
-                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
+                      ? 'bg-[#ccff00]/15 border-[#ccff00] text-white'
+                      : 'bg-[#121418] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="absolute -top-2 bg-emerald-400 text-zinc-950 text-[9px] px-1.5 rounded-full font-black uppercase">
+                  <span className="absolute -top-2 bg-[#ccff00] text-black text-[9px] px-2 py-0.2 rounded-full font-black uppercase shadow-sm">
                     Popular
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-400">3 MONTHS</span>
+                  <span className="text-[10px] font-bold text-[#ccff00]">3 MONTHS</span>
                   <span className="text-base font-black text-white mt-0.5">$175</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewPlan('1year')}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer ${
                     selectedRenewPlan === '1year'
-                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
-                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
+                      ? 'bg-[#ccff00]/15 border-[#ccff00] text-white'
+                      : 'bg-[#121418] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
                   <span className="text-[10px] font-bold">1 YEAR</span>
@@ -819,51 +819,51 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedRenewTender('card')}
-                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                     selectedRenewTender === 'card'
-                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
-                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
+                      ? 'bg-[#ccff00]/15 border-[#ccff00] text-white'
+                      : 'bg-[#121418] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px] text-emerald-400">credit_card</span>
+                  <span className="material-symbols-outlined text-[18px] text-[#ccff00]">credit_card</span>
                   <span className="text-[11px]">Card POS</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewTender('cash')}
-                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                     selectedRenewTender === 'cash'
-                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
-                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
+                      ? 'bg-[#ccff00]/15 border-[#ccff00] text-white'
+                      : 'bg-[#121418] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px] text-teal-400">payments</span>
+                  <span className="material-symbols-outlined text-[18px] text-[#ccff00]">payments</span>
                   <span className="text-[11px]">Cash Desk</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedRenewTender('sms')}
-                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                  className={`flex flex-col items-center gap-1 p-3 rounded-2xl border text-xs font-bold transition-all cursor-pointer ${
                     selectedRenewTender === 'sms'
-                      ? 'bg-emerald-500/15 border-emerald-400 text-white'
-                      : 'bg-zinc-950 border-white/10 text-zinc-400 hover:text-white'
+                      ? 'bg-[#ccff00]/15 border-[#ccff00] text-white'
+                      : 'bg-[#121418] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px] text-primary">send_to_mobile</span>
+                  <span className="material-symbols-outlined text-[18px] text-[#ccff00]">send_to_mobile</span>
                   <span className="text-[11px]">SMS Link</span>
                 </button>
               </div>
             </div>
 
             {/* Summary Box */}
-            <div className="p-4 rounded-2xl bg-zinc-950 border border-white/10 flex items-center justify-between">
+            <div className="p-4 rounded-2xl bg-[#121418] border border-white/10 flex items-center justify-between">
               <div>
                 <span className="text-[11px] text-zinc-400 uppercase font-bold block">Total Due</span>
                 <span className="text-xs text-zinc-300">
                   {selectedRenewPlan === '1month' ? '30 Days Access' : selectedRenewPlan === '3months' ? '90 Days Access' : '365 Days VIP Access'}
                 </span>
               </div>
-              <span className="text-2xl font-black text-emerald-400 font-mono">
+              <span className="text-2xl font-black text-[#ccff00] font-mono">
                 {selectedRenewPlan === '1month' ? '$65.00' : selectedRenewPlan === '3months' ? '$175.00' : '$599.00'}
               </span>
             </div>
@@ -882,7 +882,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
                   setIsRenewingAtDesk(false);
                 }
               }}
-              className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 text-zinc-950 font-black text-xs uppercase tracking-wider shadow-xl shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+              className="w-full py-4 px-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(204,255,0,0.25)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50 select-none"
             >
               {isRenewingAtDesk ? (
                 <>
@@ -898,8 +898,8 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
             </button>
 
             {renewSuccessNotice && (
-              <div className="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-2 text-xs font-bold animate-fade-in">
-                <span className="material-symbols-outlined text-emerald-400 text-[20px]">check_circle</span>
+              <div className="p-3.5 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 text-[#ccff00] flex items-center gap-2 text-xs font-bold animate-fade-in">
+                <span className="material-symbols-outlined text-[#ccff00] text-[20px]">check_circle</span>
                 <span>{renewSuccessNotice}</span>
               </div>
             )}

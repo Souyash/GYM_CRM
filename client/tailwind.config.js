@@ -8,12 +8,18 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'Poppins', 'Inter', 'sans-serif'],
-        heading: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'Poppins', 'sans-serif'],
+        syne: ['Syne', '"Space Grotesk"', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', '"Space Grotesk"', 'Poppins', 'Inter', 'sans-serif'],
+        heading: ['Syne', '"Plus Jakarta Sans"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
         poppins: ['Poppins', 'sans-serif'],
       },
       colors: {
+        lime: {
+          DEFAULT: '#ccff00',
+          hover: '#b8e600',
+          glow: 'rgba(204, 255, 0, 0.25)',
+        },
         // Stitch AI Design Tokens
         "surface": "#111319",
         "surface-dim": "#111319",

@@ -203,51 +203,51 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
   const isLocationConfigured = lat !== '' && lng !== '' && lat !== '0' && lng !== '0';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in font-poppins">
-      <div className="app-card w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto border border-slate-200 dark:border-zinc-800 shadow-2xl rounded-3xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Plus_Jakarta_Sans',sans-serif]">
+      <div className="bg-[#0e1015] w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto border border-white/10 shadow-2xl rounded-3xl">
         
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+          className="absolute top-5 right-5 p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+        <div className="flex items-center gap-3.5 mb-5">
+          <div className="w-12 h-12 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/20 flex items-center justify-center text-[#ccff00] shrink-0">
             <MapPin className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+            <h3 className="text-xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
               Gym Location & Check-In Area
             </h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400">
+            <p className="text-xs text-white/50 mt-0.5">
               Ensure members must be at the gym building to check in
             </p>
           </div>
         </div>
 
         {/* Current Status Pill */}
-        <div className={`p-3.5 rounded-2xl border text-xs mb-5 flex items-start gap-2.5 ${
+        <div className={`p-4 rounded-2xl border text-xs mb-5 flex items-start gap-3 ${
           isLocationConfigured
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300'
-            : 'bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300'
+            ? 'bg-[#ccff00]/10 border-[#ccff00]/30 text-white'
+            : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
         }`}>
           {isLocationConfigured ? (
-            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+            <ShieldCheck className="w-4 h-4 text-[#ccff00] shrink-0 mt-0.5" />
           ) : (
             <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
           )}
           <div>
-            <span className="font-bold block">
+            <span className="font-bold block text-white">
               {isLocationConfigured
                 ? 'Location Check Active & Secure'
                 : 'Gym Location Not Set Yet'}
             </span>
-            <span className="text-[11px] opacity-90 block mt-0.5">
+            <span className="text-[11px] text-white/60 block mt-0.5 leading-relaxed">
               {isLocationConfigured
                 ? `Members must be physically within ${radius} meters of the gym to check in.`
                 : 'Check-ins currently allow scans from anywhere. Save your gym location below to make sure scans only work at the gym doors.'}
@@ -256,14 +256,14 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
         </div>
 
         {/* Auto-Detect One-Click Button */}
-        <div className="mb-5 p-4 rounded-2xl bg-slate-50 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 space-y-2">
+        <div className="mb-5 p-4 rounded-2xl bg-[#121418] border border-white/10 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-              <Crosshair className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+              <Crosshair className="w-3.5 h-3.5 text-[#ccff00]" />
               <span>Are you currently at your gym?</span>
             </span>
             {gpsAccuracy && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#ccff00]/20 text-[#ccff00] font-bold">
                 ±{gpsAccuracy}m accuracy
               </span>
             )}
@@ -274,18 +274,18 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
               type="button"
               onClick={() => handleDetectCurrentLocation(true)}
               disabled={isDetecting || isSaving}
-              className="py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+              className="py-2.5 px-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs transition flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(204,255,0,0.25)] active:scale-95 disabled:opacity-50"
               title="Auto-fetch GPS from your phone/computer and immediately save and activate geofence"
             >
               {isDetecting || isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Connecting to Satellites...</span>
+                  <span>Connecting...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>⚡ Auto-Fetch & Save Now</span>
+                  <span>⚡ Auto-Fetch & Save</span>
                 </>
               )}
             </button>
@@ -294,9 +294,9 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
               type="button"
               onClick={() => handleDetectCurrentLocation(false)}
               disabled={isDetecting || isSaving}
-              className="py-2.5 px-3.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 text-slate-800 dark:text-zinc-200 font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+              className="py-2.5 px-4 rounded-full bg-[#121418] border border-white/10 hover:bg-white/10 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
             >
-              <Navigation className="w-3.5 h-3.5 text-emerald-500" />
+              <Navigation className="w-3.5 h-3.5 text-[#ccff00]" />
               <span>Fetch & Review First</span>
             </button>
           </div>
@@ -306,7 +306,7 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+              <label className="text-xs font-bold text-white/70 block mb-1">
                 Latitude (e.g. 28.535512)
               </label>
               <input
@@ -315,12 +315,12 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
                 value={lat}
                 onChange={(e) => setLat(e.target.value)}
                 placeholder="28.535512"
-                className="w-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                className="w-full bg-[#121418] border border-white/10 rounded-2xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-[#ccff00]"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 block mb-1">
+              <label className="text-xs font-bold text-white/70 block mb-1">
                 Longitude (e.g. 77.391024)
               </label>
               <input
@@ -329,7 +329,7 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
                 value={lng}
                 onChange={(e) => setLng(e.target.value)}
                 placeholder="77.391024"
-                className="w-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                className="w-full bg-[#121418] border border-white/10 rounded-2xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-[#ccff00]"
               />
             </div>
           </div>
@@ -337,10 +337,10 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
           {/* Geofence Radius Selector */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+              <label className="text-xs font-bold text-white/70">
                 Check-In Distance Radius
               </label>
-              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
+              <span className="text-xs font-black text-[#ccff00] font-mono">
                 {radius} meters (~{Math.round(radius * 3.28)} ft)
               </span>
             </div>
@@ -352,10 +352,10 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
               step="25"
               value={radius}
               onChange={(e) => setRadius(Number(e.target.value))}
-              className="w-full accent-emerald-500 h-2 bg-slate-200 dark:bg-zinc-800 rounded-lg cursor-pointer"
+              className="w-full accent-[#ccff00] h-2 bg-[#121418] rounded-lg cursor-pointer"
             />
 
-            <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-zinc-500 mt-1">
+            <div className="flex items-center justify-between text-[10px] text-white/40 mt-1">
               <span>25m (Compact Studio)</span>
               <span>100m (Standard Gym)</span>
               <span>300m+ (Large Facility)</span>
@@ -364,12 +364,12 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
 
           {/* Status Message */}
           {statusMessage && (
-            <div className={`p-3 rounded-xl text-xs font-bold flex items-start gap-2 ${
+            <div className={`p-3 rounded-2xl text-xs font-bold flex items-start gap-2 ${
               statusMessage.type === 'success'
-                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                ? 'bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/30'
                 : statusMessage.type === 'error'
-                ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30'
+                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                : 'bg-sky-500/10 text-sky-300 border border-sky-500/30'
             }`}>
               {statusMessage.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />}
               {statusMessage.type === 'error' && <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}
@@ -378,18 +378,18 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="pt-2 flex items-center gap-2.5">
+          <div className="pt-2 flex items-center gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-zinc-800 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+              className="flex-1 py-3 px-4 rounded-full border border-white/10 text-xs font-bold text-white/70 hover:bg-white/10 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs transition shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+              className="flex-1 py-3 px-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs transition shadow-[0_0_20px_rgba(204,255,0,0.25)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
               <span>{isSaving ? 'Saving...' : 'Save Gym Location'}</span>
