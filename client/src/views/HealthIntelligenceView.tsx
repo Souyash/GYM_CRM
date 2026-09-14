@@ -129,7 +129,7 @@ export const HealthIntelligenceView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-12 font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="space-y-8 pb-12 font-['Poppins',sans-serif] font-poppins">
       {/* Top Header & Action Controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#0e1015] p-6 rounded-3xl border border-white/10 shadow-xl">
         <div>

@@ -203,7 +203,7 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
   const isLocationConfigured = lat !== '' && lng !== '' && lat !== '0' && lng !== '0';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Poppins',sans-serif] font-poppins">
       <div className="bg-[#0e1015] w-full max-w-lg p-6 sm:p-7 relative max-h-[92vh] overflow-y-auto border border-white/10 shadow-2xl rounded-3xl">
         
         {/* Close Button */}

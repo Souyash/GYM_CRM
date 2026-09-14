@@ -262,7 +262,7 @@ export const MemberDigitalPass: React.FC<MemberDigitalPassProps> = ({
       : 'High energy & busy';
 
   return (
-    <div className="w-full flex flex-col space-y-5 text-[#e0e2ed] font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="w-full flex flex-col space-y-5 text-[#e0e2ed] font-['Poppins',sans-serif] font-poppins">
       {/* Top Welcome & Real-Time Floor Occupancy */}
       <div className="flex flex-col space-y-2.5 pt-1">
         <div className="flex items-center justify-between">

@@ -9,7 +9,14 @@ import {
   QrCode,
   Users,
   Dumbbell,
-  ArrowRight
+  ArrowRight,
+  Download,
+  Smartphone,
+  Share2,
+  PlusSquare,
+  CheckCircle2,
+  Zap,
+  Monitor
 } from 'lucide-react';
 
 interface LandingPageViewProps {
@@ -34,6 +41,67 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
   // Contact / Inquire Modal State
   const [isContactModalOpen, setIsContactModalOpen] = useState<boolean>(false);
+
+  // PWA Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState<boolean>(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
+  const [installTab, setInstallTab] = useState<'ios' | 'android' | 'desktop'>('android');
+
+  useEffect(() => {
+    // Detect if running in standalone mode (already installed as PWA)
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    if (isStandalone) {
+      setIsAppInstalled(true);
+    }
+
+    // Auto-detect Operating System
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) {
+      setInstallTab('ios');
+    } else if (/android/.test(ua)) {
+      setInstallTab('android');
+    } else {
+      setInstallTab('desktop');
+    }
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      try {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          setIsAppInstalled(true);
+        }
+        setDeferredPrompt(null);
+      } catch (err) {
+        setIsInstallModalOpen(true);
+      }
+    } else {
+      setIsInstallModalOpen(true);
+    }
+  };
 
   const fitnessComponentsData: Record<string, string> = {
     'Body Composition':
@@ -117,7 +185,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ccff00] selection:text-black antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-[#050507] text-white font-['Poppins',sans-serif] font-poppins selection:bg-[#ccff00] selection:text-black antialiased overflow-x-hidden">
       {/* ========================================================================= */}
       {/* 1. BRAND HEADER                                                           */}
       {/* ========================================================================= */}
@@ -153,7 +221,19 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Install App Button in Header */}
+            <button
+              onClick={handleInstallClick}
+              className="px-3.5 sm:px-4 py-2 rounded-full bg-[#121418] hover:bg-[#1a1e26] border border-[#ccff00]/40 hover:border-[#ccff00] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(204,255,0,0.15)] cursor-pointer active:scale-95"
+              title="Install PROFITNESS App to your device"
+            >
+              <Download className="w-3.5 h-3.5 text-[#ccff00]" />
+              <span className="hidden sm:inline">Install App</span>
+              <span className="sm:hidden">Install</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse" />
+            </button>
+
             {isLoggedIn ? (
               <button
                 onClick={onGoToDashboard}
@@ -202,6 +282,21 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               >
                 Start your Free Trial Today
               </button>
+
+              {/* Install Mobile App Button in Hero */}
+              <button
+                onClick={handleInstallClick}
+                className="px-6 py-4 rounded-full bg-[#121418] hover:bg-[#1a1e26] text-white font-bold text-sm tracking-tight border border-white/15 hover:border-[#ccff00]/60 transition-all flex items-center gap-2.5 shadow-xl cursor-pointer group active:scale-95"
+              >
+                <div className="w-6 h-6 rounded-full bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center">
+                  <Download className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
+                </div>
+                <span>Install Mobile App</span>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 hidden sm:inline">
+                  iOS &amp; Android
+                </span>
+              </button>
+
               {isLoggedIn && (
                 <button
                   onClick={onGoToDashboard}
@@ -407,6 +502,129 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         </section>
 
         {/* ========================================================================= */}
+        {/* 6.5 NATIVE MOBILE APP EXPERIENCE & 1-CLICK INSTALL                       */}
+        {/* ========================================================================= */}
+        <section id="app" className="p-6 sm:p-10 rounded-[36px] bg-[#0e1015] border border-white/10 relative overflow-hidden shadow-2xl">
+          {/* Subtle Ambient Lighting */}
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#ccff00]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+            {/* Left Column: Mobile App Feature Highlights & Install CTA */}
+            <div className="lg:col-span-7 flex flex-col items-start text-left space-y-5">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-[#ccff00]" />
+                  Zero App Store Download Needed
+                </span>
+                <span className="text-[11px] font-bold text-zinc-400 hidden sm:inline">
+                  PWA Certified • iOS &amp; Android Ready
+                </span>
+              </div>
+
+              <h2 className="font-['Syne',sans-serif] font-black text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-[1.05]">
+                GET THE PROFITNESS APP<br />ON YOUR PHONE
+              </h2>
+
+              <p className="text-zinc-400 text-xs sm:text-sm max-w-lg leading-relaxed">
+                Experience instant turnstile access, offline QR passes, live gym floor headcount radar, and personal workout tracking directly from your phone’s home screen with zero clutter.
+              </p>
+
+              {/* 4 Feature Pills Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg pt-1">
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#ccff00]/15 text-[#ccff00] flex items-center justify-center shrink-0">
+                    <QrCode className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">1-Tap QR Check-In</h4>
+                    <p className="text-[10px] text-zinc-400">Offline-ready digital pass</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Live Floor Headcount</h4>
+                    <p className="text-[10px] text-zinc-400">Real-time gym radar</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                    <Dumbbell className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Daily Workout Splits</h4>
+                    <p className="text-[10px] text-zinc-400">Fuel &amp; hydration tracker</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Permanent Sign-In</h4>
+                    <p className="text-[10px] text-zinc-400">Never retype passwords</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Install Buttons Row */}
+              <div className="flex flex-wrap items-center gap-3 pt-3">
+                <button
+                  onClick={handleInstallClick}
+                  className="px-7 py-3.5 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs sm:text-sm tracking-tight shadow-[0_0_25px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{isAppInstalled ? 'App Already Installed ✓' : 'Install App to Device'}</span>
+                </button>
+
+                <button
+                  onClick={() => setIsInstallModalOpen(true)}
+                  className="px-5 py-3.5 rounded-full bg-[#121418] hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-[#ccff00]" />
+                  <span>Installation Steps (iOS &amp; Android)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right Column: Visual Smartphone Pass Mockup */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="w-full max-w-[280px] p-4 rounded-[32px] bg-[#050507] border-2 border-white/15 shadow-2xl space-y-3 relative">
+                {/* Simulated Phone Speaker / Dynamic Island */}
+                <div className="w-24 h-3.5 bg-zinc-900 rounded-full mx-auto" />
+
+                {/* Simulated Pass Screen */}
+                <div className="p-4 rounded-2xl bg-[#0e1015] border border-white/10 space-y-3 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="font-['Syne',sans-serif] font-black text-sm text-white">PROFITNESS</span>
+                    <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-ping" />
+                  </div>
+                  <div className="w-full aspect-square rounded-xl bg-white p-3 flex items-center justify-center">
+                    <QrCode className="w-full h-full text-black" />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="font-mono text-zinc-400">MEMBER ID: #PF-9042</span>
+                    <span className="text-[#ccff00] font-black">ACCESS GRANTED</span>
+                  </div>
+                </div>
+
+                <div className="py-1 px-2 text-center">
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    Works offline • 1-tap launch
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
         {/* 7. TRANSPARENT MEMBERSHIP PRICING                                         */}
         {/* ========================================================================= */}
         <section id="pricing" className="flex flex-col text-left pt-10 border-t border-white/10">
@@ -606,6 +824,204 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 className="w-full py-3.5 px-4 rounded-2xl bg-[#ccff00] text-black font-extrabold text-xs flex items-center justify-center shadow-lg hover:bg-[#b8e600] transition-all cursor-pointer"
               >
                 Start Athlete Free Trial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9.5 INSTALL APP INSTRUCTIONS MODAL                                        */}
+      {/* ========================================================================= */}
+      {isInstallModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0e1015] border border-white/10 max-w-lg w-full rounded-3xl p-6 sm:p-7 shadow-2xl relative flex flex-col text-left space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 flex items-center justify-center">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-['Syne',sans-serif] font-black text-lg text-white">
+                    Install PROFITNESS App
+                  </h3>
+                  <p className="text-[11px] text-zinc-400">
+                    Takes under 10 seconds • No App Store needed
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsInstallModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center text-xs transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Operating System Switcher Tabs */}
+            <div className="p-1 bg-[#121418] border border-white/10 rounded-full flex gap-1 text-xs">
+              <button
+                onClick={() => setInstallTab('android')}
+                className={`flex-1 py-2 rounded-full font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                  installTab === 'android'
+                    ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.25)] font-black'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Android</span>
+              </button>
+              <button
+                onClick={() => setInstallTab('ios')}
+                className={`flex-1 py-2 rounded-full font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                  installTab === 'ios'
+                    ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.25)] font-black'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>iPhone / iPad</span>
+              </button>
+              <button
+                onClick={() => setInstallTab('desktop')}
+                className={`flex-1 py-2 rounded-full font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                  installTab === 'desktop'
+                    ? 'bg-[#ccff00] text-black shadow-[0_0_15px_rgba(204,255,0,0.25)] font-black'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                <span>PC / Mac</span>
+              </button>
+            </div>
+
+            {/* Tab 1: Android Instructions */}
+            {installTab === 'android' && (
+              <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                {deferredPrompt ? (
+                  <div className="p-4 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/30 space-y-3">
+                    <span className="font-bold text-[#ccff00] block text-sm">
+                      1-Click Instant Installation Ready!
+                    </span>
+                    <p className="text-zinc-300 text-xs leading-relaxed">
+                      Your browser supports automatic installation. Click below to add PROFITNESS directly to your app launcher.
+                    </p>
+                    <button
+                      onClick={handleInstallClick}
+                      className="w-full py-3 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(204,255,0,0.3)] transition cursor-pointer"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Install App Now</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-[#ccff00] text-black font-black flex items-center justify-center shrink-0 text-xs">
+                        1
+                      </span>
+                      <div>
+                        <strong className="text-white block">Open in Google Chrome</strong>
+                        <span className="text-zinc-400">Make sure you are browsing in Chrome on your Android phone.</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-[#ccff00] text-black font-black flex items-center justify-center shrink-0 text-xs">
+                        2
+                      </span>
+                      <div>
+                        <strong className="text-white block">Tap Chrome Menu (⋮)</strong>
+                        <span className="text-zinc-400">Tap the three vertical dots at the top-right corner of Chrome.</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-full bg-[#ccff00] text-black font-black flex items-center justify-center shrink-0 text-xs">
+                        3
+                      </span>
+                      <div>
+                        <strong className="text-white block">Tap "Install app" or "Add to Home Screen"</strong>
+                        <span className="text-zinc-400">Confirm the prompt. The PROFITNESS app icon will be pinned to your home screen!</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 2: Apple iOS (Safari) Instructions */}
+            {installTab === 'ios' && (
+              <div className="space-y-3 animate-in fade-in duration-150 text-xs">
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                    <Share2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <strong className="text-white block">1. Tap the Share button in Safari</strong>
+                    <span className="text-zinc-400">At the bottom toolbar of Safari on your iPhone, tap the square icon with an arrow pointing up.</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-xl bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center shrink-0">
+                    <PlusSquare className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <strong className="text-white block">2. Scroll down &amp; tap "Add to Home Screen"</strong>
+                    <span className="text-zinc-400">Find the "Add to Home Screen" button in the share sheet.</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <strong className="text-white block">3. Tap "Add" in top-right corner</strong>
+                    <span className="text-zinc-400">PROFITNESS is now installed as a full-screen app on your iPhone home screen!</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: Desktop (PC / Mac) Instructions */}
+            {installTab === 'desktop' && (
+              <div className="space-y-3 animate-in fade-in duration-150 text-xs">
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-xl bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center shrink-0">
+                    <Monitor className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <strong className="text-white block">Look for the Install icon in the URL bar</strong>
+                    <span className="text-zinc-400">In Google Chrome, Brave, or Microsoft Edge, look at the right side of the address bar for the "Install" computer icon.</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-[#121418] border border-white/5 flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-xl bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center shrink-0">
+                    <Download className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <strong className="text-white block">Or click Browser Menu (⋮) &rarr; "Install PROFITNESS"</strong>
+                    <span className="text-zinc-400">Runs as a dedicated desktop window without browser tabs or toolbars.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+              <span className="text-[11px] text-zinc-500 flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5 text-[#ccff00]" />
+                Zero storage overhead (&lt; 2MB)
+              </span>
+              <button
+                onClick={() => setIsInstallModalOpen(false)}
+                className="px-5 py-2 rounded-full bg-[#121418] hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs transition cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

@@ -61,7 +61,7 @@ export const DeviceApprovalsView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="space-y-6 font-['Poppins',sans-serif] font-poppins">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl">
         <div className="flex items-center gap-3">

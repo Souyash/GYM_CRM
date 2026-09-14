@@ -191,7 +191,7 @@ export const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white flex flex-col font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#ccff00] selection:text-black antialiased transition-colors duration-200">
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col font-['Poppins',sans-serif] font-poppins selection:bg-[#ccff00] selection:text-black antialiased transition-colors duration-200">
       {/* Real-Time WebSocket Red Alert Drop-Down Banner */}
       <RedAlertBanner />
 

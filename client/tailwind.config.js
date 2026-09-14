@@ -8,11 +8,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        syne: ['Syne', '"Space Grotesk"', 'sans-serif'],
-        sans: ['"Plus Jakarta Sans"', '"Space Grotesk"', 'Poppins', 'Inter', 'sans-serif'],
-        heading: ['Syne', '"Plus Jakarta Sans"', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['Poppins', '"Plus Jakarta Sans"', '"Space Grotesk"', 'Inter', 'sans-serif'],
+        heading: ['Poppins', 'Syne', '"Plus Jakarta Sans"', 'sans-serif'],
         poppins: ['Poppins', 'sans-serif'],
+        syne: ['Syne', 'Poppins', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
         lime: {

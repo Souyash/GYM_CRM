@@ -375,7 +375,7 @@ Portal URL: ${window.location.origin}`;
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#050507] text-white pb-28 pt-safe px-4 sm:px-6 lg:px-8 space-y-6 font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="w-full min-h-screen bg-[#050507] text-white pb-28 pt-safe px-4 sm:px-6 lg:px-8 space-y-6 font-['Poppins',sans-serif] font-poppins">
       {/* Toast Notification Banner */}
       {actionNotice && (
         <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 transition-all backdrop-blur-xl border ${

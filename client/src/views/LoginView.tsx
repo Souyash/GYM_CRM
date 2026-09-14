@@ -500,7 +500,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-['Plus_Jakarta_Sans',sans-serif] pt-safe pb-safe">
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-['Poppins',sans-serif] font-poppins pt-safe pb-safe">
       {/* Top Bar Navigation */}
       <div className="absolute top-notch-safe left-4 sm:left-6 z-20">
         {onBackToWebsite && (

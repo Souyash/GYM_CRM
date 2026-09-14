@@ -163,7 +163,7 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-['Poppins',sans-serif] font-poppins">
       <div className="bg-[#0e1015] w-full max-w-lg overflow-hidden shadow-2xl relative border border-white/10 rounded-3xl">
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between bg-[#0e1015]">

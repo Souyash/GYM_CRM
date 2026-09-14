@@ -40,7 +40,7 @@ export const WorkoutLogModal: React.FC<WorkoutLogModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Poppins',sans-serif] font-poppins">
       <div className="bg-[#0e1015] border border-white/10 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all">
         {/* Header */}
         <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">

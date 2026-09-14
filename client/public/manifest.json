@@ -1,7 +1,7 @@
 {
-  "short_name": "IronVault",
-  "name": "IronVault Smart Gym",
-  "description": "Smart Gym Member Management & Turnstile Entry/Exit Scanner",
+  "short_name": "PROFITNESS",
+  "name": "PROFITNESS Smart Gym OS",
+  "description": "Zero-Hardware Smart Gym Member Management & Turnstile Entry/Exit Scanner",
   "icons": [
     {
       "src": "/favicon.ico",
@@ -22,8 +22,8 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#09090b",
-  "theme_color": "#10b981",
+  "background_color": "#050507",
+  "theme_color": "#050507",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/"

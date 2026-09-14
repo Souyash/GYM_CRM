@@ -65,7 +65,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
   }, [membersList, filterTab]);
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="space-y-6 max-w-6xl mx-auto font-['Poppins',sans-serif] font-poppins">
       
       {/* ========================================================================= */}
       {/* SUBPART 1: HEADER & FAST ACTIONS                                          */}
