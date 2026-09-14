@@ -138,7 +138,7 @@ export const HealthIntelligenceView: React.FC = () => {
               <HeartPulse className="w-6 h-6" />
             </span>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+              <h1 className="text-xl sm:text-2xl font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide">
                 Health Intelligence & Lead Hub
               </h1>
               <span className="px-3 py-1 text-[10px] font-black uppercase font-mono tracking-wider bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 rounded-full">
@@ -176,10 +176,10 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* Total Profiles */}
         <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition">
           <div className="flex items-center justify-between text-white/40 text-xs mb-2">
-            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Onboarded Leads</span>
+            <span className="text-[10px] font-black uppercase font-['Poppins',sans-serif] tracking-widest">Onboarded Leads</span>
             <User className="w-4 h-4 text-[#ccff00]" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+          <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-white">
             {summary?.totalProfiles ?? 0}
           </div>
           <div className="text-[11px] text-white/50 mt-1">
@@ -190,10 +190,10 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* Top Goal */}
         <div className="p-4 sm:p-5 bg-[#0e1015] border border-[#ccff00]/30 rounded-2xl shadow-lg hover:border-[#ccff00]/50 transition">
           <div className="flex items-center justify-between text-[#ccff00] text-xs mb-2">
-            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest text-[#ccff00]">Top Fitness Goal</span>
+            <span className="text-[10px] font-black uppercase font-['Poppins',sans-serif] tracking-widest text-[#ccff00]">Top Fitness Goal</span>
             <Target className="w-4 h-4 text-[#ccff00]" />
           </div>
-          <div className="text-lg font-black font-['Syne',sans-serif] text-[#ccff00] truncate">
+          <div className="text-lg font-black font-['Poppins',sans-serif] text-[#ccff00] truncate">
             {summary?.goalsBreakdown?.[0]?.goal || 'None yet'}
           </div>
           <div className="text-[11px] text-white/50 mt-1">
@@ -204,10 +204,10 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* Top Acquisition Channel */}
         <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition">
           <div className="flex items-center justify-between text-white/40 text-xs mb-2">
-            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Top Lead Source</span>
+            <span className="text-[10px] font-black uppercase font-['Poppins',sans-serif] tracking-widest">Top Lead Source</span>
             <Share2 className="w-4 h-4 text-sky-400" />
           </div>
-          <div className="text-lg font-black font-['Syne',sans-serif] text-sky-400 truncate">
+          <div className="text-lg font-black font-['Poppins',sans-serif] text-sky-400 truncate">
             {summary?.referralBreakdown?.[0]?.source || 'None'}
           </div>
           <div className="text-[11px] text-white/50 mt-1">
@@ -218,10 +218,10 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* Avg BMI */}
         <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition">
           <div className="flex items-center justify-between text-white/40 text-xs mb-2">
-            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Average BMI</span>
+            <span className="text-[10px] font-black uppercase font-['Poppins',sans-serif] tracking-widest">Average BMI</span>
             <Scale className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-purple-400">
+          <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-purple-400">
             {summary?.averageBmi ?? 'N/A'}
           </div>
           <div className="text-[11px] text-white/50 mt-1">
@@ -232,10 +232,10 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* Medical / Injury Flags */}
         <div className="p-4 sm:p-5 bg-[#0e1015] border border-white/10 rounded-2xl shadow-lg hover:border-white/20 transition col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between text-white/40 text-xs mb-2">
-            <span className="text-[10px] font-black uppercase font-['Syne',sans-serif] tracking-widest">Medical Alerts</span>
+            <span className="text-[10px] font-black uppercase font-['Poppins',sans-serif] tracking-widest">Medical Alerts</span>
             <ShieldAlert className="w-4 h-4 text-rose-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-rose-400">
+          <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-rose-400">
             {summary?.medicalAlertCount ?? 0}
           </div>
           <div className="text-[11px] text-white/50 mt-1">
@@ -249,7 +249,7 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* 1. Goals Distribution */}
         <div className="p-6 bg-[#0e1015] border border-white/10 rounded-3xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold font-['Syne',sans-serif] uppercase text-white flex items-center gap-2">
+            <h3 className="text-sm font-extrabold font-['Poppins',sans-serif] uppercase text-white flex items-center gap-2">
               <Target className="w-4 h-4 text-[#ccff00]" /> Goal Demand Demographics
             </h3>
             <span className="text-[11px] text-white/40">Target campaigns</span>
@@ -280,7 +280,7 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* 2. Referral / Lead Sources */}
         <div className="p-6 bg-[#0e1015] border border-white/10 rounded-3xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold font-['Syne',sans-serif] uppercase text-white flex items-center gap-2">
+            <h3 className="text-sm font-extrabold font-['Poppins',sans-serif] uppercase text-white flex items-center gap-2">
               <Share2 className="w-4 h-4 text-sky-400" /> Marketing Acquisition Channels
             </h3>
             <span className="text-[11px] text-white/40">Channel ROI</span>
@@ -311,7 +311,7 @@ export const HealthIntelligenceView: React.FC = () => {
         {/* 3. Clinical & Health Conditions */}
         <div className="p-6 bg-[#0e1015] border border-white/10 rounded-3xl space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold font-['Syne',sans-serif] uppercase text-white flex items-center gap-2">
+            <h3 className="text-sm font-extrabold font-['Poppins',sans-serif] uppercase text-white flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-rose-400" /> Top Health Conditions Reported
             </h3>
             <span className="text-[11px] text-white/40">Diet & Trainer Niche</span>
@@ -402,7 +402,7 @@ export const HealthIntelligenceView: React.FC = () => {
         <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0e1015]">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-white/10 text-white/50 font-bold bg-[#121418] uppercase tracking-wider text-[10px] font-['Syne',sans-serif]">
+              <tr className="border-b border-white/10 text-white/50 font-bold bg-[#121418] uppercase tracking-wider text-[10px] font-['Poppins',sans-serif]">
                 <th className="py-3.5 px-4">Member Lead</th>
                 <th className="py-3.5 px-4">Age / Gender</th>
                 <th className="py-3.5 px-4">Primary Goal</th>

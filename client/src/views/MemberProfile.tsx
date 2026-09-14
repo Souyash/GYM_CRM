@@ -386,7 +386,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             <span className="material-symbols-outlined text-[24px]">fitness_center</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-sm sm:text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight truncate">
+            <span className="text-sm sm:text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight truncate">
               {user?.gym?.name || 'PROFITNESS Elite Club'}
             </span>
             <span className="text-xs text-zinc-400 truncate">
@@ -404,7 +404,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       <div className="flex items-center gap-2 bg-[#0e1015] p-1.5 rounded-full border border-white/10 overflow-x-auto no-scrollbar" role="tablist">
         <button
           onClick={() => setActiveSubpart('PASS')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'PASS'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
@@ -416,7 +416,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </button>
         <button
           onClick={() => setActiveSubpart('FITNESS')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'FITNESS'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
@@ -428,7 +428,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </button>
         <button
           onClick={() => setActiveSubpart('HISTORY')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'HISTORY'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
@@ -440,7 +440,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </button>
         <button
           onClick={() => setActiveSubpart('COMMUNITY')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Syne',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'COMMUNITY'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
@@ -558,7 +558,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                 <HeartPulse className="w-5 h-5" />
               </span>
               <div>
-                <h3 className="text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight flex items-center gap-2">
+                <h3 className="text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight flex items-center gap-2">
                   My Fitness Assessment &amp; Target Goals
                 </h3>
                 <p className="text-xs text-zinc-400">
@@ -728,7 +728,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                     Gold Tier Lifter
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-['Syne',sans-serif] font-black text-white uppercase tracking-tight mt-0.5">
+                <h3 className="text-lg sm:text-xl font-['Poppins',sans-serif] font-black text-white uppercase tracking-tight mt-0.5">
                   Bodybuilding Targets &amp; Daily Gym Fuel
                 </h3>
               </div>
@@ -1059,7 +1059,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       {activeSubpart === 'HISTORY' && (
         <div className="p-5 sm:p-6 bg-[#0e1015] border border-white/10 rounded-3xl shadow-xl space-y-4 animate-in fade-in duration-200">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <h3 className="text-sm sm:text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight flex items-center gap-2">
               <History className="w-4 h-4 text-[#ccff00]" />
               Your Recent Visits &amp; Sessions
             </h3>
@@ -1143,7 +1143,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         <div id="community-section" className="space-y-3 pt-2 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight">
+              <h3 className="text-sm sm:text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight">
                 👥 PROFITNESS Community
               </h3>
               <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 uppercase">

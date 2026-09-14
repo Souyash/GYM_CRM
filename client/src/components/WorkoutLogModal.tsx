@@ -49,7 +49,7 @@ export const WorkoutLogModal: React.FC<WorkoutLogModalProps> = ({
               <Dumbbell className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+              <h3 className="text-base font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide">
                 Log Today's Workout
               </h3>
               <p className="text-xs text-white/50">
@@ -72,7 +72,7 @@ export const WorkoutLogModal: React.FC<WorkoutLogModalProps> = ({
               <div className="w-14 h-14 mx-auto rounded-3xl bg-[#ccff00]/15 border-2 border-[#ccff00] text-[#ccff00] flex items-center justify-center shadow-[0_0_20px_rgba(204,255,0,0.3)]">
                 <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
               </div>
-              <h4 className="text-lg font-black font-['Syne',sans-serif] uppercase text-white">
+              <h4 className="text-lg font-black font-['Poppins',sans-serif] uppercase text-white">
                 Workout Logged! 🔥
               </h4>
               <p className="text-xs text-white/60">

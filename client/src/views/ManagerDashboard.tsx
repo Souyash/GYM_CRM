@@ -307,7 +307,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-['Syne',sans-serif] font-black uppercase text-white tracking-tight">
+              <h2 className="text-base sm:text-lg font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight">
                 {gymDetails?.name || 'PROFITNESS Workspace'}
               </h2>
               <span className="text-[10px] uppercase tracking-wider font-black bg-[#ccff00] text-black px-2.5 py-0.5 rounded-full">
@@ -482,14 +482,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         {/* KPI 1: Athletes Inside */}
         <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-[#ccff00]/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Athletes Inside</span>
+            <span className="text-xs font-['Poppins',sans-serif] font-black uppercase tracking-wider text-zinc-400">Athletes Inside</span>
             <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full flex items-center gap-1 uppercase">
               <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00] animate-pulse" /> LIVE
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-['Syne',sans-serif] font-black text-white tracking-tight">{activeCount}</span>
+              <span className="text-4xl font-['Poppins',sans-serif] font-black text-white tracking-tight">{activeCount}</span>
               <span className="text-sm font-semibold text-zinc-400">in gym</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">
@@ -507,14 +507,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         {/* KPI 2: Today's Check-ins */}
         <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-[#ccff00]/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Today's Visits</span>
+            <span className="text-xs font-['Poppins',sans-serif] font-black uppercase tracking-wider text-zinc-400">Today's Visits</span>
             <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full uppercase">
               +14% vs yesterday
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-['Syne',sans-serif] font-black text-white tracking-tight">{todayCount || 187}</span>
+              <span className="text-4xl font-['Poppins',sans-serif] font-black text-white tracking-tight">{todayCount || 187}</span>
               <span className="text-sm font-semibold text-zinc-400">check-ins</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">Total turnstile admissions today</p>
@@ -529,14 +529,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         {/* KPI 3: Memberships Expiring */}
         <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Expiring Soon</span>
+            <span className="text-xs font-['Poppins',sans-serif] font-black uppercase tracking-wider text-zinc-400">Expiring Soon</span>
             <span className="text-[10px] font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase">
               Action Needed
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-4xl font-['Syne',sans-serif] font-black text-amber-300 tracking-tight">12</span>
+              <span className="text-4xl font-['Poppins',sans-serif] font-black text-amber-300 tracking-tight">12</span>
               <span className="text-sm font-semibold text-zinc-400">this week</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">Athletes requiring renewal</p>
@@ -550,14 +550,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
         {/* KPI 4: Monthly Revenue */}
         <div className="bg-[#0e1015] p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col justify-between relative overflow-hidden group hover:border-[#ccff00]/40 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">Monthly Revenue</span>
+            <span className="text-xs font-['Poppins',sans-serif] font-black uppercase tracking-wider text-zinc-400">Monthly Revenue</span>
             <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full uppercase">
               +8.2% Growth
             </span>
           </div>
           <div className="my-3">
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-['Syne',sans-serif] font-black text-white tracking-tight">$14,850</span>
+              <span className="text-4xl font-['Poppins',sans-serif] font-black text-white tracking-tight">$14,850</span>
               <span className="text-sm font-semibold text-zinc-400">/ mo</span>
             </div>
             <p className="text-xs text-zinc-400 mt-1">Active recurring subscriptions</p>
@@ -576,7 +576,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-3 border-b border-white/10">
             <div className="flex items-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ccff00] animate-pulse" />
-              <h2 className="text-base font-['Syne',sans-serif] font-black uppercase text-white tracking-tight">Live Attendance Feed</h2>
+              <h2 className="text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight">Live Attendance Feed</h2>
               <span className="text-[10px] text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full font-black uppercase">
                 Gates 01-04 Active
               </span>
@@ -737,7 +737,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
               <div className="w-8 h-8 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 text-[#ccff00] flex items-center justify-center font-bold">
                 <CreditCard className="w-4 h-4" />
               </div>
-              <h2 className="text-base font-['Syne',sans-serif] font-black uppercase text-white">Fast Desk Renewal</h2>
+              <h2 className="text-base font-['Poppins',sans-serif] font-black uppercase text-white">Fast Desk Renewal</h2>
             </div>
             <span className="text-[10px] font-black uppercase text-[#ccff00] bg-[#ccff00]/15 border border-[#ccff00]/30 px-2.5 py-0.5 rounded-full">
               3-Tap Action

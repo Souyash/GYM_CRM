@@ -420,7 +420,7 @@ Portal URL: ${window.location.origin}`;
             </div>
             <div>
               <div className="flex items-center gap-2.5 mb-1">
-                <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+                <h1 className="text-xl sm:text-2xl font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide">
                   Gym System Fleet Control
                 </h1>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[10px] font-black uppercase font-mono tracking-wider">
@@ -473,10 +473,10 @@ Portal URL: ${window.location.origin}`;
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
           <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Syne',sans-serif]">Active Gyms</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Poppins',sans-serif]">Active Gyms</span>
               <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-pulse" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+            <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-white">
               {gyms.length}
             </div>
             <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
@@ -487,12 +487,12 @@ Portal URL: ${window.location.origin}`;
 
           <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Syne',sans-serif]">Total Athletes</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Poppins',sans-serif]">Total Athletes</span>
               <span className="px-2 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-[10px] font-black font-mono">
                 +{totalActivePasses} Active
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+            <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-white">
               {members.length.toLocaleString()}
             </div>
             <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
@@ -503,12 +503,12 @@ Portal URL: ${window.location.origin}`;
 
           <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-[#ccff00]/30 hover:border-[#ccff00]/50 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-[#ccff00] uppercase tracking-widest font-['Syne',sans-serif]">Gateway Uptime</span>
+              <span className="text-[10px] font-black text-[#ccff00] uppercase tracking-widest font-['Poppins',sans-serif]">Gateway Uptime</span>
               <span className="px-2 py-0.5 rounded-full bg-[#ccff00]/20 text-[#ccff00] text-[10px] font-black font-mono uppercase tracking-wider">
                 Operational
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-[#ccff00]">
+            <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-[#ccff00]">
               99.98%
             </div>
             <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
@@ -519,12 +519,12 @@ Portal URL: ${window.location.origin}`;
 
           <div className="bg-[#0e1015] p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Syne',sans-serif]">Turnstile Speed</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest font-['Poppins',sans-serif]">Turnstile Speed</span>
               <span className="px-2 py-0.5 rounded-full bg-[#121418] text-white/70 border border-white/10 text-[10px] font-mono font-bold">
                 P99
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+            <div className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-white">
               18<span className="text-sm font-normal text-white/40 ml-0.5">ms</span>
             </div>
             <div className="text-[11px] text-white/50 mt-1.5 flex items-center gap-1.5">
@@ -775,7 +775,7 @@ Portal URL: ${window.location.origin}`;
       <div className="bg-[#0e1015] p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-base sm:text-lg font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide flex items-center gap-2.5">
+            <h2 className="text-base sm:text-lg font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide flex items-center gap-2.5">
               <Building2 className="w-5 h-5 text-[#ccff00]" />
               <span>Multi-Tenant Gym Fleet Directory</span>
             </h2>
@@ -837,7 +837,7 @@ Portal URL: ${window.location.origin}`;
             <div className="overflow-x-auto w-full">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#121418] text-white/50 uppercase tracking-wider text-[10px] font-bold font-['Syne',sans-serif] border-b border-white/10">
+                  <tr className="bg-[#121418] text-white/50 uppercase tracking-wider text-[10px] font-bold font-['Poppins',sans-serif] border-b border-white/10">
                     <th className="py-3.5 px-4">Gym Facility</th>
                     <th className="py-3.5 px-4">Access Code</th>
                     <th className="py-3.5 px-4">Owner Contact</th>

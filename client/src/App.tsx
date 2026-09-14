@@ -258,7 +258,7 @@ export const AppContent: React.FC = () => {
                     <MessageSquare className="w-3.5 h-3.5" />
                     PROFITNESS Community &amp; Feed
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-['Syne',sans-serif] font-black text-white uppercase tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-['Poppins',sans-serif] font-black text-white uppercase tracking-tight">
                     Official Announcements &amp; Member Buzz
                   </h1>
                   <p className="text-xs sm:text-sm text-zinc-400 mt-1">

@@ -172,7 +172,7 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
               {mode === 'ONBOARD' ? <UserPlus className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-extrabold font-['Syne',sans-serif] uppercase text-lg text-white tracking-wide">
+              <h3 className="font-extrabold font-['Poppins',sans-serif] uppercase text-lg text-white tracking-wide">
                 {mode === 'ONBOARD' ? 'Register New Member' : 'Desk Renewal & Quick Billing'}
               </h3>
               <p className="text-xs text-white/50">
@@ -408,7 +408,7 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
 
             {/* Total Amount Box */}
             <div className="p-4 rounded-2xl bg-[#121418] border border-white/10 flex items-center justify-between">
-              <span className="text-xs font-black uppercase font-['Syne',sans-serif] tracking-widest text-white/40">
+              <span className="text-xs font-black uppercase font-['Poppins',sans-serif] tracking-widest text-white/40">
                 Amount to Collect
               </span>
               <div className="flex items-center text-white font-mono tabular-nums font-black text-xl">

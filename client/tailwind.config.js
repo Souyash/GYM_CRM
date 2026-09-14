@@ -7,11 +7,14 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        'xs': '380px',
+      },
       fontFamily: {
         sans: ['Poppins', '"Plus Jakarta Sans"', '"Space Grotesk"', 'Inter', 'sans-serif'],
-        heading: ['Poppins', 'Syne', '"Plus Jakarta Sans"', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
         poppins: ['Poppins', 'sans-serif'],
-        syne: ['Syne', 'Poppins', 'sans-serif'],
+        syne: ['Poppins', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {

@@ -21,7 +21,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-['Syne',sans-serif] font-black uppercase tracking-wider text-zinc-400">
+        <h3 className="text-xs font-['Poppins',sans-serif] font-black uppercase tracking-wider text-zinc-400">
           ⚡ Quick Actions
         </h3>
         <span className="text-[10px] font-bold text-[#ccff00] flex items-center gap-1">
@@ -75,7 +75,7 @@ export const QuickActionBar: React.FC<QuickActionBarProps> = ({
               <QrCode className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
             <div className="min-w-0">
-              <span className="block text-[11px] sm:text-sm font-['Syne',sans-serif] font-black uppercase tracking-tight leading-tight">
+              <span className="block text-[11px] sm:text-sm font-['Poppins',sans-serif] font-black uppercase tracking-tight leading-tight">
                 Gym Check-In
               </span>
               <span className="text-[10px] hidden sm:block font-bold truncate opacity-80">

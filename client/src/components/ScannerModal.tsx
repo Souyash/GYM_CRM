@@ -672,7 +672,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
               {gateMode === 'ENTER' ? <LogIn className="w-5 h-5" /> : <LogOut className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-extrabold font-['Syne',sans-serif] uppercase text-base sm:text-lg text-white tracking-wide">
+              <h3 className="font-extrabold font-['Poppins',sans-serif] uppercase text-base sm:text-lg text-white tracking-wide">
                 {gateMode === 'ENTER' ? 'Scan Entrance Gate' : 'Scan Exit Gate'}
               </h3>
               <p className="text-xs text-white/50">

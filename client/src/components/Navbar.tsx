@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand & Gym Tenant Badge */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 cursor-pointer select-none">
-              <span className="font-['Syne',sans-serif] font-black text-xl sm:text-2xl tracking-wider text-white">
+              <span className="font-['Poppins',sans-serif] font-black text-xl sm:text-2xl tracking-wider text-white">
                 PROFITNESS
               </span>
               <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#ccff00] text-black">

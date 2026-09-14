@@ -529,10 +529,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
         <div className="w-16 h-16 rounded-3xl bg-[#0e1015] border border-white/10 flex items-center justify-center shadow-xl shadow-[#ccff00]/10 mb-3 mx-auto">
           <IronVaultLogo className="w-10 h-10" />
         </div>
-        <h1 className="text-3xl font-black font-['Syne',sans-serif] uppercase tracking-tight text-white">
+        <h1 className="text-3xl font-black font-['Poppins',sans-serif] uppercase tracking-tight text-white">
           PRO<span className="text-[#ccff00]">FITNESS</span>
         </h1>
-        <p className="mt-1 text-xs font-black uppercase tracking-widest text-white/40 font-['Syne',sans-serif]">
+        <p className="mt-1 text-xs font-black uppercase tracking-widest text-white/40 font-['Poppins',sans-serif]">
           MULTI-TENANT FITNESS CRM & SAAS
         </p>
       </div>
@@ -1524,7 +1524,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         {/* Single Super Admin Master Credentials */}
         <div className="p-5 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-extrabold uppercase font-['Syne',sans-serif] tracking-wider text-white flex items-center gap-2">
+            <span className="text-xs font-extrabold uppercase font-['Poppins',sans-serif] tracking-wider text-white flex items-center gap-2">
               <Shield className="w-4 h-4 text-[#ccff00]" />
               <span>Platform Super Admin</span>
             </span>

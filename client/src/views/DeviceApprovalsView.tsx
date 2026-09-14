@@ -69,7 +69,7 @@ export const DeviceApprovalsView: React.FC = () => {
             <Smartphone className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+            <h1 className="text-xl sm:text-2xl font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide">
               Daily Visit Review & Access Approvals
             </h1>
             <p className="text-xs text-white/50 mt-0.5">

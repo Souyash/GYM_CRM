@@ -221,7 +221,7 @@ export const GymLocationModal: React.FC<GymLocationModalProps> = ({
             <MapPin className="w-6 h-6 stroke-[2.5]" />
           </div>
           <div>
-            <h3 className="text-xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+            <h3 className="text-xl font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide">
               Gym Location & Check-In Area
             </h3>
             <p className="text-xs text-white/50 mt-0.5">

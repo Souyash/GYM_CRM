@@ -190,13 +190,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* 1. BRAND HEADER                                                           */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 bg-[#050507]/90 backdrop-blur-md border-b border-white/5 transition-all">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2">
           {/* Brand Logo */}
           <div
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none group shrink-0"
           >
-            <span className="font-['Syne',sans-serif] font-black text-xl sm:text-3xl tracking-wider text-white group-hover:text-[#ccff00] transition-colors">
+            <span className="font-['Poppins',sans-serif] font-black text-lg sm:text-2xl lg:text-3xl tracking-wider text-white group-hover:text-[#ccff00] transition-colors">
               PROFITNESS
             </span>
           </div>
@@ -225,7 +225,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             {/* Install App Button in Header */}
             <button
               onClick={handleInstallClick}
-              className="px-3 sm:px-4 py-2 rounded-full bg-[#121418] hover:bg-[#1a1e26] border border-[#ccff00]/40 hover:border-[#ccff00] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(204,255,0,0.15)] cursor-pointer active:scale-95 shrink-0"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#121418] hover:bg-[#1a1e26] border border-[#ccff00]/40 hover:border-[#ccff00] text-white text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all shadow-[0_0_15px_rgba(204,255,0,0.15)] cursor-pointer active:scale-95 shrink-0"
               title="Install PROFITNESS App to your device"
             >
               <Download className="w-3.5 h-3.5 text-[#ccff00]" />
@@ -237,7 +237,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             {isLoggedIn ? (
               <button
                 onClick={onGoToDashboard}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#ccff00] text-black font-extrabold text-xs tracking-tight shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
+                className="px-3 sm:px-5 py-1.5 sm:py-2 rounded-full bg-[#ccff00] text-black font-extrabold text-[11px] sm:text-xs tracking-tight shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
               >
                 Dashboard
               </button>
@@ -245,13 +245,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               <>
                 <button
                   onClick={() => onOpenAuth('MEMBER_LOGIN')}
-                  className="hidden xs:inline-flex px-3 sm:px-4 py-2 rounded-full text-xs font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
+                  className="hidden sm:inline-flex px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => setIsContactModalOpen(true)}
-                  className="px-3.5 sm:px-5 py-2 rounded-full border border-white/60 hover:border-white text-white hover:bg-white hover:text-black font-semibold text-xs tracking-tight transition-all cursor-pointer shrink-0"
+                  className="hidden xs:inline-flex px-2.5 sm:px-5 py-1.5 sm:py-2 rounded-full border border-white/40 hover:border-white text-white hover:bg-white hover:text-black font-semibold text-[11px] sm:text-xs tracking-tight transition-all cursor-pointer shrink-0"
                 >
                   Contact
                 </button>
@@ -269,7 +269,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Typography & Primary Action */}
           <div className="lg:col-span-6 flex flex-col items-start text-left">
-            <h1 className="font-['Syne',sans-serif] font-black text-4xl xs:text-5xl sm:text-6xl lg:text-7xl xl:text-[80px] uppercase tracking-tight text-white leading-[1.05] sm:leading-[0.98] break-words max-w-full">
+            <h1 className="font-['Poppins',sans-serif] font-black text-[28px] xs:text-[34px] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[80px] uppercase tracking-tight text-white leading-[1.08] sm:leading-[0.98] break-normal max-w-full">
               UNLEASH YOUR<br />POTENTIAL
             </h1>
             <p className="text-zinc-400 text-xs sm:text-base max-w-md mt-4 sm:mt-7 leading-relaxed font-normal">
@@ -278,7 +278,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => onOpenAuth('SIGNUP')}
-                className="w-full sm:w-auto justify-center px-8 py-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-sm sm:text-base tracking-tight shadow-[0_0_35px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
+                className="w-full sm:w-auto justify-center px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs sm:text-base tracking-tight shadow-[0_0_35px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
               >
                 Start your Free Trial Today
               </button>
@@ -339,7 +339,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <div className="lg:col-span-7 rounded-[32px] bg-[#ccff00] text-black p-8 sm:p-12 relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[340px]">
             {/* Background Texture Accents */}
             <div className="relative z-10 max-w-sm sm:max-w-md text-left">
-              <h2 className="font-['Syne',sans-serif] font-black text-2xl sm:text-3xl lg:text-4xl uppercase leading-[1.1] tracking-tight text-black">
+              <h2 className="font-['Poppins',sans-serif] font-black text-xl sm:text-3xl lg:text-4xl uppercase leading-[1.15] tracking-tight text-black">
                 BUILD MUSCLE,<br />
                 BURN CALORIES,<br />
                 BOOST ENDURANCE
@@ -380,7 +380,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/50 flex items-center px-5">
-                <span className="font-['Syne',sans-serif] font-black text-xl sm:text-2xl text-white tracking-tight">
+                <span className="font-['Poppins',sans-serif] font-black text-lg sm:text-2xl text-white tracking-tight">
                   Functional Training
                 </span>
               </div>
@@ -416,7 +416,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <section id="components" className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center pt-4">
           {/* Left Column: Interactive Pillars */}
           <div className="lg:col-span-6 flex flex-col items-start text-left">
-            <h2 className="font-['Syne',sans-serif] font-black text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-tight">
+            <h2 className="font-['Poppins',sans-serif] font-black text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-tight">
               COMPONENTS<br />OF BODY FITNESS
             </h2>
 
@@ -469,7 +469,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         {/* 6. OUR INCREDIBLE TEAM (ROW 5)                                            */}
         {/* ========================================================================= */}
         <section id="team" className="flex flex-col text-left pt-6">
-          <h2 className="font-['Syne',sans-serif] font-black text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-tight mb-10">
+          <h2 className="font-['Poppins',sans-serif] font-black text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-tight mb-8 sm:mb-10">
             OUR<br />INCREDIBLE TEAM
           </h2>
 
@@ -522,7 +522,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 </span>
               </div>
 
-              <h2 className="font-['Syne',sans-serif] font-black text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-[1.05]">
+              <h2 className="font-['Poppins',sans-serif] font-black text-2xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-[1.08]">
                 GET THE PROFITNESS APP<br />ON YOUR PHONE
               </h2>
 
@@ -602,7 +602,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 {/* Simulated Pass Screen */}
                 <div className="p-4 rounded-2xl bg-[#0e1015] border border-white/10 space-y-3 text-left">
                   <div className="flex items-center justify-between">
-                    <span className="font-['Syne',sans-serif] font-black text-sm text-white">PROFITNESS</span>
+                    <span className="font-['Poppins',sans-serif] font-black text-sm text-white">PROFITNESS</span>
                     <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-ping" />
                   </div>
                   <div className="w-full aspect-square rounded-xl bg-white p-3 flex items-center justify-center">
@@ -633,7 +633,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               <span className="text-xs font-bold uppercase tracking-widest text-[#ccff00]">
                 Access Tiers
               </span>
-              <h2 className="font-['Syne',sans-serif] font-black text-4xl sm:text-5xl uppercase tracking-tight text-white leading-tight mt-1">
+              <h2 className="font-['Poppins',sans-serif] font-black text-3xl sm:text-5xl uppercase tracking-tight text-white leading-tight mt-1">
                 MEMBERSHIP PLANS
               </h2>
             </div>
@@ -731,7 +731,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <div className="bg-[#0e1015] border border-white/10 max-w-2xl w-full rounded-3xl p-6 shadow-2xl relative flex flex-col">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <span className="font-['Syne',sans-serif] font-black text-lg text-white">
+                <span className="font-['Poppins',sans-serif] font-black text-lg text-white">
                   PROFITNESS Tour
                 </span>
                 <span className="text-[10px] bg-[#ccff00] text-black px-2 py-0.5 rounded-full font-bold">
@@ -782,7 +782,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
           <div className="bg-[#0e1015] border border-white/10 max-w-md w-full rounded-3xl p-6 shadow-2xl relative flex flex-col text-left">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <h3 className="font-['Syne',sans-serif] font-black text-xl text-white">
+              <h3 className="font-['Poppins',sans-serif] font-black text-xl text-white">
                 Contact PROFITNESS
               </h3>
               <button
@@ -843,7 +843,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                   <Download className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-['Syne',sans-serif] font-black text-lg text-white">
+                  <h3 className="font-['Poppins',sans-serif] font-black text-lg text-white">
                     Install PROFITNESS App
                   </h3>
                   <p className="text-[11px] text-zinc-400">

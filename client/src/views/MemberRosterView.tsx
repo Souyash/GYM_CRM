@@ -77,7 +77,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
               <Users className="w-5 h-5" />
             </span>
             <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold font-['Syne',sans-serif] uppercase text-white tracking-wide">
+              <h1 className="text-xl sm:text-2xl font-extrabold font-['Poppins',sans-serif] uppercase text-white tracking-wide">
                 Desk Billing & Member Roster
               </h1>
               <p className="text-xs text-white/50 mt-0.5">
@@ -113,11 +113,11 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Members */}
         <div className="p-4 sm:p-5 rounded-2xl bg-[#0e1015] border border-white/10 shadow-lg hover:border-white/20 transition">
-          <span className="text-[10px] uppercase font-black tracking-widest text-white/40 font-['Syne',sans-serif] block">
+          <span className="text-[10px] uppercase font-black tracking-widest text-white/40 font-['Poppins',sans-serif] block">
             Total Athletes
           </span>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+            <span className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-white">
               {totalCount}
             </span>
             <div className="w-9 h-9 rounded-xl bg-[#121418] text-white/70 border border-white/5 flex items-center justify-center">
@@ -128,11 +128,11 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
 
         {/* Active Passes */}
         <div className="p-4 sm:p-5 rounded-2xl bg-[#0e1015] border border-[#ccff00]/30 shadow-lg hover:border-[#ccff00]/50 transition">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#ccff00] font-['Syne',sans-serif] block">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[#ccff00] font-['Poppins',sans-serif] block">
             Active Access
           </span>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-[#ccff00]">
+            <span className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-[#ccff00]">
               {activeCount}
             </span>
             <div className="w-9 h-9 rounded-xl bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20 flex items-center justify-center">
@@ -143,11 +143,11 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
 
         {/* Expired / Due */}
         <div className="p-4 sm:p-5 rounded-2xl bg-[#0e1015] border border-rose-500/30 shadow-lg hover:border-rose-500/50 transition">
-          <span className="text-[10px] uppercase font-black tracking-widest text-rose-400 font-['Syne',sans-serif] block">
+          <span className="text-[10px] uppercase font-black tracking-widest text-rose-400 font-['Poppins',sans-serif] block">
             Expired / Due
           </span>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-rose-400">
+            <span className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-rose-400">
               {expiredCount}
             </span>
             <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center">
@@ -158,11 +158,11 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
 
         {/* Monthly Estimate */}
         <div className="p-4 sm:p-5 rounded-2xl bg-[#0e1015] border border-white/10 shadow-lg hover:border-white/20 transition">
-          <span className="text-[10px] uppercase font-black tracking-widest text-white/40 font-['Syne',sans-serif] block">
+          <span className="text-[10px] uppercase font-black tracking-widest text-white/40 font-['Poppins',sans-serif] block">
             Active MRR Run-Rate
           </span>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-2xl sm:text-3xl font-black font-['Syne',sans-serif] text-white">
+            <span className="text-2xl sm:text-3xl font-black font-['Poppins',sans-serif] text-white">
               ${activeRevenueEstimate.toLocaleString()}
             </span>
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
@@ -335,7 +335,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
         {/* B. Desktop Table View (>= md screens) */}
         <div className="hidden md:block overflow-x-auto bg-[#0e1015]">
           <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-[#121418] text-white/50 uppercase text-[10px] tracking-wider border-b border-white/10 font-bold font-['Syne',sans-serif]">
+            <thead className="bg-[#121418] text-white/50 uppercase text-[10px] tracking-wider border-b border-white/10 font-bold font-['Poppins',sans-serif]">
               <tr>
                 <th className="py-3.5 px-4">Athlete</th>
                 <th className="py-3.5 px-4">Contact Info</th>
