@@ -373,7 +373,47 @@ export const api = {
   disconnectWhatsAppDevice: () =>
     apiRequest('/whatsapp/device-disconnect', { method: 'POST' }),
   sendWhatsAppDeviceTest: (phone: string) =>
-    apiRequest('/whatsapp/device-test', { method: 'POST', body: JSON.stringify({ phone }) })
+    apiRequest('/whatsapp/device-test', { method: 'POST', body: JSON.stringify({ phone }) }),
+
+  // Official Stamped PDFs & Enrollment KYC Form
+  getInvoicePdfUrl: (subscriptionId: string) => `${getApiBase()}/documents/invoice/${subscriptionId}/pdf`,
+  getEnrollmentFormPdfUrl: (userId: string) => `${getApiBase()}/documents/enrollment-form/${userId}/pdf`,
+  downloadInvoicePdf: async (subscriptionId: string, invoiceNo?: string) => {
+    const token = localStorage.getItem('ironvault_jwt_token');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${getApiBase()}/documents/invoice/${subscriptionId}/pdf`, { headers });
+    if (!res.ok) throw new Error('Failed to download invoice PDF');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Invoice_${invoiceNo || subscriptionId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  downloadEnrollmentPdf: async (userId: string, memberName?: string) => {
+    const token = localStorage.getItem('ironvault_jwt_token');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${getApiBase()}/documents/enrollment-form/${userId}/pdf`, { headers });
+    if (!res.ok) throw new Error('Failed to download enrollment form PDF');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Enrollment_Form_${(memberName || 'member').replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  submitEnrollmentForm: (payload: any) =>
+    apiRequest('/documents/submit-enrollment', { method: 'POST', body: JSON.stringify(payload) }),
+  resendMemberDocumentsWhatsApp: (userId: string) =>
+    apiRequest(`/documents/resend-whatsapp/${userId}`, { method: 'POST' })
 };
 
 

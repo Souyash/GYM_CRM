@@ -311,3 +311,4 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
     </div>
   );
 };
+

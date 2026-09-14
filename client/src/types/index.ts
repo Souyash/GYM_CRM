@@ -61,6 +61,9 @@ export interface Subscription {
   status: SubscriptionStatus;
   paymentMethod: string;
   deskBilledById?: string;
+  invoiceNumber?: string;
+  pdfInvoicePath?: string;
+  expiryNotificationActive?: boolean;
 }
 
 export interface User {
@@ -69,6 +72,10 @@ export interface User {
   fullName: string;
   role: UserRole;
   phone?: string;
+  whatsAppPhone?: string;
+  isWhatsAppVerified?: boolean;
+  hasCompletedEnrollment?: boolean;
+  enrollmentFormSubmittedAt?: string;
   gymId?: string;
   gym?: Gym;
   facilityId?: string;

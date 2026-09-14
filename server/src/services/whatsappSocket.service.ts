@@ -230,6 +230,49 @@ export async function sendSocketWhatsAppMessage(
 }
 
 /**
+ * Sends a WhatsApp document (PDF) through the linked phone socket
+ */
+export async function sendSocketWhatsAppDocument(
+  recipientPhone: string,
+  pdfBuffer: Buffer,
+  fileName: string,
+  caption?: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  if (!sock || !isConnected) {
+    return {
+      success: false,
+      error: 'WhatsApp Linked Device is not connected. Please scan QR in the CRM dashboard.'
+    };
+  }
+
+  try {
+    const cleanDigits = recipientPhone.replace(/[^\d]/g, '');
+    if (!cleanDigits || cleanDigits.length < 10) {
+      return { success: false, error: `Invalid recipient phone: ${recipientPhone}` };
+    }
+
+    const jid = `${cleanDigits}@s.whatsapp.net`;
+    const res = await sock.sendMessage(jid, {
+      document: pdfBuffer,
+      mimetype: 'application/pdf',
+      fileName: fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`,
+      caption: caption || undefined
+    });
+
+    return {
+      success: true,
+      messageId: res?.key?.id || undefined
+    };
+  } catch (err: any) {
+    console.error('[WhatsApp Socket Document Dispatch Error]:', err);
+    return {
+      success: false,
+      error: err.message || 'Failed to dispatch document via WhatsApp socket'
+    };
+  }
+}
+
+/**
  * Disconnects / unlinks the current session and restarts socket to produce fresh QR
  */
 export async function disconnectWhatsAppDevice(): Promise<{ success: boolean; message: string }> {
@@ -271,3 +314,4 @@ export async function disconnectWhatsAppDevice(): Promise<{ success: boolean; me
     return { success: false, message: err.message || 'Failed to disconnect WhatsApp device.' };
   }
 }
+

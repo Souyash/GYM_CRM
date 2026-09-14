@@ -20,7 +20,9 @@ import {
   BellOff,
   Send,
   RefreshCw,
-  Smartphone
+  Smartphone,
+  Printer,
+  FileText
 } from 'lucide-react';
 import { api } from '../services/api';
 import { WhatsAppDeliveryPreviewModal } from '../components/WhatsAppDeliveryPreviewModal';
@@ -108,6 +110,22 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
       setTimeout(() => setStatusNotice(null), 4500);
     } finally {
       setIsTriggeringCheck(false);
+    }
+  };
+
+  const [sendingDocsMemberId, setSendingDocsMemberId] = useState<string | null>(null);
+
+  const handleResendWhatsAppDocs = async (member: any) => {
+    setSendingDocsMemberId(member.id);
+    try {
+      const res = await api.resendMemberDocumentsWhatsApp(member.id);
+      setStatusNotice(res.message || `Official documents sent to ${member.fullName} on WhatsApp!`);
+      setTimeout(() => setStatusNotice(null), 4000);
+    } catch (err: any) {
+      setStatusNotice(`Failed to send documents: ${err.message}`);
+      setTimeout(() => setStatusNotice(null), 4000);
+    } finally {
+      setSendingDocsMemberId(null);
     }
   };
 
@@ -364,9 +382,20 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
               <div key={m.id} className="p-4 space-y-3 hover:bg-white/[0.02] transition">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="font-bold text-sm text-white block">
-                      {m.fullName}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-sm text-white block">
+                        {m.fullName}
+                      </span>
+                      {m.hasCompletedEnrollment ? (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold" title="KYC Admission Form Completed">
+                          KYC ✓
+                        </span>
+                      ) : (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-300/80 border border-amber-500/20 font-medium" title="KYC Pending">
+                          KYC Pending
+                        </span>
+                      )}
+                    </div>
                     <span className="font-mono tabular-nums text-[11px] text-white/40">
                       IV-{m.id.substring(0, 8).toUpperCase()}
                     </span>
@@ -415,7 +444,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                   )}
                 </div>
 
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                <div className="pt-2 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                   <div>
                     <span className="text-[10px] text-white/40 block uppercase font-bold tracking-wider">Pass Plan</span>
                     <span className="font-bold text-white">
@@ -428,27 +457,53 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    {m.latestSubscription && (m.phone || m.whatsAppPhone) && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {/* Official Stamped Bill PDF */}
+                    {m.latestSubscription && (
                       <button
                         type="button"
-                        onClick={() => handleSendWhatsAppBill(m)}
-                        disabled={sendingBillId === m.latestSubscription?.id}
-                        className="px-2.5 py-1.5 text-[10px] font-bold rounded-full bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1 active:scale-95"
-                        title="Dispatch digital invoice & welcome pack to member's WhatsApp"
+                        onClick={() => api.downloadInvoicePdf(m.latestSubscription.id, m.latestSubscription.invoiceNumber)}
+                        className="px-2 py-1 text-[10px] font-bold rounded-lg bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 transition flex items-center gap-1 active:scale-95"
+                        title="Print / Download Authorised Stamped Tax Invoice PDF"
                       >
-                        {sendingBillId === m.latestSubscription?.id ? (
+                        <Printer className="w-3 h-3 text-[#ccff00]" />
+                        <span>Bill PDF</span>
+                      </button>
+                    )}
+
+                    {/* Member Admission KYC Form PDF */}
+                    <button
+                      type="button"
+                      onClick={() => api.downloadEnrollmentPdf(m.id, m.fullName)}
+                      className="px-2 py-1 text-[10px] font-bold rounded-lg bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 transition flex items-center gap-1 active:scale-95"
+                      title="Print / Download Printable Admission & KYC Form PDF"
+                    >
+                      <FileText className="w-3 h-3 text-cyan-400" />
+                      <span>KYC Form</span>
+                    </button>
+
+                    {/* Resend WhatsApp Documents (PDF Bill + KYC Form) */}
+                    {(m.whatsAppPhone || m.phone) && (
+                      <button
+                        type="button"
+                        onClick={() => handleResendWhatsAppDocs(m)}
+                        disabled={sendingDocsMemberId === m.id}
+                        className="px-2 py-1 text-[10px] font-bold rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1 active:scale-95"
+                        title="Send PDF Bill & KYC Form directly to member's WhatsApp"
+                      >
+                        {sendingDocsMemberId === m.id ? (
                           <RefreshCw className="w-3 h-3 animate-spin" />
                         ) : (
                           <MessageSquare className="w-3 h-3 text-emerald-400" />
                         )}
-                        <span>WA Bill</span>
+                        <span>WA Docs</span>
                       </button>
                     )}
+
                     <button
                       type="button"
                       onClick={() => handleOpenPreview(m)}
-                      className="px-2 py-1.5 text-[10px] font-bold rounded-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 transition active:scale-95"
+                      className="px-2 py-1 text-[10px] font-bold rounded-lg bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 transition active:scale-95"
                       title="Preview WhatsApp invoice bubble"
                     >
                       Preview
@@ -456,7 +511,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                     <button
                       type="button"
                       onClick={() => handleDeleteMember(m.id, m.fullName)}
-                      className="p-1.5 rounded-full text-rose-400 hover:bg-rose-500/10 transition active:scale-95"
+                      className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 transition active:scale-95"
                       title="Remove Member"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -497,7 +552,18 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                           {m.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <span className="block font-bold text-white">{m.fullName}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="block font-bold text-white">{m.fullName}</span>
+                            {m.hasCompletedEnrollment ? (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold" title="KYC Admission Form Completed">
+                                KYC ✓
+                              </span>
+                            ) : (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-300/80 border border-amber-500/20 font-medium" title="KYC Pending">
+                                KYC Pending
+                              </span>
+                            )}
+                          </div>
                           <span className="block text-[10px] text-white/40">
                             {m.gym?.name || 'Fidgit Member'}
                           </span>
@@ -564,22 +630,48 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                     </td>
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
-                        {m.latestSubscription && (m.phone || m.whatsAppPhone) && (
+                        {/* Print / Download Authorised Bill PDF */}
+                        {m.latestSubscription && (
                           <button
                             type="button"
-                            onClick={() => handleSendWhatsAppBill(m)}
-                            disabled={sendingBillId === m.latestSubscription?.id}
-                            className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1 active:scale-95"
-                            title="Send Welcome & Tax Invoice to member's WhatsApp"
+                            onClick={() => api.downloadInvoicePdf(m.latestSubscription.id, m.latestSubscription.invoiceNumber)}
+                            className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 transition flex items-center gap-1 active:scale-95"
+                            title="Print / Download Authorised Stamped Tax Invoice PDF"
                           >
-                            {sendingBillId === m.latestSubscription?.id ? (
+                            <Printer className="w-3 h-3 text-[#ccff00]" />
+                            <span>Bill PDF</span>
+                          </button>
+                        )}
+
+                        {/* Print / Download Admission Form PDF */}
+                        <button
+                          type="button"
+                          onClick={() => api.downloadEnrollmentPdf(m.id, m.fullName)}
+                          className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 transition flex items-center gap-1 active:scale-95"
+                          title="Print / Download Printable Admission & KYC Form PDF"
+                        >
+                          <FileText className="w-3 h-3 text-cyan-400" />
+                          <span>KYC Form</span>
+                        </button>
+
+                        {/* Send Official Documents to WhatsApp (Stamped Bill + KYC Form) */}
+                        {(m.whatsAppPhone || m.phone) && (
+                          <button
+                            type="button"
+                            onClick={() => handleResendWhatsAppDocs(m)}
+                            disabled={sendingDocsMemberId === m.id}
+                            className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1 active:scale-95"
+                            title="Send Official PDF Bill & KYC Form directly to member's WhatsApp"
+                          >
+                            {sendingDocsMemberId === m.id ? (
                               <RefreshCw className="w-3 h-3 animate-spin" />
                             ) : (
                               <MessageSquare className="w-3 h-3 text-emerald-400" />
                             )}
-                            <span>WA Bill</span>
+                            <span>WA Docs</span>
                           </button>
                         )}
+
                         <button
                           type="button"
                           onClick={() => handleOpenPreview(m)}

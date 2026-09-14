@@ -40,6 +40,7 @@ model Gym {
   healthProfiles       MemberHealthProfile[]
   facilities           Facility[]
   whatsAppMessages     WhatsAppMessageLog[]
+  enrollmentDocuments  MemberEnrollmentDocument[]
 }
 
 // -------------------------------------------------------------
@@ -98,6 +99,11 @@ model User {
   whatsAppNotificationsEnabled Boolean               @default(true)
   whatsAppMessages             WhatsAppMessageLog[]
 
+  // First-Time Member Admission & KYC Enrollment
+  hasCompletedEnrollment       Boolean               @default(false)
+  enrollmentFormSubmittedAt    DateTime?
+  enrollmentDocument           MemberEnrollmentDocument?
+
   isActive               Boolean               @default(true)
   avatarUrl              String?
   createdAt              DateTime              @default(now())
@@ -142,6 +148,7 @@ model Subscription {
   
   // Invoice & WhatsApp Expiry Notification Tracking
   invoiceNumber            String?
+  pdfInvoicePath           String?
   expiryNotificationActive Boolean   @default(true)
   lastExpiryAlertSentAt    DateTime?
   expiryAlertStage         String    @default("NONE") // NONE, STAGE_3D, STAGE_1D, EXPIRED
@@ -449,3 +456,49 @@ model WhatsAppMessageLog {
   @@index([messageType])
   @@index([createdAt])
 }
+
+// -------------------------------------------------------------
+// 12. Member Admission & KYC Enrollment Documents
+// -------------------------------------------------------------
+model MemberEnrollmentDocument {
+  id                    String    @id @default(uuid())
+  gymId                 String?
+  gym                   Gym?      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Personal Particulars
+  fullName              String
+  phone                 String
+  email                 String?
+  dateOfBirth           DateTime?
+  gender                String?
+  bloodGroup            String?
+
+  // Emergency Contact
+  emergencyContactName  String
+  emergencyContactPhone String
+  emergencyRelation     String?
+
+  // Address
+  address               String
+  city                  String?
+  state                 String?
+  pinCode               String?
+
+  // Fitness & Health Declarations
+  primaryGoal           String?
+  targetTimeline        String?
+  medicalHistory        String?
+  signatureConsent      Boolean   @default(true)
+  signedAt              DateTime  @default(now())
+
+  // Storage
+  pdfFilePath           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([gymId])
+  @@index([userId])
+}
+

@@ -28,7 +28,10 @@ import {
   Dumbbell,
   Trophy,
   Award,
-  Droplets
+  Droplets,
+  FileText,
+  Printer,
+  Download
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -41,6 +44,7 @@ import { WorkoutDepartureModal } from '../components/WorkoutDepartureModal';
 import { MemberOnboardingModal } from '../components/MemberOnboardingModal';
 import { MemberOnboardingForm } from '../components/MemberOnboardingForm';
 import { MemberDigitalPass } from '../components/MemberDigitalPass';
+import { FirstTimeMemberEnrollmentModal } from '../components/FirstTimeMemberEnrollmentModal';
 
 interface MemberProfileProps {
   onOpenScanner: (mode?: 'ENTER' | 'EXIT') => void;
@@ -78,6 +82,13 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [editGoal, setEditGoal] = useState('Weight Loss & Fat Burn');
   const [editTimeline, setEditTimeline] = useState('3 Months');
   const [isSavingHealth, setIsSavingHealth] = useState(false);
+  const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user && user.role === 'MEMBER' && !user.hasCompletedEnrollment) {
+      setIsEnrollmentModalOpen(true);
+    }
+  }, [user?.hasCompletedEnrollment, user?.role]);
 
   // Daily Bodybuilding & Athletic Split Tracker
   const [dailyMuscleSplit, setDailyMuscleSplit] = useState<'Push Day' | 'Pull Day' | 'Leg Day' | 'Arms & Delts' | 'Rest Day'>('Push Day');
@@ -485,6 +496,87 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             onDirectCheckOut={handleDirectCheckOut}
             isCheckingOut={isCheckingOut}
           />
+
+          {/* Official Stamped Membership Documents Card */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-[#0e1015] border border-white/10 shadow-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/20">
+                  <FileText className="w-4 h-4" />
+                </span>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-white font-['Poppins']">
+                    Official Documents &amp; Invoices
+                  </h4>
+                  <p className="text-[11px] text-zinc-400">
+                    Certified with Official Authorised Seal &bull; Download or Print
+                  </p>
+                </div>
+              </div>
+
+              {!user?.hasCompletedEnrollment && (
+                <button
+                  type="button"
+                  onClick={() => setIsEnrollmentModalOpen(true)}
+                  className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider animate-pulse"
+                >
+                  KYC Pending
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              {activeSub?.id && (
+                <button
+                  type="button"
+                  onClick={() => api.downloadInvoicePdf(activeSub.id, activeSub.invoiceNumber)}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-[#14161f] hover:bg-[#1a1d29] border border-white/5 hover:border-white/15 transition text-left group cursor-pointer active:scale-95"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                      <Printer className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-white truncate">
+                        Stamped Tax Invoice (PDF)
+                      </div>
+                      <div className="text-[10px] text-emerald-400 font-mono">
+                        #{activeSub.invoiceNumber || 'INV-ACTIVE'} &bull; Official Seal
+                      </div>
+                    </div>
+                  </div>
+                  <Download className="w-4 h-4 text-zinc-400 group-hover:text-[#ccff00] transition-colors shrink-0" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (user?.hasCompletedEnrollment) {
+                    api.downloadEnrollmentPdf(user.id, user.fullName);
+                  } else {
+                    setIsEnrollmentModalOpen(true);
+                  }
+                }}
+                className="flex items-center justify-between p-3 rounded-2xl bg-[#14161f] hover:bg-[#1a1d29] border border-white/5 hover:border-white/15 transition text-left group cursor-pointer active:scale-95"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-white truncate">
+                      Admission &amp; KYC Form (PDF)
+                    </div>
+                    <div className="text-[10px] text-zinc-400">
+                      {user?.hasCompletedEnrollment ? 'Verified & Approved' : 'Click to complete form'}
+                    </div>
+                  </div>
+                </div>
+                <Download className="w-4 h-4 text-zinc-400 group-hover:text-[#ccff00] transition-colors shrink-0" />
+              </button>
+            </div>
+          </div>
 
           {/* Quick Shortcuts Bar */}
           <QuickActionBar
@@ -1192,6 +1284,17 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           setIsFirstTimeOnboardOpen(false);
           loadHealthProfile();
           refreshProfile();
+        }}
+      />
+
+      {/* First-Time Member Admission & KYC Enrollment Modal */}
+      <FirstTimeMemberEnrollmentModal
+        isOpen={isEnrollmentModalOpen}
+        user={user}
+        onCompleted={() => {
+          setIsEnrollmentModalOpen(false);
+          refreshProfile();
+          loadHealthProfile();
         }}
       />
     </div>

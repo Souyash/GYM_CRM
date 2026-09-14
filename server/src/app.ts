@@ -12,6 +12,7 @@ import communityRoutes from './routes/community.routes.js';
 import healthIntelligenceRoutes from './routes/healthIntelligence.routes.js';
 import gymRoutes from './routes/gym.routes.js';
 import whatsappRoutes from './routes/whatsapp.routes.js';
+import documentsRoutes from './routes/documents.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -38,6 +39,7 @@ export function createApp(): Express {
   app.use('/api/community', communityRoutes);
   app.use('/api/health-intelligence', healthIntelligenceRoutes);
   app.use('/api/whatsapp', whatsappRoutes);
+  app.use('/api/documents', documentsRoutes);
 
   // Health check route
   app.get('/api/health', (req, res) => {
