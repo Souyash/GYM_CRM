@@ -113,13 +113,13 @@ export const WhatsAppDeviceLinkModal: React.FC<WhatsAppDeviceLinkModalProps> = (
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] overflow-y-auto bg-black/85 backdrop-blur-md p-3 sm:p-6"
+      className="fixed inset-0 z-[99999] overflow-y-auto bg-black/85 backdrop-blur-md p-4 sm:p-6"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {/* Scrollable Container with guaranteed top margin (items-start on mobile, items-center on desktop when fits) */}
-      <div className="min-h-full flex items-start sm:items-center justify-center py-6 sm:py-10">
+      {/* Explicitly shifted down from the top to ensure it never touches or gets cut off by the top of any screen */}
+      <div className="min-h-full flex items-start justify-center pt-16 sm:pt-24 pb-16">
         <div
           className="relative w-full max-w-2xl bg-[#0c0d12] border border-white/15 rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden text-left font-['Poppins',sans-serif] animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
