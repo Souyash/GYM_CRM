@@ -191,7 +191,7 @@ export const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white flex flex-col font-['Poppins',sans-serif] font-poppins selection:bg-[#ccff00] selection:text-black antialiased transition-colors duration-200">
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col font-['Outfit',sans-serif] font-sans selection:bg-[#ccff00] selection:text-black antialiased transition-colors duration-200">
       {/* Real-Time WebSocket Red Alert Drop-Down Banner */}
       <RedAlertBanner />
 
@@ -256,9 +256,9 @@ export const AppContent: React.FC = () => {
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 text-xs font-black uppercase tracking-wider mb-2">
                     <MessageSquare className="w-3.5 h-3.5" />
-                    PROFITNESS Community &amp; Feed
+                    FIDGIT Community &amp; Feed
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-['Poppins',sans-serif] font-black text-white uppercase tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-['Unbounded',sans-serif] font-black text-white uppercase tracking-tight">
                     Official Announcements &amp; Member Buzz
                   </h1>
                   <p className="text-xs sm:text-sm text-zinc-400 mt-1">

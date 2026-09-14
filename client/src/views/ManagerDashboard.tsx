@@ -307,8 +307,8 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight">
-                {gymDetails?.name || 'PROFITNESS Workspace'}
+              <h2 className="text-base sm:text-lg font-['Unbounded',sans-serif] font-black uppercase text-white tracking-tight">
+                {gymDetails?.name || 'FIDGIT Workspace'}
               </h2>
               <span className="text-[10px] uppercase tracking-wider font-black bg-[#ccff00] text-black px-2.5 py-0.5 rounded-full">
                 Tenant Active
@@ -436,7 +436,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           <div className="flex items-center gap-2.5 bg-[#0e1015] px-4 py-2 rounded-full border border-white/10 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ccff00] animate-ping" />
             <span className="text-xs font-bold text-white tracking-tight">
-              {gymDetails?.name || 'PROFITNESS Elite Club'}
+              {gymDetails?.name || 'FIDGIT Elite Club'}
             </span>
             <span className="text-[10px] font-black text-[#ccff00] bg-[#ccff00]/15 px-2.5 py-0.5 rounded-full border border-[#ccff00]/30 uppercase">
               Live Operations

@@ -500,7 +500,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-['Poppins',sans-serif] font-poppins pt-safe pb-safe">
+    <div className="min-h-screen bg-[#050507] text-white flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-200 relative font-['Outfit',sans-serif] font-sans pt-safe pb-safe">
       {/* Top Bar Navigation */}
       <div className="absolute top-notch-safe left-4 sm:left-6 z-20">
         {onBackToWebsite && (
@@ -529,10 +529,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
         <div className="w-16 h-16 rounded-3xl bg-[#0e1015] border border-white/10 flex items-center justify-center shadow-xl shadow-[#ccff00]/10 mb-3 mx-auto">
           <IronVaultLogo className="w-10 h-10" />
         </div>
-        <h1 className="text-3xl font-black font-['Poppins',sans-serif] uppercase tracking-tight text-white">
-          PRO<span className="text-[#ccff00]">FITNESS</span>
+        <h1 className="text-3xl font-black font-['Unbounded',sans-serif] uppercase tracking-tight text-white flex items-center justify-center">
+          FID<span className="text-[#ccff00]">GIT</span>
         </h1>
-        <p className="mt-1 text-xs font-black uppercase tracking-widest text-white/40 font-['Poppins',sans-serif]">
+        <p className="mt-1 text-xs font-black uppercase tracking-widest text-white/40 font-['Outfit',sans-serif]">
           MULTI-TENANT FITNESS CRM & SAAS
         </p>
       </div>

@@ -11,10 +11,13 @@ export default {
         'xs': '380px',
       },
       fontFamily: {
-        sans: ['Poppins', '"Plus Jakarta Sans"', '"Space Grotesk"', 'Inter', 'sans-serif'],
-        heading: ['Poppins', 'sans-serif'],
-        poppins: ['Poppins', 'sans-serif'],
-        syne: ['Poppins', 'sans-serif'],
+        sans: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
+        heading: ['"Unbounded"', 'sans-serif'],
+        display: ['"Unbounded"', 'sans-serif'],
+        unbounded: ['"Unbounded"', 'sans-serif'],
+        outfit: ['"Outfit"', 'sans-serif'],
+        poppins: ['"Outfit"', 'sans-serif'],
+        syne: ['"Unbounded"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {

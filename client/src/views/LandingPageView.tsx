@@ -192,7 +192,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white font-['Poppins',sans-serif] font-poppins selection:bg-[#ccff00] selection:text-black antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-[#050507] text-white font-['Outfit',sans-serif] font-sans selection:bg-[#ccff00] selection:text-black antialiased overflow-x-hidden">
       {/* ========================================================================= */}
       {/* 1. BRAND HEADER                                                           */}
       {/* ========================================================================= */}
@@ -203,8 +203,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none group shrink-0"
           >
-            <span className="font-['Poppins',sans-serif] font-black text-lg sm:text-2xl lg:text-3xl tracking-wider text-white group-hover:text-[#ccff00] transition-colors">
-              PROFITNESS
+            <span className="font-['Unbounded',sans-serif] font-black text-lg sm:text-2xl lg:text-3xl tracking-tight text-white group-hover:text-[#ccff00] transition-colors flex items-center">
+              FID<span className="text-[#ccff00]">GIT</span>
             </span>
           </div>
 
@@ -233,7 +233,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             <button
               onClick={handleInstallClick}
               className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#121418] hover:bg-[#1a1e26] border border-[#ccff00]/40 hover:border-[#ccff00] text-white text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all shadow-[0_0_15px_rgba(204,255,0,0.15)] cursor-pointer active:scale-95 shrink-0"
-              title="Install PROFITNESS App to your device"
+              title="Install FIDGIT App to your device"
             >
               <Download className="w-3.5 h-3.5 text-[#ccff00]" />
               <span className="hidden sm:inline">Install App</span>
@@ -385,7 +385,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Typography & Primary Action */}
           <div className="lg:col-span-6 flex flex-col items-start text-left">
-            <h1 className="font-['Poppins',sans-serif] font-black text-[28px] xs:text-[34px] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[80px] uppercase tracking-tight text-white leading-[1.08] sm:leading-[0.98] break-normal max-w-full">
+            <h1 className="font-['Unbounded',sans-serif] font-black text-[25px] xs:text-[32px] sm:text-5xl md:text-6xl lg:text-7xl xl:text-[76px] uppercase tracking-tight text-white leading-[1.08] sm:leading-[0.98] break-normal max-w-full">
               UNLEASH YOUR<br />POTENTIAL
             </h1>
             <p className="text-zinc-400 text-xs sm:text-base max-w-md mt-4 sm:mt-7 leading-relaxed font-normal">
@@ -477,7 +477,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <div className="lg:col-span-7 rounded-[32px] bg-[#ccff00] text-black p-8 sm:p-12 relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[340px]">
             {/* Background Texture Accents */}
             <div className="relative z-10 max-w-sm sm:max-w-md text-left">
-              <h2 className="font-['Poppins',sans-serif] font-black text-xl sm:text-3xl lg:text-4xl uppercase leading-[1.15] tracking-tight text-black">
+              <h2 className="font-['Unbounded',sans-serif] font-black text-xl sm:text-3xl lg:text-4xl uppercase leading-[1.15] tracking-tight text-black">
                 BUILD MUSCLE,<br />
                 BURN CALORIES,<br />
                 BOOST ENDURANCE
@@ -518,7 +518,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/50 flex items-center px-5">
-                <span className="font-['Poppins',sans-serif] font-black text-lg sm:text-2xl text-white tracking-tight">
+                <span className="font-['Unbounded',sans-serif] font-black text-lg sm:text-2xl text-white tracking-tight">
                   Functional Training
                 </span>
               </div>
@@ -554,7 +554,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <section id="components" className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center pt-4">
           {/* Left Column: Interactive Pillars */}
           <div className="lg:col-span-6 flex flex-col items-start text-left">
-            <h2 className="font-['Poppins',sans-serif] font-black text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-tight">
+            <h2 className="font-['Unbounded',sans-serif] font-black text-2xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-tight">
               COMPONENTS<br />OF BODY FITNESS
             </h2>
 
@@ -607,7 +607,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         {/* 6. OUR INCREDIBLE TEAM (ROW 5)                                            */}
         {/* ========================================================================= */}
         <section id="team" className="flex flex-col text-left pt-6">
-          <h2 className="font-['Poppins',sans-serif] font-black text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tight text-white leading-tight mb-8 sm:mb-10">
+          <h2 className="font-['Unbounded',sans-serif] font-black text-2xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-tight mb-8 sm:mb-10">
             OUR<br />INCREDIBLE TEAM
           </h2>
 
@@ -660,8 +660,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 </span>
               </div>
 
-              <h2 className="font-['Poppins',sans-serif] font-black text-2xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-[1.08]">
-                GET THE PROFITNESS APP<br />ON YOUR PHONE
+              <h2 className="font-['Unbounded',sans-serif] font-black text-2xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-white leading-[1.08]">
+                GET THE FIDGIT APP<br />ON YOUR PHONE
               </h2>
 
               <p className="text-zinc-400 text-xs sm:text-sm max-w-lg leading-relaxed">
@@ -740,14 +740,16 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                 {/* Simulated Pass Screen */}
                 <div className="p-4 rounded-2xl bg-[#0e1015] border border-white/10 space-y-3 text-left">
                   <div className="flex items-center justify-between">
-                    <span className="font-['Poppins',sans-serif] font-black text-sm text-white">PROFITNESS</span>
+                    <span className="font-['Unbounded',sans-serif] font-black text-sm text-white flex items-center">
+                      FID<span className="text-[#ccff00]">GIT</span>
+                    </span>
                     <span className="w-2 h-2 rounded-full bg-[#ccff00] animate-ping" />
                   </div>
                   <div className="w-full aspect-square rounded-xl bg-white p-3 flex items-center justify-center">
                     <QrCode className="w-full h-full text-black" />
                   </div>
                   <div className="flex items-center justify-between text-[10px]">
-                    <span className="font-mono text-zinc-400">MEMBER ID: #PF-9042</span>
+                    <span className="font-mono text-zinc-400">MEMBER ID: #FG-9042</span>
                     <span className="text-[#ccff00] font-black">ACCESS GRANTED</span>
                   </div>
                 </div>
@@ -771,7 +773,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               <span className="text-xs font-bold uppercase tracking-widest text-[#ccff00]">
                 Access Tiers
               </span>
-              <h2 className="font-['Poppins',sans-serif] font-black text-3xl sm:text-5xl uppercase tracking-tight text-white leading-tight mt-1">
+              <h2 className="font-['Unbounded',sans-serif] font-black text-2xl sm:text-4xl uppercase tracking-tight text-white leading-tight mt-1">
                 MEMBERSHIP PLANS
               </h2>
             </div>
@@ -846,7 +848,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* ========================================================================= */}
       <footer className="w-full border-t border-white/10 bg-[#050507] pt-8 pb-28 lg:pb-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 font-medium">
-          <p>© 2026 PROFITNESS Inc. All rights reserved</p>
+          <p>© 2026 FIDGIT Inc. All rights reserved</p>
           <div className="flex items-center gap-6">
             <a href="#privacy" className="hover:text-white transition-colors">
               Privacy Policy
@@ -869,8 +871,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           <div className="bg-[#0e1015] border border-white/10 max-w-2xl w-full rounded-3xl p-6 shadow-2xl relative flex flex-col">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <span className="font-['Poppins',sans-serif] font-black text-lg text-white">
-                  PROFITNESS Tour
+                <span className="font-['Unbounded',sans-serif] font-black text-lg text-white">
+                  FIDGIT Tour
                 </span>
                 <span className="text-[10px] bg-[#ccff00] text-black px-2 py-0.5 rounded-full font-bold">
                   LIVE DEMO
@@ -920,8 +922,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
           <div className="bg-[#0e1015] border border-white/10 max-w-md w-full rounded-3xl p-6 shadow-2xl relative flex flex-col text-left">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <h3 className="font-['Poppins',sans-serif] font-black text-xl text-white">
-                Contact PROFITNESS
+              <h3 className="font-['Unbounded',sans-serif] font-black text-xl text-white">
+                Contact FIDGIT
               </h3>
               <button
                 onClick={() => setIsContactModalOpen(false)}
@@ -981,8 +983,8 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                   <Download className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-['Poppins',sans-serif] font-black text-lg text-white">
-                    Install PROFITNESS App
+                  <h3 className="font-['Unbounded',sans-serif] font-black text-lg text-white">
+                    Install FIDGIT App
                   </h3>
                   <p className="text-[11px] text-zinc-400">
                     Takes under 10 seconds • No App Store needed
@@ -1043,7 +1045,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                       1-Click Instant Installation Ready!
                     </span>
                     <p className="text-zinc-300 text-xs leading-relaxed">
-                      Your browser supports automatic installation. Click below to add PROFITNESS directly to your app launcher.
+                      Your browser supports automatic installation. Click below to add FIDGIT directly to your app launcher.
                     </p>
                     <button
                       onClick={handleInstallClick}
@@ -1081,7 +1083,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                       </span>
                       <div>
                         <strong className="text-white block">Tap "Install app" or "Add to Home Screen"</strong>
-                        <span className="text-zinc-400">Confirm the prompt. The PROFITNESS app icon will be pinned to your home screen!</span>
+                        <span className="text-zinc-400">Confirm the prompt. The FIDGIT app icon will be pinned to your home screen!</span>
                       </div>
                     </div>
                   </div>
@@ -1118,7 +1120,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                   </div>
                   <div>
                     <strong className="text-white block">3. Tap "Add" in top-right corner</strong>
-                    <span className="text-zinc-400">PROFITNESS is now installed as a full-screen app on your iPhone home screen!</span>
+                    <span className="text-zinc-400">FIDGIT is now installed as a full-screen app on your iPhone home screen!</span>
                   </div>
                 </div>
               </div>
@@ -1142,7 +1144,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
                     <Download className="w-4 h-4" />
                   </div>
                   <div>
-                    <strong className="text-white block">Or click Browser Menu (⋮) &rarr; "Install PROFITNESS"</strong>
+                    <strong className="text-white block">Or click Browser Menu (⋮) &rarr; "Install FIDGIT"</strong>
                     <span className="text-zinc-400">Runs as a dedicated desktop window without browser tabs or toolbars.</span>
                   </div>
                 </div>

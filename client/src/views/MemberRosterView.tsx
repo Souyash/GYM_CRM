@@ -363,7 +363,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                         <div>
                           <span className="block font-bold text-white">{m.fullName}</span>
                           <span className="block text-[10px] text-white/40">
-                            {m.gym?.name || 'ProFitness Member'}
+                            {m.gym?.name || 'Fidgit Member'}
                           </span>
                         </div>
                       </div>

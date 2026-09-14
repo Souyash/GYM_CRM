@@ -386,8 +386,8 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             <span className="material-symbols-outlined text-[24px]">fitness_center</span>
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="text-sm sm:text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight truncate">
-              {user?.gym?.name || 'PROFITNESS Elite Club'}
+            <span className="text-sm sm:text-base font-['Unbounded',sans-serif] font-black uppercase text-white tracking-tight truncate">
+              {user?.gym?.name || 'FIDGIT Elite Club'}
             </span>
             <span className="text-xs text-zinc-400 truncate">
               Access Pass: #{user?.gym?.inviteCode || '100001'}
@@ -1112,7 +1112,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
                           )}
                         </div>
                         <span className="text-[10px] text-zinc-400 block mt-0.5">
-                          {entry.facility?.name || 'PROFITNESS Apex'} • {entry.exitedAt ? 'Turnstile Check-Out Logged' : 'Entrance Gate'}
+                          {entry.facility?.name || 'FIDGIT Apex'} • {entry.exitedAt ? 'Turnstile Check-Out Logged' : 'Entrance Gate'}
                         </span>
                       </div>
                     </div>
@@ -1143,8 +1143,8 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         <div id="community-section" className="space-y-3 pt-2 animate-in fade-in duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-['Poppins',sans-serif] font-black uppercase text-white tracking-tight">
-                👥 PROFITNESS Community
+              <h3 className="text-sm sm:text-base font-['Unbounded',sans-serif] font-black uppercase text-white tracking-tight">
+                👥 FIDGIT Community
               </h3>
               <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#ccff00]/15 text-[#ccff00] border border-[#ccff00]/30 uppercase">
                 Live Feed

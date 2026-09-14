@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.ironvault.fitness',
-  appName: 'IronVault Fitness',
+  appId: 'com.fidgit.fitness',
+  appName: 'FIDGIT',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
