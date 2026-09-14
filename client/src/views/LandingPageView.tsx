@@ -190,13 +190,13 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       {/* 1. BRAND HEADER                                                           */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-50 bg-[#050507]/90 backdrop-blur-md border-b border-white/5 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           {/* Brand Logo */}
           <div
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-2 cursor-pointer select-none group"
+            className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none group shrink-0"
           >
-            <span className="font-['Syne',sans-serif] font-black text-2xl sm:text-3xl tracking-wider text-white group-hover:text-[#ccff00] transition-colors">
+            <span className="font-['Syne',sans-serif] font-black text-xl sm:text-3xl tracking-wider text-white group-hover:text-[#ccff00] transition-colors">
               PROFITNESS
             </span>
           </div>
@@ -221,11 +221,11 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Install App Button in Header */}
             <button
               onClick={handleInstallClick}
-              className="px-3.5 sm:px-4 py-2 rounded-full bg-[#121418] hover:bg-[#1a1e26] border border-[#ccff00]/40 hover:border-[#ccff00] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(204,255,0,0.15)] cursor-pointer active:scale-95"
+              className="px-3 sm:px-4 py-2 rounded-full bg-[#121418] hover:bg-[#1a1e26] border border-[#ccff00]/40 hover:border-[#ccff00] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(204,255,0,0.15)] cursor-pointer active:scale-95 shrink-0"
               title="Install PROFITNESS App to your device"
             >
               <Download className="w-3.5 h-3.5 text-[#ccff00]" />
@@ -237,23 +237,23 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
             {isLoggedIn ? (
               <button
                 onClick={onGoToDashboard}
-                className="px-5 py-2.5 rounded-full bg-[#ccff00] text-black font-extrabold text-xs tracking-tight shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-[#ccff00] text-black font-extrabold text-xs tracking-tight shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
               >
-                Go to Dashboard
+                Dashboard
               </button>
             ) : (
               <>
                 <button
                   onClick={() => onOpenAuth('MEMBER_LOGIN')}
-                  className="hidden sm:inline-flex px-4 py-2 rounded-full text-xs font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                  className="hidden xs:inline-flex px-3 sm:px-4 py-2 rounded-full text-xs font-bold text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
                 >
                   Sign In
                 </button>
                 <button
                   onClick={() => setIsContactModalOpen(true)}
-                  className="px-5 py-2 rounded-full border border-white/60 hover:border-white text-white hover:bg-white hover:text-black font-semibold text-xs tracking-tight transition-all cursor-pointer"
+                  className="px-3.5 sm:px-5 py-2 rounded-full border border-white/60 hover:border-white text-white hover:bg-white hover:text-black font-semibold text-xs tracking-tight transition-all cursor-pointer shrink-0"
                 >
-                  Contact us
+                  Contact
                 </button>
               </>
             )}
@@ -262,23 +262,23 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
       </header>
 
       {/* Main Container */}
-      <main id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-20 flex flex-col space-y-16 sm:space-y-24">
+      <main id="home" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-14 pb-20 flex flex-col space-y-12 sm:space-y-24">
         {/* ========================================================================= */}
         {/* 2. HERO SECTION                                                           */}
         {/* ========================================================================= */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Column: Typography & Primary Action */}
           <div className="lg:col-span-6 flex flex-col items-start text-left">
-            <h1 className="font-['Syne',sans-serif] font-black text-5xl sm:text-6xl lg:text-7xl xl:text-[80px] uppercase tracking-tight text-white leading-[0.98]">
+            <h1 className="font-['Syne',sans-serif] font-black text-4xl xs:text-5xl sm:text-6xl lg:text-7xl xl:text-[80px] uppercase tracking-tight text-white leading-[1.05] sm:leading-[0.98] break-words max-w-full">
               UNLEASH YOUR<br />POTENTIAL
             </h1>
-            <p className="text-zinc-400 text-sm sm:text-base max-w-md mt-6 sm:mt-7 leading-relaxed font-normal">
+            <p className="text-zinc-400 text-xs sm:text-base max-w-md mt-4 sm:mt-7 leading-relaxed font-normal">
               See real progress with expert guidance and proven training methods. Get started now and unlock a stronger, healthier you!
             </p>
-            <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={() => onOpenAuth('SIGNUP')}
-                className="px-8 py-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-sm sm:text-base tracking-tight shadow-[0_0_35px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
+                className="w-full sm:w-auto justify-center px-8 py-4 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-sm sm:text-base tracking-tight shadow-[0_0_35px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
               >
                 Start your Free Trial Today
               </button>
@@ -286,7 +286,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               {/* Install Mobile App Button in Hero */}
               <button
                 onClick={handleInstallClick}
-                className="px-6 py-4 rounded-full bg-[#121418] hover:bg-[#1a1e26] text-white font-bold text-sm tracking-tight border border-white/15 hover:border-[#ccff00]/60 transition-all flex items-center gap-2.5 shadow-xl cursor-pointer group active:scale-95"
+                className="w-full sm:w-auto justify-center px-6 py-4 rounded-full bg-[#121418] hover:bg-[#1a1e26] text-white font-bold text-sm tracking-tight border border-white/15 hover:border-[#ccff00]/60 transition-all flex items-center gap-2.5 shadow-xl cursor-pointer group active:scale-95"
               >
                 <div className="w-6 h-6 rounded-full bg-[#ccff00]/20 text-[#ccff00] flex items-center justify-center">
                   <Download className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
@@ -300,7 +300,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               {isLoggedIn && (
                 <button
                   onClick={onGoToDashboard}
-                  className="px-6 py-4 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-sm tracking-tight border border-white/10 transition-all cursor-pointer"
+                  className="w-full sm:w-auto justify-center px-6 py-4 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold text-sm tracking-tight border border-white/10 transition-all cursor-pointer"
                 >
                   Enter App ›
                 </button>
@@ -574,10 +574,10 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
               </div>
 
               {/* Install Buttons Row */}
-              <div className="flex flex-wrap items-center gap-3 pt-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 w-full sm:w-auto">
                 <button
                   onClick={handleInstallClick}
-                  className="px-7 py-3.5 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs sm:text-sm tracking-tight shadow-[0_0_25px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                  className="w-full sm:w-auto justify-center px-7 py-3.5 rounded-full bg-[#ccff00] hover:bg-[#b8e600] text-black font-black text-xs sm:text-sm tracking-tight shadow-[0_0_25px_rgba(204,255,0,0.25)] hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   <span>{isAppInstalled ? 'App Already Installed ✓' : 'Install App to Device'}</span>
@@ -585,7 +585,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
 
                 <button
                   onClick={() => setIsInstallModalOpen(true)}
-                  className="px-5 py-3.5 rounded-full bg-[#121418] hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                  className="w-full sm:w-auto justify-center px-5 py-3.5 rounded-full bg-[#121418] hover:bg-zinc-800 text-zinc-300 hover:text-white font-bold text-xs border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <Smartphone className="w-3.5 h-3.5 text-[#ccff00]" />
                   <span>Installation Steps (iOS &amp; Android)</span>
