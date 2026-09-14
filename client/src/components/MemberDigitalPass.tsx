@@ -727,3 +727,4 @@ export const MemberDigitalPass: React.FC<MemberDigitalPassProps> = ({
     </div>
   );
 };
+
