@@ -11,6 +11,7 @@ import webhookRoutes from './routes/webhook.routes.js';
 import communityRoutes from './routes/community.routes.js';
 import healthIntelligenceRoutes from './routes/healthIntelligence.routes.js';
 import gymRoutes from './routes/gym.routes.js';
+import whatsappRoutes from './routes/whatsapp.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -36,6 +37,7 @@ export function createApp(): Express {
   app.use('/api/webhooks', webhookRoutes);
   app.use('/api/community', communityRoutes);
   app.use('/api/health-intelligence', healthIntelligenceRoutes);
+  app.use('/api/whatsapp', whatsappRoutes);
 
   // Health check route
   app.get('/api/health', (req, res) => {

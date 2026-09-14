@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, UserPlus, CreditCard, CheckCircle2, DollarSign, Calendar, Mail, ArrowRight, RefreshCw } from 'lucide-react';
+import { X, UserPlus, CreditCard, CheckCircle2, DollarSign, Calendar, Mail, ArrowRight, RefreshCw, BellOff, MessageSquare } from 'lucide-react';
 import { api } from '../services/api';
 
 interface DeskBillingModalProps {
@@ -330,23 +330,34 @@ export const DeskBillingModal: React.FC<DeskBillingModalProps> = ({
                 </div>
               </>
             ) : (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-carbon-300 mb-1.5 uppercase tracking-wider">
-                  Select Athlete
-                </label>
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-carbon-800 border border-slate-200 dark:border-carbon-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-volt-500"
-                >
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.fullName} ({m.email})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-carbon-300 mb-1.5 uppercase tracking-wider">
+                    Select Athlete
+                  </label>
+                  <select
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-carbon-800 border border-slate-200 dark:border-carbon-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-volt-500"
+                  >
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.fullName} ({m.email})
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Auto-turnoff & WhatsApp receipt alert */}
+                  <div className="mt-3 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2.5 text-xs text-emerald-300">
+                    <BellOff className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-emerald-200">Auto-Turnoff Reminder:</span>
+                      <p className="text-[11px] text-emerald-300/85 mt-0.5 leading-relaxed">
+                        Recording renewal payment immediately <strong>turns off prior expiry alerts</strong> for this member and delivers a digital tax invoice receipt to their WhatsApp.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             {/* Membership Plan Selector */}
             <div>

@@ -186,9 +186,27 @@ export const api = {
     inviteCode?: string;
     geofenceRadiusMeters?: number;
   }) => apiRequest('/auth/register-business', { method: 'POST', body: JSON.stringify(payload) }),
-  sendSignupOtp: (payload: { email: string; password: string; fullName: string; phone?: string; role?: string; gymCode?: string; gymId?: string }) =>
+  sendSignupOtp: (payload: {
+    email: string;
+    password: string;
+    fullName: string;
+    phone?: string;
+    whatsAppPhone?: string;
+    isWhatsAppVerified?: boolean;
+    role?: string;
+    gymCode?: string;
+    gymId?: string;
+  }) =>
     apiRequest('/auth/send-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
-  verifySignupOtp: (payload: { email: string; otp: string; device_id?: string; gymCode?: string; gymId?: string }) =>
+  verifySignupOtp: (payload: {
+    email: string;
+    otp: string;
+    device_id?: string;
+    gymCode?: string;
+    gymId?: string;
+    whatsAppPhone?: string;
+    isWhatsAppVerified?: boolean;
+  }) =>
     apiRequest('/auth/verify-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
   resendSignupOtp: (payload: { email: string }) =>
     apiRequest('/auth/resend-signup-otp', { method: 'POST', body: JSON.stringify(payload) }),
@@ -330,7 +348,24 @@ export const api = {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
-  }
+  },
+
+  // WhatsApp OTP, Auto-Bill, Expiry Alerts & Message Logs
+  sendWhatsAppOtp: (payload: { phone: string; fullName?: string; gymName?: string; gymId?: string }) =>
+    apiRequest('/whatsapp/send-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  verifyWhatsAppOtp: (payload: { phone: string; otp: string }) =>
+    apiRequest('/whatsapp/verify-otp', { method: 'POST', body: JSON.stringify(payload) }),
+  sendWhatsAppBill: (subscriptionId: string, phone?: string) =>
+    apiRequest(`/whatsapp/send-bill/${subscriptionId}`, { method: 'POST', body: JSON.stringify({ phone }) }),
+  getWhatsAppLogs: (params?: { phone?: string; userId?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.phone) query.append('phone', params.phone);
+    if (params?.userId) query.append('userId', params.userId);
+    const qs = query.toString();
+    return apiRequest(`/whatsapp/logs${qs ? `?${qs}` : ''}`);
+  },
+  triggerWhatsAppExpiryCheck: () =>
+    apiRequest('/whatsapp/trigger-expiry-check', { method: 'POST' })
 };
 
 

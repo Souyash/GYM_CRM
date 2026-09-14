@@ -16,6 +16,10 @@ import {
   sendMemberLoginOtpEmail,
   sendPasswordResetOtpEmail
 } from '../services/email.service.js';
+import {
+  generateInvoiceNumber,
+  sendWelcomeAndBillWhatsApp
+} from '../services/whatsapp.service.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'gym_super_secure_jwt_secret_key_2026_dev';
 
@@ -169,7 +173,7 @@ export async function registerBusiness(req: AuthenticatedRequest, res: Response)
 
 export async function register(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { email, password, fullName, phone, role, gymCode, gymId, facilityId } = req.body;
+    const { email, password, fullName, phone, whatsAppPhone, isWhatsAppVerified, role, gymCode, gymId, facilityId } = req.body;
 
     if (!email || !password || !fullName) {
       res.status(400).json({ error: 'Email, password, and full name are required.' });
@@ -220,6 +224,9 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
         passwordHash,
         fullName: fullName.trim(),
         phone: phone || null,
+        whatsAppPhone: (whatsAppPhone || phone)?.trim() || null,
+        isWhatsAppVerified: Boolean(isWhatsAppVerified),
+        whatsAppNotificationsEnabled: true,
         role: assignedRole,
         gymId: targetGymId || null,
         facilityId: resolvedFacilityId
@@ -234,7 +241,8 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
     if (assignedRole === 'MEMBER') {
       const startDate = new Date();
       const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-      await prisma.subscription.create({
+      const invoiceNumber = generateInvoiceNumber();
+      const subscription = await prisma.subscription.create({
         data: {
           userId: user.id,
           gymId: targetGymId || null,
@@ -243,9 +251,33 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
           endDate,
           status: 'ACTIVE',
           price: 65,
-          paymentMethod: 'ONLINE'
+          paymentMethod: 'ONLINE',
+          invoiceNumber,
+          expiryNotificationActive: false,
+          expiryAlertStage: 'NONE'
         }
       });
+
+      // Deliver details and invoice to member's WhatsApp
+      const targetPhone = user.whatsAppPhone || user.phone;
+      if (targetPhone) {
+        sendWelcomeAndBillWhatsApp({
+          recipientPhone: targetPhone,
+          fullName: user.fullName,
+          email: user.email,
+          phone: targetPhone,
+          planName: subscription.planName,
+          price: subscription.price,
+          startDate: subscription.startDate,
+          endDate: subscription.endDate,
+          invoiceNumber: subscription.invoiceNumber || 'INV-PENDING',
+          gymName: user.gym?.name || 'FIDGIT Fitness & Gym',
+          gymAddress: user.gym?.address || 'FIDGIT Fitness Center',
+          gymPhone: user.gym?.ownerContactPhone || undefined,
+          gymId: targetGymId || undefined,
+          userId: user.id
+        }).catch(err => console.warn('[WhatsApp] Registration welcome bill dispatch error:', err.message));
+      }
     }
 
     const tokenPayload: JwtPayload = {
@@ -453,7 +485,7 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
  */
 export async function sendSignupOtp(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { email, password, fullName, phone, role, gymCode, gymId, facilityId } = req.body;
+    const { email, password, fullName, phone, whatsAppPhone, isWhatsAppVerified, role, gymCode, gymId, facilityId } = req.body;
 
     if (!email || !password || !fullName) {
       res.status(400).json({ error: 'Email, password, and full name are required.' });
@@ -515,6 +547,8 @@ export async function sendSignupOtp(req: AuthenticatedRequest, res: Response): P
       fullName: fullName.trim(),
       passwordHash,
       phone: phone?.trim() || null,
+      whatsAppPhone: (whatsAppPhone || phone)?.trim() || null,
+      isWhatsAppVerified: Boolean(isWhatsAppVerified),
       role: assignedRole,
       gymId: targetGymId || null,
       facilityId: resolvedFacilityId
@@ -624,6 +658,9 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
         passwordHash: parsed.passwordHash,
         fullName: parsed.fullName,
         phone: parsed.phone,
+        whatsAppPhone: parsed.whatsAppPhone || parsed.phone || null,
+        isWhatsAppVerified: Boolean(parsed.isWhatsAppVerified),
+        whatsAppNotificationsEnabled: true,
         role: parsed.role,
         gymId: targetGymId,
         facilityId: resolvedFacilityId
@@ -638,9 +675,11 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
     const passName = 'Monthly Unlimited Pro Pass';
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const invoiceNumber = generateInvoiceNumber();
 
+    let subscription = null;
     if (user.role === 'MEMBER') {
-      await prisma.subscription.create({
+      subscription = await prisma.subscription.create({
         data: {
           userId: user.id,
           gymId: targetGymId,
@@ -649,9 +688,33 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
           endDate,
           status: 'ACTIVE',
           price: 65,
-          paymentMethod: 'ONLINE'
+          paymentMethod: 'ONLINE',
+          invoiceNumber,
+          expiryNotificationActive: false,
+          expiryAlertStage: 'NONE'
         }
       });
+
+      // Deliver account details and digital invoice to member's WhatsApp
+      const targetPhone = user.whatsAppPhone || user.phone;
+      if (targetPhone) {
+        sendWelcomeAndBillWhatsApp({
+          recipientPhone: targetPhone,
+          fullName: user.fullName,
+          email: user.email,
+          phone: targetPhone,
+          planName: subscription.planName,
+          price: subscription.price,
+          startDate: subscription.startDate,
+          endDate: subscription.endDate,
+          invoiceNumber: subscription.invoiceNumber || 'INV-PENDING',
+          gymName: user.gym?.name || 'FIDGIT Fitness & Gym',
+          gymAddress: user.gym?.address || 'FIDGIT Fitness Center',
+          gymPhone: user.gym?.ownerContactPhone || undefined,
+          gymId: targetGymId || undefined,
+          userId: user.id
+        }).catch(err => console.warn('[WhatsApp] Signup OTP welcome bill dispatch error:', err.message));
+      }
     }
 
     // Delete verified OTP record

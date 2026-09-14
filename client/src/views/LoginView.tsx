@@ -18,7 +18,8 @@ import {
   Copy,
   Check,
   MapPin,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -77,6 +78,54 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [otpCode, setOtpCode] = useState('');
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState<number>(0);
+
+  // WhatsApp OTP Verification state (Sign Up)
+  const [isWhatsAppVerified, setIsWhatsAppVerified] = useState(false);
+  const [whatsAppOtpCode, setWhatsAppOtpCode] = useState('');
+  const [whatsAppStep, setWhatsAppStep] = useState<'IDLE' | 'SENDING' | 'SENT'>('IDLE');
+  const [isVerifyingWhatsApp, setIsVerifyingWhatsApp] = useState(false);
+  const [whatsAppNotice, setWhatsAppNotice] = useState<string | null>(null);
+
+  const handleSendSignupWhatsAppOtp = async () => {
+    if (!newPhone.trim()) {
+      setWhatsAppNotice('Please enter your WhatsApp phone number.');
+      return;
+    }
+    setWhatsAppStep('SENDING');
+    setWhatsAppNotice(null);
+    try {
+      const res = await api.sendWhatsAppOtp({
+        phone: newPhone.trim(),
+        fullName: fullName.trim() || undefined
+      });
+      setWhatsAppStep('SENT');
+      setWhatsAppNotice(res.message || `A 6-digit WhatsApp OTP was sent to ${newPhone.trim()}.`);
+    } catch (err: any) {
+      setWhatsAppStep('IDLE');
+      setWhatsAppNotice(err.message || 'Failed to dispatch WhatsApp code.');
+    }
+  };
+
+  const handleVerifySignupWhatsAppOtp = async () => {
+    if (whatsAppOtpCode.trim().length !== 6) {
+      setWhatsAppNotice('Please enter the 6-digit WhatsApp OTP.');
+      return;
+    }
+    setIsVerifyingWhatsApp(true);
+    try {
+      await api.verifyWhatsAppOtp({
+        phone: newPhone.trim(),
+        otp: whatsAppOtpCode.trim()
+      });
+      setIsWhatsAppVerified(true);
+      setWhatsAppStep('IDLE');
+      setWhatsAppNotice('✓ WhatsApp verified! Your digital bill and access details will be sent here upon signup.');
+    } catch (err: any) {
+      setWhatsAppNotice(err.message || 'Invalid or expired WhatsApp OTP.');
+    } finally {
+      setIsVerifyingWhatsApp(false);
+    }
+  };
 
   // Register Business Fields (Gym Owner Onboarding)
   const [bizGymName, setBizGymName] = useState('');
@@ -395,6 +444,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
         fullName: fullName.trim(),
         email: newEmail.trim(),
         phone: newPhone.trim() || undefined,
+        whatsAppPhone: newPhone.trim() || undefined,
+        isWhatsAppVerified,
         password: newPassword,
         role: 'MEMBER',
         gymCode: gymCode.trim()
@@ -1231,20 +1282,78 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 mb-1.5">
-                  Phone (Optional)
-                </label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
-                  <input
-                    type="tel"
-                    placeholder="+1 555-019-2834"
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
-                  />
+              <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300">
+                    WhatsApp Phone (for Bill & Access Pass)
+                  </label>
+                  {isWhatsAppVerified ? (
+                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                      Verified ✓
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-500 dark:text-zinc-400">
+                      Get invoice on WhatsApp
+                    </span>
+                  )}
                 </div>
+
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Phone className="w-4 h-4 text-slate-400 dark:text-zinc-500 absolute left-3.5 top-3.5" />
+                    <input
+                      type="tel"
+                      placeholder="WhatsApp No. (e.g. 9876543210)"
+                      value={newPhone}
+                      onChange={(e) => {
+                        setNewPhone(e.target.value);
+                        if (isWhatsAppVerified) setIsWhatsAppVerified(false);
+                      }}
+                      className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500"
+                    />
+                  </div>
+
+                  {!isWhatsAppVerified && (
+                    <button
+                      type="button"
+                      disabled={!newPhone.trim() || whatsAppStep === 'SENDING'}
+                      onClick={handleSendSignupWhatsAppOtp}
+                      className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-40 shrink-0"
+                    >
+                      {whatsAppStep === 'SENDING' ? <RefreshCw className="w-3 h-3 animate-spin" /> : <MessageSquare className="w-3 h-3" />}
+                      {whatsAppStep === 'SENT' ? 'Resend' : 'Verify WA'}
+                    </button>
+                  )}
+                </div>
+
+                {whatsAppStep === 'SENT' && !isWhatsAppVerified && (
+                  <div className="flex items-center gap-2 pt-1 animate-fade-in">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="6-Digit WhatsApp Code"
+                      value={whatsAppOtpCode}
+                      onChange={(e) => setWhatsAppOtpCode(e.target.value.replace(/\D/g, ''))}
+                      className="flex-1 px-3 py-2 bg-white dark:bg-zinc-950 border-2 border-emerald-500/60 rounded-xl text-xs font-mono font-bold tracking-widest text-slate-900 dark:text-white text-center focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      disabled={whatsAppOtpCode.length !== 6 || isVerifyingWhatsApp}
+                      onClick={handleVerifySignupWhatsAppOtp}
+                      className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-40"
+                    >
+                      {isVerifyingWhatsApp ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                      Confirm
+                    </button>
+                  </div>
+                )}
+
+                {whatsAppNotice && (
+                  <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                    {whatsAppNotice}
+                  </p>
+                )}
               </div>
 
               <div>

@@ -8,6 +8,11 @@ import {
   resolveValidBilledById
 } from '../middleware/auth.middleware.js';
 import { sendDeskOnboardOtpEmail, sendWelcomeEmail } from '../services/email.service.js';
+import {
+  generateInvoiceNumber,
+  sendWelcomeAndBillWhatsApp,
+  sendPaymentReceiptWhatsApp
+} from '../services/whatsapp.service.js';
 
 const STANDARD_PLANS = [
   { id: 'plan-day', name: 'Day Pass', durationDays: 1, price: 15.0 },
@@ -29,6 +34,8 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       fullName,
       email,
       phone,
+      whatsAppPhone,
+      isWhatsAppVerified,
       role = 'MEMBER',
       planName = 'Monthly Pro Access',
       durationDays = 30,
@@ -63,6 +70,8 @@ export async function sendOnboardOtp(req: AuthenticatedRequest, res: Response): 
       fullName: fullName.trim(),
       email: cleanEmail,
       phone: phone?.trim() || null,
+      whatsAppPhone: (whatsAppPhone || phone)?.trim() || null,
+      isWhatsAppVerified: Boolean(isWhatsAppVerified),
       role: role.toUpperCase(),
       planName,
       durationDays: Number(durationDays),
@@ -188,6 +197,9 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
           fullName: data.fullName || 'Member',
           email: cleanEmail,
           phone: data.phone || null,
+          whatsAppPhone: data.whatsAppPhone || data.phone || null,
+          isWhatsAppVerified: Boolean(data.isWhatsAppVerified),
+          whatsAppNotificationsEnabled: true,
           passwordHash,
           role: data.role || 'MEMBER',
           gymId: targetGymId,
@@ -198,6 +210,7 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
 
       let subscription = null;
       if ((data.role || 'MEMBER') === 'MEMBER') {
+        const invoiceNumber = generateInvoiceNumber();
         subscription = await tx.subscription.create({
           data: {
             userId: user.id,
@@ -208,7 +221,10 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
             endDate,
             status: 'ACTIVE',
             deskBilledById: validBilledById,
-            paymentMethod: data.paymentMethod || 'CASH'
+            paymentMethod: data.paymentMethod || 'CASH',
+            invoiceNumber,
+            expiryNotificationActive: false, // Turned off initially upon payment
+            expiryAlertStage: 'NONE'
           }
         });
       }
@@ -228,6 +244,29 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
       planName: data.planName || 'Monthly Pro Access',
       endDate
     }).catch((err) => console.warn('Welcome email error:', err.message));
+
+    // Deliver welcome pack + digital invoice directly to member's WhatsApp
+    const targetPhone = result.user.whatsAppPhone || result.user.phone;
+    if (targetPhone && result.subscription) {
+      prisma.gym.findUnique({ where: { id: targetGymId || '' } }).then((gym) => {
+        sendWelcomeAndBillWhatsApp({
+          recipientPhone: targetPhone,
+          fullName: result.user.fullName,
+          email: result.user.email,
+          phone: targetPhone,
+          planName: result.subscription!.planName,
+          price: result.subscription!.price,
+          startDate: result.subscription!.startDate,
+          endDate: result.subscription!.endDate,
+          invoiceNumber: result.subscription!.invoiceNumber || 'INV-PENDING',
+          gymName: gym?.name || 'FIDGIT Fitness & Gym',
+          gymAddress: gym?.address || 'FIDGIT Fitness Center',
+          gymPhone: gym?.ownerContactPhone || undefined,
+          gymId: targetGymId || undefined,
+          userId: result.user.id
+        }).catch(err => console.warn('[WhatsApp] Desk onboard dispatch error:', err.message));
+      }).catch(err => console.warn('[WhatsApp] Gym lookup error:', err.message));
+    }
 
     res.status(201).json({
       success: true,
@@ -255,6 +294,8 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
       fullName,
       email,
       phone,
+      whatsAppPhone,
+      isWhatsAppVerified,
       role = 'MEMBER',
       password,
       planName,
@@ -293,6 +334,9 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
           fullName: fullName.trim(),
           email: cleanEmail,
           phone: phone?.trim() || null,
+          whatsAppPhone: whatsAppPhone?.trim() || phone?.trim() || null,
+          isWhatsAppVerified: Boolean(isWhatsAppVerified),
+          whatsAppNotificationsEnabled: true,
           passwordHash,
           role: role.toUpperCase(),
           gymId: targetGymId,
@@ -303,6 +347,7 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
 
       let subscription = null;
       if (role.toUpperCase() === 'MEMBER') {
+        const invoiceNumber = generateInvoiceNumber();
         subscription = await tx.subscription.create({
           data: {
             userId: user.id,
@@ -313,7 +358,10 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
             endDate,
             status: 'ACTIVE',
             deskBilledById: validBilledById,
-            paymentMethod
+            paymentMethod,
+            invoiceNumber,
+            expiryNotificationActive: false, // Turn off notifications initially upon payment
+            expiryAlertStage: 'NONE'
           }
         });
       }
@@ -323,6 +371,29 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
 
     console.log(`[Account Creation] Created ${result.user.role} account for ${result.user.fullName} in gym ${targetGymId}`);
 
+    // Deliver welcome pack + digital bill to member's WhatsApp
+    const targetPhone = result.user.whatsAppPhone || result.user.phone;
+    if (targetPhone && result.subscription) {
+      prisma.gym.findUnique({ where: { id: targetGymId || '' } }).then((gym) => {
+        sendWelcomeAndBillWhatsApp({
+          recipientPhone: targetPhone,
+          fullName: result.user.fullName,
+          email: result.user.email,
+          phone: targetPhone,
+          planName: result.subscription!.planName,
+          price: result.subscription!.price,
+          startDate: result.subscription!.startDate,
+          endDate: result.subscription!.endDate,
+          invoiceNumber: result.subscription!.invoiceNumber || 'INV-PENDING',
+          gymName: gym?.name || 'FIDGIT Fitness & Gym',
+          gymAddress: gym?.address || 'FIDGIT Fitness Center',
+          gymPhone: gym?.ownerContactPhone || undefined,
+          gymId: targetGymId || undefined,
+          userId: result.user.id
+        }).catch(err => console.warn('[WhatsApp] Onboard bill delivery error:', err.message));
+      }).catch(err => console.warn('[WhatsApp] Gym lookup error:', err.message));
+    }
+
     res.status(201).json({
       message: `${result.user.role} account created successfully.`,
       user: {
@@ -330,6 +401,8 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
         fullName: result.user.fullName,
         email: result.user.email,
         phone: result.user.phone,
+        whatsAppPhone: result.user.whatsAppPhone,
+        isWhatsAppVerified: result.user.isWhatsAppVerified,
         role: result.user.role,
         gymId: result.user.gymId,
         tempPassword: plainPassword,
@@ -370,6 +443,16 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
     const validBilledById = await resolveValidBilledById(managerId);
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + Number(durationDays) * 24 * 60 * 60 * 1000);
+    const invoiceNumber = generateInvoiceNumber();
+
+    // Turn off prior expiry notifications once member pays next fees!
+    await prisma.subscription.updateMany({
+      where: { userId, expiryNotificationActive: true },
+      data: {
+        expiryNotificationActive: false,
+        expiryAlertStage: 'NONE'
+      }
+    });
 
     const subscription = await prisma.subscription.create({
       data: {
@@ -381,14 +464,37 @@ export async function deskBilling(req: AuthenticatedRequest, res: Response): Pro
         endDate,
         status: 'ACTIVE',
         deskBilledById: validBilledById,
-        paymentMethod
+        paymentMethod,
+        invoiceNumber,
+        expiryNotificationActive: false, // Turn off notifications for renewed period until 3 days before next expiry
+        expiryAlertStage: 'NONE'
       }
     });
 
-    console.log(`[Desk Billing] Renewed plan '${planName}' for ${user.fullName} in gym ${targetGymId}`);
+    console.log(`[Desk Billing] Renewed plan '${planName}' for ${user.fullName} in gym ${targetGymId}. Expiry alerts turned off.`);
+
+    // Dispatch renewed bill & receipt to WhatsApp
+    const targetPhone = user.whatsAppPhone || user.phone;
+    if (targetPhone) {
+      prisma.gym.findUnique({ where: { id: targetGymId || '' } }).then((gym) => {
+        sendPaymentReceiptWhatsApp({
+          recipientPhone: targetPhone,
+          fullName: user.fullName,
+          planName: subscription.planName,
+          price: subscription.price,
+          invoiceNumber: subscription.invoiceNumber || 'INV-RENEW',
+          startDate: subscription.startDate,
+          endDate: subscription.endDate,
+          paymentMethod: subscription.paymentMethod || 'CASH',
+          gymName: gym?.name || 'FIDGIT Fitness & Gym',
+          gymId: targetGymId || undefined,
+          userId: user.id
+        }).catch(err => console.warn('[WhatsApp] Desk renewal receipt dispatch error:', err.message));
+      }).catch(err => console.warn('[WhatsApp] Gym lookup error:', err.message));
+    }
 
     res.status(201).json({
-      message: 'Subscription successfully billed at desk.',
+      message: 'Subscription successfully billed at desk. Expiry notifications turned off and WhatsApp receipt sent.',
       subscription
     });
   } catch (error: any) {

@@ -39,6 +39,7 @@ model Gym {
   deviceChangeRequests DeviceChangeRequest[]
   healthProfiles       MemberHealthProfile[]
   facilities           Facility[]
+  whatsAppMessages     WhatsAppMessageLog[]
 }
 
 // -------------------------------------------------------------
@@ -91,6 +92,12 @@ model User {
   boundDeviceName        String?               // User agent / Device Model
   deviceStatus           String                @default("NORMAL") // NORMAL, FLAGGED_MULTI_DEVICE
   
+  // WhatsApp Integration & Verification
+  whatsAppPhone                String?
+  isWhatsAppVerified           Boolean               @default(false)
+  whatsAppNotificationsEnabled Boolean               @default(true)
+  whatsAppMessages             WhatsAppMessageLog[]
+
   isActive               Boolean               @default(true)
   avatarUrl              String?
   createdAt              DateTime              @default(now())
@@ -111,6 +118,7 @@ model User {
 
   @@index([gymId])
   @@index([role])
+  @@index([whatsAppPhone])
 }
 
 // -------------------------------------------------------------
@@ -131,11 +139,19 @@ model Subscription {
   deskBilledById String?     // Manager who processed billing at desk
   deskBilledBy   User?       @relation("DeskBilledBy", fields: [deskBilledById], references: [id], onDelete: SetNull)
   paymentMethod  String      @default("CASH") // CASH, CARD, ONLINE
+  
+  // Invoice & WhatsApp Expiry Notification Tracking
+  invoiceNumber            String?
+  expiryNotificationActive Boolean   @default(true)
+  lastExpiryAlertSentAt    DateTime?
+  expiryAlertStage         String    @default("NONE") // NONE, STAGE_3D, STAGE_1D, EXPIRED
+
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   @@index([userId, status])
   @@index([gymId])
+  @@index([expiryNotificationActive, endDate])
 }
 
 // -------------------------------------------------------------
@@ -410,4 +426,26 @@ model MemberHealthProfile {
   @@index([primaryGoal])
   @@index([referralSource])
   @@index([city])
+}
+
+// -------------------------------------------------------------
+// 11. WhatsApp Message Logs & Delivery Tracking
+// -------------------------------------------------------------
+model WhatsAppMessageLog {
+  id             String    @id @default(uuid())
+  gymId          String?
+  gym            Gym?      @relation(fields: [gymId], references: [id], onDelete: SetNull)
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  recipientPhone String
+  messageType    String    // OTP, WELCOME_PACKET, BILL_INVOICE, EXPIRY_REMINDER, RENEWAL_CONFIRMATION
+  content        String
+  status         String    // DELIVERED, SIMULATED, FAILED
+  metadata       String?   // JSON details (planName, invoiceNumber, amount, etc.)
+  createdAt      DateTime  @default(now())
+
+  @@index([recipientPhone])
+  @@index([userId])
+  @@index([messageType])
+  @@index([createdAt])
 }
