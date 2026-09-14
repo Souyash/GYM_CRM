@@ -19,10 +19,12 @@ import {
   Bell,
   BellOff,
   Send,
-  RefreshCw
+  RefreshCw,
+  Smartphone
 } from 'lucide-react';
 import { api } from '../services/api';
 import { WhatsAppDeliveryPreviewModal } from '../components/WhatsAppDeliveryPreviewModal';
+import { WhatsAppDeviceLinkModal } from '../components/WhatsAppDeviceLinkModal';
 
 interface MemberRosterViewProps {
   membersList: any[];
@@ -76,6 +78,7 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
   const [previewMember, setPreviewMember] = useState<any>(null);
   const [sendingBillId, setSendingBillId] = useState<string | null>(null);
   const [isTriggeringCheck, setIsTriggeringCheck] = useState(false);
+  const [isWhatsAppDeviceModalOpen, setIsWhatsAppDeviceModalOpen] = useState(false);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   const handleSendWhatsAppBill = async (member: any) => {
@@ -321,6 +324,16 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
                 <Bell className="w-3.5 h-3.5 text-amber-400" />
               )}
               <span className="hidden sm:inline">Check Expiry Alerts</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsWhatsAppDeviceModalOpen(true)}
+              className="py-2 px-3 sm:px-4 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 font-bold text-xs flex items-center gap-1.5 border border-emerald-500/20 transition whitespace-nowrap shadow-sm active:scale-95"
+              title="Link or Manage WhatsApp Phone for Automated Bills & Reminders"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">WhatsApp Device</span>
             </button>
 
             <button
@@ -610,6 +623,12 @@ export const MemberRosterView: React.FC<MemberRosterViewProps> = ({
           paymentMethod: previewMember?.latestSubscription?.paymentMethod || 'CASH',
           gymName: previewMember?.gym?.name || 'FIDGIT Fitness Center'
         }}
+      />
+
+      {/* WhatsApp Multi-Device Scan Modal */}
+      <WhatsAppDeviceLinkModal
+        isOpen={isWhatsAppDeviceModalOpen}
+        onClose={() => setIsWhatsAppDeviceModalOpen(false)}
       />
     </div>
   );

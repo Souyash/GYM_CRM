@@ -15,11 +15,14 @@ import {
   MessageSquare,
   Globe,
   HeartPulse,
-  Bell
+  Bell,
+  Smartphone
 } from 'lucide-react';
 import { IronVaultLogo } from './IronVaultLogo';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { WhatsAppDeviceLinkModal } from './WhatsAppDeviceLinkModal';
+import { api } from '../services/api';
 
 interface NavbarProps {
   currentTab: string;
@@ -36,6 +39,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const { unreadCount, setIsCenterOpen } = useNotifications();
+  const isStaff = user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_OWNER' || user?.role === 'MANAGER';
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [isWhatsAppOnline, setIsWhatsAppOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (isStaff) {
+      api.getWhatsAppDeviceStatus()
+        .then((res: any) => setIsWhatsAppOnline(res?.isConnected ?? false))
+        .catch(() => setIsWhatsAppOnline(false));
+    }
+  }, [isStaff, isWhatsAppModalOpen]);
+
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('gym_theme');
@@ -225,6 +240,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
+            {/* WhatsApp Linked Device Status & Setup Button */}
+            {isStaff && (
+              <button
+                onClick={() => setIsWhatsAppModalOpen(true)}
+                className="relative p-2.5 rounded-full bg-[#0e1015] hover:bg-zinc-800 border border-white/10 text-zinc-300 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+                title={isWhatsAppOnline ? 'WhatsApp Multi-Device: Online' : 'WhatsApp Multi-Device: Scan QR to Link Phone'}
+              >
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+                <span className="hidden xl:inline text-xs font-bold text-zinc-300">
+                  WA Phone
+                </span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isWhatsAppOnline ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-amber-400 animate-pulse'
+                  }`}
+                />
+              </button>
+            )}
+
             {/* Interactive Theme Switcher */}
             <button
               onClick={toggleTheme}
@@ -293,6 +327,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
+
+      <WhatsAppDeviceLinkModal
+        isOpen={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+      />
     </header>
   );
 };

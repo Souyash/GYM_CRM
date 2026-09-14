@@ -235,3 +235,4 @@ Use this code to verify your phone number and activate your gym pass. This code 
     </div>
   );
 };
+

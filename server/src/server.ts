@@ -3,13 +3,15 @@ import http from 'http';
 import { createApp } from './app.js';
 import { initializeSocket } from './services/socket.service.js';
 import { startExpiryScheduler } from './services/whatsappScheduler.service.js';
+import { initWhatsAppSocket } from './services/whatsappSocket.service.js';
 
 const app = createApp();
 const server = http.createServer(app);
 
 const clientOrigin = process.env.CLIENT_ORIGIN || '*';
-initializeSocket(server, clientOrigin);
+const io = initializeSocket(server, clientOrigin);
 startExpiryScheduler();
+initWhatsAppSocket(io);
 
 const PORT = process.env.PORT || 5001;
 

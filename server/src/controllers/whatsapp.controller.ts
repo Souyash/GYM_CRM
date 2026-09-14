@@ -279,3 +279,69 @@ export async function triggerExpiryCheckController(req: AuthenticatedRequest, re
     res.status(500).json({ error: 'Failed to run expiry check.' });
   }
 }
+
+import {
+  getWhatsAppDeviceStatus,
+  disconnectWhatsAppDevice,
+  sendSocketWhatsAppMessage
+} from '../services/whatsappSocket.service.js';
+
+/**
+ * 6. Get WhatsApp Linked Device Status (Phone, Name, QR Code Data URL)
+ */
+export async function getWhatsAppDeviceStatusController(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const status = getWhatsAppDeviceStatus();
+    res.json(status);
+  } catch (error: any) {
+    console.error('getWhatsAppDeviceStatusController error:', error);
+    res.status(500).json({ error: 'Failed to retrieve WhatsApp device status.' });
+  }
+}
+
+/**
+ * 7. Disconnect / Unlink WhatsApp Linked Device Session
+ */
+export async function disconnectWhatsAppDeviceController(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const result = await disconnectWhatsAppDevice();
+    res.json(result);
+  } catch (error: any) {
+    console.error('disconnectWhatsAppDeviceController error:', error);
+    res.status(500).json({ error: 'Failed to unlink WhatsApp device session.' });
+  }
+}
+
+/**
+ * 8. Send Test Ping to WhatsApp Number to Verify Linked Phone
+ */
+export async function sendWhatsAppDeviceTestController(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { phone } = req.body;
+    if (!phone) {
+      res.status(400).json({ error: 'Recipient phone number is required.' });
+      return;
+    }
+
+    const testContent = `🏋️ *FIDGIT GYM • SYSTEM TEST*\n\nHello! This is an automated test message from your FIDGIT Gym CRM.\n\nYour WhatsApp Business phone is successfully linked and ready to send member invoices, security OTPs, and expiry reminders! 🚀\n\n_Sent at ${new Date().toLocaleTimeString('en-US')}_`;
+
+    const result = await sendSocketWhatsAppMessage(phone, testContent);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: `Test ping delivered successfully to ${phone}. Check your WhatsApp chat!`,
+        messageId: result.messageId
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Failed to dispatch test message via linked device.'
+      });
+    }
+  } catch (error: any) {
+    console.error('sendWhatsAppDeviceTestController error:', error);
+    res.status(500).json({ error: 'Failed to send WhatsApp test message.' });
+  }
+}
+

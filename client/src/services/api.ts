@@ -365,7 +365,15 @@ export const api = {
     return apiRequest(`/whatsapp/logs${qs ? `?${qs}` : ''}`);
   },
   triggerWhatsAppExpiryCheck: () =>
-    apiRequest('/whatsapp/trigger-expiry-check', { method: 'POST' })
+    apiRequest('/whatsapp/trigger-expiry-check', { method: 'POST' }),
+
+  // WhatsApp Linked Device (Scan QR)
+  getWhatsAppDeviceStatus: () =>
+    apiRequest('/whatsapp/device-status'),
+  disconnectWhatsAppDevice: () =>
+    apiRequest('/whatsapp/device-disconnect', { method: 'POST' }),
+  sendWhatsAppDeviceTest: (phone: string) =>
+    apiRequest('/whatsapp/device-test', { method: 'POST', body: JSON.stringify({ phone }) })
 };
 
 

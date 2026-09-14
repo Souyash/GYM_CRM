@@ -89,9 +89,11 @@ export function generateInvoiceNumber(): string {
   return `INV-${year}-${rand}`;
 }
 
+import { isWhatsAppSocketConnected, sendSocketWhatsAppMessage } from './whatsappSocket.service.js';
+
 /**
  * Low-level dispatch function:
- * Supports Meta Cloud API, Twilio WhatsApp, and local Developer Sandbox simulation.
+ * Supports WhatsApp Linked Device (Socket), Meta Cloud API, and local Developer Sandbox simulation.
  */
 async function dispatchWhatsAppMessage(
   recipientPhone: string,
@@ -109,7 +111,20 @@ async function dispatchWhatsAppMessage(
   let deliveryStatus: 'DELIVERED' | 'SIMULATED' | 'FAILED' = 'SIMULATED';
   let deliveryError: string | undefined;
 
-  if (metaToken && phoneNumberId) {
+  // 1. Priority: WhatsApp Linked Device (Baileys Phone Socket)
+  if (isWhatsAppSocketConnected()) {
+    const socketRes = await sendSocketWhatsAppMessage(normalizedPhone, content);
+    if (socketRes.success) {
+      deliveryStatus = 'DELIVERED';
+      console.log(`[WhatsApp Linked Device] Delivered message (${messageType}) to ${normalizedPhone}, MsgId: ${socketRes.messageId}`);
+    } else {
+      console.warn(`[WhatsApp Socket Warning] Socket dispatch failed: ${socketRes.error}. Falling back to secondary channels...`);
+      deliveryError = socketRes.error;
+    }
+  }
+
+  // 2. Secondary: Meta Cloud API (if configured and socket was not used/failed)
+  if (deliveryStatus !== 'DELIVERED' && metaToken && phoneNumberId) {
     try {
       const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
       const response = await fetch(url, {
@@ -130,7 +145,8 @@ async function dispatchWhatsAppMessage(
       const responseData: any = await response.json();
       if (response.ok && responseData?.messages?.[0]?.id) {
         deliveryStatus = 'DELIVERED';
-        console.log(`[WhatsApp Live] Delivered message (${messageType}) to ${normalizedPhone}, MsgId: ${responseData.messages[0].id}`);
+        deliveryError = undefined;
+        console.log(`[WhatsApp Live Meta API] Delivered message (${messageType}) to ${normalizedPhone}, MsgId: ${responseData.messages[0].id}`);
       } else {
         deliveryStatus = 'FAILED';
         deliveryError = responseData?.error?.message || 'Meta API returned an error';
@@ -141,8 +157,8 @@ async function dispatchWhatsAppMessage(
       deliveryError = err.message;
       console.error(`[WhatsApp API Exception]`, err);
     }
-  } else {
-    // Zero-Config Developer Simulation Mode
+  } else if (deliveryStatus !== 'DELIVERED') {
+    // 3. Zero-Config Developer Simulation Mode (when neither socket nor Meta API delivered)
     deliveryStatus = 'SIMULATED';
     console.log(`\n======================================================`);
     console.log(`💬 [WHATSAPP DISPATCH] (Simulated Dev Mode)`);
