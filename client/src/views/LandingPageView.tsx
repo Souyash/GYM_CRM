@@ -26,6 +26,7 @@ import {
   Activity,
   Award
 } from 'lucide-react';
+import { PrivacyPolicyModal } from '../components/PrivacyPolicyModal';
 
 export interface LandingPageViewProps {
   onOpenAuth: (tab?: 'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS', planName?: string) => void;
@@ -53,6 +54,16 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
   const [isAppInstalled, setIsAppInstalled] = useState<boolean>(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
   const [installTab, setInstallTab] = useState<'ios' | 'android' | 'desktop'>('android');
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (window.location.hash === '#privacy' || window.location.pathname === '/privacy') {
+      setIsPrivacyModalOpen(true);
+    }
+    const handleOpenPrivacy = () => setIsPrivacyModalOpen(true);
+    window.addEventListener('open-privacy-policy', handleOpenPrivacy);
+    return () => window.removeEventListener('open-privacy-policy', handleOpenPrivacy);
+  }, []);
 
   useEffect(() => {
     // Detect if running in standalone mode (already installed as PWA)
@@ -1025,9 +1036,15 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </div>
 
           <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
-            <p>© {new Date().getFullYear()} FIDGIT Technologies Inc. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} FIDGIT. All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <span className="hover:text-white transition cursor-pointer">Privacy Policy</span>
+              <button
+                type="button"
+                onClick={() => setIsPrivacyModalOpen(true)}
+                className="hover:text-[#ccff00] transition cursor-pointer"
+              >
+                Privacy Policy
+              </button>
               <span className="hover:text-white transition cursor-pointer">Terms of Service</span>
               <span className="hover:text-white transition cursor-pointer">Security Whitepaper</span>
             </div>
@@ -1158,6 +1175,12 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* 10. FIDGIT LEGAL PRIVACY POLICY MODAL */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
     </div>
   );
 };

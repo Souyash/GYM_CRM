@@ -29,13 +29,15 @@ interface NavbarProps {
   setCurrentTab: (tab: string) => void;
   onOpenScanner?: () => void;
   onViewPublicSite?: () => void;
+  onOpenPrivacyPolicy?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
   setCurrentTab,
   onOpenScanner,
-  onViewPublicSite
+  onViewPublicSite,
+  onOpenPrivacyPolicy
 }) => {
   const { user, logout } = useAuth();
   const { unreadCount, setIsCenterOpen } = useNotifications();
@@ -238,6 +240,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Globe className="w-3.5 h-3.5 text-[#ccff00]" />
                 <span>Public Site</span>
+              </button>
+            )}
+
+            {/* FIDGIT Legal Privacy Policy Button */}
+            {onOpenPrivacyPolicy && (
+              <button
+                onClick={onOpenPrivacyPolicy}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-[#0e1015] hover:bg-zinc-800 border border-white/10 text-xs font-bold text-zinc-300 hover:text-[#ccff00] transition active:scale-95 cursor-pointer"
+                title="FIDGIT Privacy Policy & Health Data Protection"
+              >
+                <Shield className="w-3.5 h-3.5 text-[#ccff00]" />
+                <span className="hidden xl:inline">Privacy</span>
               </button>
             )}
 

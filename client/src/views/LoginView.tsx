@@ -24,6 +24,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { IronVaultLogo } from '../components/IronVaultLogo';
+import { PrivacyPolicyModal } from '../components/PrivacyPolicyModal';
 
 export interface LoginViewProps {
   initialTab?: 'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS';
@@ -38,6 +39,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
 }) => {
   const { login, verifyOtpAndLogin, registerBusiness, sendMemberLoginOtp, loginWithOtp, logoutNotice, clearLogoutNotice } = useAuth();
   const [activeTab, setActiveTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS'>(initialTab);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (window.location.hash === '#privacy') {
+      setIsPrivacyModalOpen(true);
+    }
+  }, []);
 
   // Member Login Fields
   const [memberLoginMode, setMemberLoginMode] = useState<'OTP' | 'PASSWORD'>('OTP');
@@ -1664,7 +1672,25 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Legal & Privacy Note */}
+        <div className="text-center text-xs text-zinc-500 pt-2 pb-6">
+          <span>By continuing, you agree to FIDGIT's </span>
+          <button
+            type="button"
+            onClick={() => setIsPrivacyModalOpen(true)}
+            className="text-[#ccff00] hover:underline font-semibold cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          <span> &amp; Health Data Protection terms.</span>
+        </div>
       </div>
+
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
     </div>
   );
 };

@@ -45,6 +45,7 @@ import { MemberOnboardingModal } from '../components/MemberOnboardingModal';
 import { MemberOnboardingForm } from '../components/MemberOnboardingForm';
 import { MemberDigitalPass } from '../components/MemberDigitalPass';
 import { FirstTimeMemberEnrollmentModal } from '../components/FirstTimeMemberEnrollmentModal';
+import { PrivacyPolicyModal } from '../components/PrivacyPolicyModal';
 
 interface MemberProfileProps {
   onOpenScanner: (mode?: 'ENTER' | 'EXIT') => void;
@@ -83,6 +84,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [editTimeline, setEditTimeline] = useState('3 Months');
   const [isSavingHealth, setIsSavingHealth] = useState(false);
   const [isEnrollmentModalOpen, setIsEnrollmentModalOpen] = useState<boolean>(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (user && user.role === 'MEMBER' && !user.hasCompletedEnrollment) {
@@ -1287,6 +1289,24 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         }}
       />
 
+      {/* Platform Compliance & Privacy Footer */}
+      <div className="pt-8 pb-4 text-center space-y-2 border-t border-white/5">
+        <div className="flex items-center justify-center gap-3 text-xs text-zinc-500">
+          <span>© {new Date().getFullYear()} FIDGIT</span>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => setIsPrivacyModalOpen(true)}
+            className="text-zinc-400 hover:text-[#ccff00] transition underline underline-offset-4 cursor-pointer"
+          >
+            Privacy Policy &amp; Health Data Protection
+          </button>
+        </div>
+        <p className="text-[11px] text-zinc-600">
+          Your biometrics and personal health records are encrypted and protected under FIDGIT privacy standards.
+        </p>
+      </div>
+
       {/* First-Time Member Admission & KYC Enrollment Modal */}
       <FirstTimeMemberEnrollmentModal
         isOpen={isEnrollmentModalOpen}
@@ -1296,6 +1316,12 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
           refreshProfile();
           loadHealthProfile();
         }}
+      />
+
+      {/* FIDGIT Legal Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
       />
     </div>
   );

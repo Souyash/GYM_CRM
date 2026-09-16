@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { api } from '../services/api';
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 interface FirstTimeMemberEnrollmentModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const FirstTimeMemberEnrollmentModal: React.FC<FirstTimeMemberEnrollmentM
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   // Form Fields
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -440,7 +442,7 @@ export const FirstTimeMemberEnrollmentModal: React.FC<FirstTimeMemberEnrollmentM
                     className="mt-0.5 accent-[#ccff00] w-4 h-4 rounded"
                   />
                   <span>
-                    I confirm that the details provided are accurate and complete. I voluntarily participate in physical exercises and agree to follow all gym floor safety policies.
+                    I confirm that the details provided are accurate and complete. I voluntarily participate in physical exercises and agree to follow all gym floor safety policies and <button type="button" onClick={() => setIsPrivacyModalOpen(true)} className="text-[#ccff00] underline font-bold hover:text-white cursor-pointer">FIDGIT Privacy Policy</button>.
                   </span>
                 </label>
               </div>
@@ -467,6 +469,11 @@ export const FirstTimeMemberEnrollmentModal: React.FC<FirstTimeMemberEnrollmentM
           )}
         </div>
       </div>
+
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
+      />
     </div>
   );
 };

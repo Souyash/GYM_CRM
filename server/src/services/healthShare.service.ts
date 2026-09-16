@@ -168,3 +168,4 @@ Stay dedicated to your journey! Your trainers and team at *${gymName}* are with 
     };
   }
 }
+

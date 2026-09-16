@@ -19,6 +19,7 @@ import { PreloaderScreen } from './components/PreloaderScreen';
 import { MemberRosterView } from './views/MemberRosterView';
 import { ZomatoLiveBanner } from './components/ZomatoLiveBanner';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import {
   Users,
   CreditCard,
@@ -47,6 +48,23 @@ export const AppContent: React.FC = () => {
   const [authInitialTab, setAuthInitialTab] = useState<'MEMBER_LOGIN' | 'STAFF_LOGIN' | 'SIGNUP' | 'REGISTER_BUSINESS'>('MEMBER_LOGIN');
   const [authSelectedPlan, setAuthSelectedPlan] = useState<string | undefined>(undefined);
   const [viewPublicSiteAsUser, setViewPublicSiteAsUser] = useState<boolean>(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkHash = () => {
+      if (window.location.hash === '#privacy' || window.location.pathname === '/privacy') {
+        setIsPrivacyModalOpen(true);
+      }
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    const handleOpenPrivacy = () => setIsPrivacyModalOpen(true);
+    window.addEventListener('open-privacy-policy', handleOpenPrivacy);
+    return () => {
+      window.removeEventListener('hashchange', checkHash);
+      window.removeEventListener('open-privacy-policy', handleOpenPrivacy);
+    };
+  }, []);
 
   // Member table state for Desk Billing tab
   const [membersList, setMembersList] = useState<any[]>([]);
@@ -210,6 +228,7 @@ export const AppContent: React.FC = () => {
         setCurrentTab={setCurrentTab}
         onOpenScanner={() => setIsScannerOpen(true)}
         onViewPublicSite={() => setViewPublicSiteAsUser(true)}
+        onOpenPrivacyPolicy={() => setIsPrivacyModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -337,6 +356,12 @@ export const AppContent: React.FC = () => {
           setScannerInitialMode('ENTER');
           setIsScannerOpen(true);
         }}
+      />
+
+      {/* FIDGIT Legal Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
       />
     </div>
   );
