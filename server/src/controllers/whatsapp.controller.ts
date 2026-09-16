@@ -269,9 +269,10 @@ export async function getWhatsAppLogsController(req: AuthenticatedRequest, res: 
 export async function triggerExpiryCheckController(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const stats = await runExpiryNotificationCheck();
+    const totalSent = stats.stage5Sent + stats.stage3Sent + stats.stage1Sent + stats.expiredSent;
     res.json({
       success: true,
-      message: `Expiry notification check completed: ${stats.checkedCount} subscriptions checked, ${stats.stage3Sent + stats.stage1Sent + stats.expiredSent} WhatsApp notifications sent.`,
+      message: `Expiry notification check completed: ${stats.checkedCount} subscriptions evaluated (${stats.stage5Sent} 5-day notices, ${stats.stage3Sent} 3-day, ${stats.stage1Sent} 1-day, ${stats.expiredSent} expired, total ${totalSent} sent).`,
       stats
     });
   } catch (error: any) {

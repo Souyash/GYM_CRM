@@ -413,7 +413,11 @@ export const api = {
   submitEnrollmentForm: (payload: any) =>
     apiRequest('/documents/submit-enrollment', { method: 'POST', body: JSON.stringify(payload) }),
   resendMemberDocumentsWhatsApp: (userId: string) =>
-    apiRequest(`/documents/resend-whatsapp/${userId}`, { method: 'POST' })
+    apiRequest(`/documents/resend-whatsapp/${userId}`, { method: 'POST' }),
+  sendMemberHealthDetails: (userId: string) =>
+    apiRequest(`/health-intelligence/member/${userId}/send-health-details`, { method: 'POST' }),
+  triggerExpiryCheck: () =>
+    apiRequest('/whatsapp/trigger-expiry-check', { method: 'POST' })
 };
 
 

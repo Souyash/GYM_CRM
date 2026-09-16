@@ -8,7 +8,8 @@ import {
   getMyHealthProfile,
   updateMyHealthProfile,
   sendPhoneOtp,
-  verifyPhoneOtp
+  verifyPhoneOtp,
+  sendMemberHealthDetailsController
 } from '../controllers/healthIntelligence.controller.js';
 import { authenticateJWT, requireRole } from '../middleware/auth.middleware.js';
 
@@ -18,6 +19,9 @@ const router = Router();
 router.get('/summary', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), getHealthIntelligenceSummary);
 router.get('/members', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), getMembersWithHealthData);
 router.get('/export-csv', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), exportHealthDataCsv);
+
+// 1-Click Action for Gym Owner: Send filled health details & PDF to member on WhatsApp
+router.post('/member/:userId/send-health-details', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), sendMemberHealthDetailsController);
 
 // Admission with full Form 1 & Form 2
 router.post('/onboard', authenticateJWT, requireRole('SUPER_ADMIN', 'MANAGER'), onboardMemberWithHealth);

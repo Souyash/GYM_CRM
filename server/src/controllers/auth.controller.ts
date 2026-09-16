@@ -275,7 +275,8 @@ export async function register(req: AuthenticatedRequest, res: Response): Promis
           gymAddress: user.gym?.address || 'FIDGIT Fitness Center',
           gymPhone: user.gym?.ownerContactPhone || undefined,
           gymId: targetGymId || undefined,
-          userId: user.id
+          userId: user.id,
+          subscriptionId: subscription.id
         }).catch(err => console.warn('[WhatsApp] Registration welcome bill dispatch error:', err.message));
       }
     }
@@ -712,7 +713,8 @@ export async function verifySignupOtp(req: AuthenticatedRequest, res: Response):
           gymAddress: user.gym?.address || 'FIDGIT Fitness Center',
           gymPhone: user.gym?.ownerContactPhone || undefined,
           gymId: targetGymId || undefined,
-          userId: user.id
+          userId: user.id,
+          subscriptionId: subscription.id
         }).catch(err => console.warn('[WhatsApp] Signup OTP welcome bill dispatch error:', err.message));
       }
     }

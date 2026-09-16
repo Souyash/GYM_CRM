@@ -23,7 +23,10 @@ import {
   Mail,
   Dumbbell,
   Clock,
-  Sparkles
+  Sparkles,
+  Send,
+  MessageSquare,
+  Check
 } from 'lucide-react';
 import { api } from '../services/api';
 import { HealthIntelligenceSummary, HealthMemberRecord, MemberHealthProfile } from '../types';
@@ -35,6 +38,10 @@ export const HealthIntelligenceView: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // 1-Click Send Health Details state
+  const [sendingHealthId, setSendingHealthId] = useState<string | null>(null);
+  const [healthSentNotice, setHealthSentNotice] = useState<string | null>(null);
+
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGoal, setSelectedGoal] = useState('ALL');
@@ -43,6 +50,20 @@ export const HealthIntelligenceView: React.FC = () => {
 
   // Modals
   const [inspectingMember, setInspectingMember] = useState<HealthMemberRecord | null>(null);
+
+  const handleSendHealthDetails = async (userId: string, memberName: string) => {
+    try {
+      setSendingHealthId(userId);
+      setHealthSentNotice(null);
+      const res = await api.sendMemberHealthDetails(userId);
+      setHealthSentNotice(res.message || `Health details & official PDF form sent to ${memberName} on WhatsApp!`);
+      setTimeout(() => setHealthSentNotice(null), 6000);
+    } catch (err: any) {
+      alert(err.message || 'Failed to dispatch health details to member');
+    } finally {
+      setSendingHealthId(null);
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -391,12 +412,24 @@ export const HealthIntelligenceView: React.FC = () => {
             {/* Refresh */}
             <button
               onClick={fetchData}
-              className="px-4 py-2 bg-[#121418] hover:bg-white/10 text-white rounded-full border border-white/10 font-bold transition active:scale-95"
+              className="px-4 py-2 bg-[#121418] hover:bg-white/10 text-white rounded-full border border-white/10 font-bold transition active:scale-95 cursor-pointer"
             >
               Apply Filter
             </button>
           </div>
         </div>
+
+        {healthSentNotice && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center justify-between shadow-lg animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{healthSentNotice}</span>
+            </div>
+            <button onClick={() => setHealthSentNotice(null)} className="text-emerald-400/60 hover:text-emerald-400 p-1">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Member Table */}
         <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#0e1015]">
@@ -529,12 +562,29 @@ export const HealthIntelligenceView: React.FC = () => {
 
                       {/* Action */}
                       <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => setInspectingMember(m)}
-                          className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-semibold rounded-lg text-xs border border-zinc-700 transition"
-                        >
-                          Inspect Sheet
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleSendHealthDetails(m.userId, m.fullName)}
+                            disabled={sendingHealthId === m.userId}
+                            title="1-Click: Send Health Details & PDF Form to Member via WhatsApp"
+                            className="p-1.5 bg-[#ccff00]/10 hover:bg-[#ccff00]/20 text-[#ccff00] border border-[#ccff00]/30 rounded-lg transition disabled:opacity-50 flex items-center gap-1 text-[11px] font-bold"
+                          >
+                            {sendingHealthId === m.userId ? (
+                              <div className="w-3.5 h-3.5 border-2 border-[#ccff00] border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Send to Member</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setInspectingMember(m)}
+                            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-semibold rounded-lg text-xs border border-zinc-700 transition"
+                          >
+                            Inspect Sheet
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -774,10 +824,35 @@ export const HealthIntelligenceView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-zinc-900/40 border-t border-zinc-800 flex justify-end">
+            {healthSentNotice && (
+              <div className="mx-6 mb-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{healthSentNotice}</span>
+              </div>
+            )}
+
+            <div className="px-6 py-4 bg-zinc-900/40 border-t border-zinc-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <button
+                onClick={() => handleSendHealthDetails(inspectingMember.userId, inspectingMember.fullName)}
+                disabled={sendingHealthId === inspectingMember.userId}
+                className="bg-[#ccff00] text-black hover:bg-[#b8e600] font-black px-4 py-2.5 rounded-xl shadow-[0_0_15px_rgba(204,255,0,0.25)] flex items-center justify-center gap-2 text-xs transition cursor-pointer disabled:opacity-50"
+              >
+                {sendingHealthId === inspectingMember.userId ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Dispatching Health Report & Form PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Send Health Details to Member (1-Click WhatsApp)</span>
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={() => setInspectingMember(null)}
-                className="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold transition"
+                className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold transition cursor-pointer text-center"
               >
                 Close Sheet
               </button>

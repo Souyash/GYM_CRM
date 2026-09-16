@@ -11,8 +11,9 @@ services:
         value: 5001
       - key: JWT_SECRET
         generateValue: true
+      - key: DATABASE_URL
+        value: "file:./data/dev.db"
       - key: CLIENT_ORIGIN
         value: "*"
       - key: NODE_ENV
         value: production
-

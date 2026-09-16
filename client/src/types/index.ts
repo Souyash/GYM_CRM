@@ -234,6 +234,7 @@ export interface HealthIntelligenceSummary {
 }
 
 export interface HealthMemberRecord {
+  id?: string;
   userId: string;
   fullName: string;
   email: string;

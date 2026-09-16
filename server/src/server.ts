@@ -4,12 +4,14 @@ import { createApp } from './app.js';
 import { initializeSocket } from './services/socket.service.js';
 import { startExpiryScheduler } from './services/whatsappScheduler.service.js';
 import { initWhatsAppSocket } from './services/whatsappSocket.service.js';
+import { initDatabasePersistence } from './utils/dbPersistence.js';
 
 const app = createApp();
 const server = http.createServer(app);
 
 const clientOrigin = process.env.CLIENT_ORIGIN || '*';
 const io = initializeSocket(server, clientOrigin);
+initDatabasePersistence();
 startExpiryScheduler();
 initWhatsAppSocket(io);
 

@@ -263,7 +263,8 @@ export async function verifyOnboardOtp(req: AuthenticatedRequest, res: Response)
           gymAddress: gym?.address || 'FIDGIT Fitness Center',
           gymPhone: gym?.ownerContactPhone || undefined,
           gymId: targetGymId || undefined,
-          userId: result.user.id
+          userId: result.user.id,
+          subscriptionId: result.subscription!.id
         }).catch(err => console.warn('[WhatsApp] Desk onboard dispatch error:', err.message));
       }).catch(err => console.warn('[WhatsApp] Gym lookup error:', err.message));
     }
@@ -389,7 +390,8 @@ export async function onboardMember(req: AuthenticatedRequest, res: Response): P
           gymAddress: gym?.address || 'FIDGIT Fitness Center',
           gymPhone: gym?.ownerContactPhone || undefined,
           gymId: targetGymId || undefined,
-          userId: result.user.id
+          userId: result.user.id,
+          subscriptionId: result.subscription!.id
         }).catch(err => console.warn('[WhatsApp] Onboard bill delivery error:', err.message));
       }).catch(err => console.warn('[WhatsApp] Gym lookup error:', err.message));
     }

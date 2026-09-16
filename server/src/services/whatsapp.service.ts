@@ -29,6 +29,7 @@ export interface SendWelcomeAndBillParams {
   email?: string;
   gymAddress?: string;
   gymPhone?: string;
+  subscriptionId?: string;
 }
 
 export interface SendExpiryReminderParams {
@@ -57,6 +58,7 @@ export interface SendPaymentReceiptParams {
   paymentMethod?: string;
   userId?: string;
   gymId?: string;
+  subscriptionId?: string;
 }
 
 /**
@@ -98,6 +100,7 @@ import {
   generateMembershipBillPdf,
   generateEnrollmentFormPdf
 } from './pdfGenerator.service.js';
+import { exportDatabaseSnapshot } from '../utils/dbPersistence.js';
 
 /**
  * Low-level dispatch function:
@@ -288,7 +291,7 @@ ${healthGoals ? `• Fitness Target: *${healthGoals}*\n` : ''}
 
 Keep this receipt for your records. Have a powerful workout today! 💪`;
 
-  return await dispatchWhatsAppMessage(
+  const dispatchResult = await dispatchWhatsAppMessage(
     targetPhone,
     content,
     'WELCOME_PACKET',
@@ -303,10 +306,45 @@ Keep this receipt for your records. Have a powerful workout today! 💪`;
     userId,
     gymId
   );
+
+  // Automatically generate and attach the official Stamped Membership Bill PDF
+  try {
+    let subId = params.subscriptionId;
+    if (!subId && invoiceNumber) {
+      const found = await prisma.subscription.findFirst({ where: { invoiceNumber } });
+      if (found) subId = found.id;
+    }
+    if (!subId && userId) {
+      const found = await prisma.subscription.findFirst({ where: { userId }, orderBy: { createdAt: 'desc' } });
+      if (found) subId = found.id;
+    }
+
+    if (subId) {
+      const billPdfBuffer = await generateMembershipBillPdf(subId);
+      const invoiceNo = invoiceNumber || 'INV-ACTIVE';
+      const cleanFileName = `Membership_Bill_${invoiceNo}.pdf`;
+      const caption = `🧾 *${gymName.toUpperCase()}* • Official Membership Tax Invoice & Receipt (#${invoiceNo}) with Authorized Stamp`;
+      const normalizedPhone = normalizeWhatsAppPhone(targetPhone);
+
+      if (isWhatsAppSocketConnected()) {
+        await sendSocketWhatsAppDocument(normalizedPhone, billPdfBuffer, cleanFileName, caption);
+        console.log(`[WhatsApp Document] Attached and sent bill PDF (${cleanFileName}) to ${normalizedPhone}`);
+      } else {
+        console.log(`[WhatsApp Document] Bill PDF generated (${billPdfBuffer.length} bytes) for simulated delivery to ${normalizedPhone}.`);
+      }
+    }
+  } catch (pdfErr) {
+    console.error('[WhatsApp Document] Error attaching bill PDF on joining:', pdfErr);
+  }
+
+  // Persist database snapshot asynchronously
+  exportDatabaseSnapshot().catch(() => {});
+
+  return dispatchResult;
 }
 
 /**
- * 3. Send Prior Expiry Reminders on WhatsApp (3-Day, 1-Day, and Day-of)
+ * 3. Send Prior Expiry Reminders on WhatsApp (5-Day, 3-Day, 1-Day, and Day-of)
  */
 export async function sendExpiryReminderWhatsApp(params: SendExpiryReminderParams) {
   const targetPhone = params.recipientPhone || params.phone || '';
@@ -322,7 +360,14 @@ export async function sendExpiryReminderWhatsApp(params: SendExpiryReminderParam
   let header = '';
   let body = '';
 
-  if (daysRemaining === 3) {
+  if (daysRemaining === 5) {
+    header = `⚠️ *${gymName.toUpperCase()} • MEMBERSHIP RENEWAL NOTICE (5 DAYS LEFT)*`;
+    body = `Hi *${fullName}*, this is a friendly reminder that your *${planName}* gym membership will expire in *5 days* on *${endDateStr}*.
+
+To prevent any interruption or delay at the entrance turnstiles, please renew your membership early at the front desk or through your member portal.
+
+_Note: Once your renewal payment is received, all expiry alerts are automatically turned off._`;
+  } else if (daysRemaining === 3) {
     header = `⚠️ *${gymName.toUpperCase()} • MEMBERSHIP NOTICE (3 DAYS LEFT)*`;
     body = `Hi *${fullName}*, your *${planName}* pass will expire in *3 days* on *${endDateStr}*.
 
@@ -388,7 +433,7 @@ Your membership expiry reminders have been *TURNED OFF*. Your entrance QR pass i
 
 Thank you for training with us! 💪`;
 
-  return await dispatchWhatsAppMessage(
+  const dispatchResult = await dispatchWhatsAppMessage(
     targetPhone,
     content,
     'RENEWAL_CONFIRMATION',
@@ -396,6 +441,41 @@ Thank you for training with us! 💪`;
     userId,
     gymId
   );
+
+  // Automatically generate and attach renewal Bill PDF
+  try {
+    let subId = params.subscriptionId;
+    if (!subId && invoiceNumber) {
+      const found = await prisma.subscription.findFirst({ where: { invoiceNumber } });
+      if (found) subId = found.id;
+    }
+    if (!subId && userId) {
+      const found = await prisma.subscription.findFirst({ where: { userId }, orderBy: { createdAt: 'desc' } });
+      if (found) subId = found.id;
+    }
+
+    if (subId) {
+      const billPdfBuffer = await generateMembershipBillPdf(subId);
+      const invoiceNo = invoiceNumber || 'INV-RENEW';
+      const cleanFileName = `Renewal_Receipt_${invoiceNo}.pdf`;
+      const caption = `🧾 *${gymName.toUpperCase()}* • Official Renewal Receipt & Stamped Tax Invoice (#${invoiceNo})`;
+      const normalizedPhone = normalizeWhatsAppPhone(targetPhone);
+
+      if (isWhatsAppSocketConnected()) {
+        await sendSocketWhatsAppDocument(normalizedPhone, billPdfBuffer, cleanFileName, caption);
+        console.log(`[WhatsApp Document] Attached and sent renewal bill PDF (${cleanFileName}) to ${normalizedPhone}`);
+      } else {
+        console.log(`[WhatsApp Document] Renewal bill PDF generated (${billPdfBuffer.length} bytes) for simulated delivery to ${normalizedPhone}.`);
+      }
+    }
+  } catch (pdfErr) {
+    console.error('[WhatsApp Document] Error attaching renewal bill PDF:', pdfErr);
+  }
+
+  // Persist database snapshot asynchronously
+  exportDatabaseSnapshot().catch(() => {});
+
+  return dispatchResult;
 }
 
 /**

@@ -964,3 +964,29 @@ export async function verifyPhoneOtp(req: AuthenticatedRequest, res: Response): 
   }
 }
 
+import { sendMemberHealthDetailsWhatsApp } from '../services/healthShare.service.js';
+
+/**
+ * 1-Click Action for Gym Owner: Dispatches member's filled health details & PDF form to member via WhatsApp
+ */
+export async function sendMemberHealthDetailsController(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      res.status(400).json({ error: 'Member ID is required.' });
+      return;
+    }
+
+    const result = await sendMemberHealthDetailsWhatsApp(userId);
+    if (!result.success) {
+      res.status(400).json({ error: result.message });
+      return;
+    }
+
+    res.json(result);
+  } catch (error: any) {
+    console.error('sendMemberHealthDetailsController error:', error);
+    res.status(500).json({ error: 'Failed to send health details to member.' });
+  }
+}
+
