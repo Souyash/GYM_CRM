@@ -351,3 +351,4 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
     </div>
   );
 };
+
