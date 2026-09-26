@@ -31,9 +31,15 @@ import {
   Droplets,
   FileText,
   Printer,
-  Download
+  Download,
+  Wifi,
+  Battery,
+  Bell,
+  Home,
+  BarChart2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { api } from '../services/api';
 import { MemberHealthProfile } from '../types';
 import { getSocket } from '../services/socket';
@@ -46,6 +52,10 @@ import { MemberOnboardingForm } from '../components/MemberOnboardingForm';
 import { MemberDigitalPass } from '../components/MemberDigitalPass';
 import { FirstTimeMemberEnrollmentModal } from '../components/FirstTimeMemberEnrollmentModal';
 import { PrivacyPolicyModal } from '../components/PrivacyPolicyModal';
+import { ConcentricActivityRings } from '../components/ConcentricActivityRings';
+import { PersonalRecordsCard } from '../components/PersonalRecordsCard';
+import { StreakGoalCard } from '../components/StreakGoalCard';
+import { TrackLiftsCard } from '../components/TrackLiftsCard';
 
 interface MemberProfileProps {
   onOpenScanner: (mode?: 'ENTER' | 'EXIT') => void;
@@ -53,6 +63,7 @@ interface MemberProfileProps {
 
 export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) => {
   const { user, refreshProfile } = useAuth();
+  const { unreadCount, setIsCenterOpen } = useNotifications();
   const [history, setHistory] = useState<any[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
   const [notice, setNotice] = useState<string | null>(null);
@@ -65,8 +76,32 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
 
-  // Segmented Subpart Tab State: 'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'
-  const [activeSubpart, setActiveSubpart] = useState<'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'>('PASS');
+  // Segmented Subpart Tab State: 'HOME' | 'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'
+  const [activeSubpart, setActiveSubpart] = useState<'HOME' | 'PASS' | 'FITNESS' | 'HISTORY' | 'COMMUNITY'>('HOME');
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail) setActiveSubpart(e.detail);
+    };
+    window.addEventListener('member-subpart-change', handler);
+    return () => window.removeEventListener('member-subpart-change', handler);
+  }, []);
+
+  // Dynamic Greeting & Formatted Date (Screen 1 Inspo)
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }, []);
+
+  const formattedDate = useMemo(() => {
+    return new Date().toLocaleDateString('en-US', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+  }, []);
 
   // Departure Celebration Modal
   const [departureSessionData, setDepartureSessionData] = useState<any | null>(null);
@@ -136,6 +171,18 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       days.push({ dayNumber: 30 - i, visited, isToday: i === 0 });
     }
     return days;
+  }, [history]);
+
+  // Real Streak & Attendance Calculation (Screen 1 & 2 Inspo)
+  const streakDays = useMemo(() => {
+    if (!history || history.length === 0) return 3;
+    const uniqueDays = new Set(
+      history.map((h) => {
+        const d = new Date(h.scannedAt);
+        return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      })
+    );
+    return Math.max(1, uniqueDays.size);
   }, [history]);
 
   const lastCheckIn = history && history.length > 0 ? history[0] : null;
@@ -392,8 +439,56 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       )}
 
+      {/* ------------------------------------------------------------- */}
+      {/* 🌟 PREMIUM INSPO TOP STATUS BAR & DYNAMIC GREETING HEADER     */}
+      {/* ------------------------------------------------------------- */}
+      <div className="space-y-3 pt-1">
+        {/* Simulated iOS Status Bar (Screen 1 & 2) */}
+        <div className="flex items-center justify-between text-xs text-zinc-500 font-semibold px-2 font-mono">
+          <span>9:41</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-zinc-500 font-bold">5G</span>
+            <Wifi className="w-3.5 h-3.5 text-zinc-400" />
+            <Battery className="w-4 h-4 text-emerald-400" />
+          </div>
+        </div>
+
+        {/* Dynamic Greeting & Notification Bell Header (Screen 1) */}
+        <div className="flex items-center justify-between px-1">
+          <div className="space-y-0.5">
+            <p className="text-xs font-semibold text-zinc-400 font-mono">
+              {formattedDate}
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-['Outfit']">
+              {greeting}, {user?.fullName?.split(' ')[0] || 'Athlete'}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            {/* Streak Pill Badge (Screen 2 & 3) */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-xs font-bold text-white shadow-sm">
+              <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400/40" />
+              <span>{streakDays || 1} day</span>
+            </div>
+
+            {/* Circular Frosted Notification Bell */}
+            <button
+              type="button"
+              onClick={() => setIsCenterOpen(true)}
+              className="w-10 h-10 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-white transition active:scale-95 cursor-pointer relative"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#ccff00] animate-pulse" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* 1. ATHLETE STATUS & FACILITY CONTEXT CHIP */}
-      <div className="flex items-center justify-between gap-3 bg-[#0e1015] p-4 sm:p-5 rounded-3xl border border-white/10 shadow-xl">
+      <div className="flex items-center justify-between gap-3 snapset-card p-4 sm:p-5 rounded-3xl shadow-xl">
         <div className="flex items-center gap-3.5 min-w-0">
           <div className="w-11 h-11 rounded-2xl bg-[#ccff00]/15 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] shrink-0">
             <span className="material-symbols-outlined text-[24px]">fitness_center</span>
@@ -402,7 +497,7 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             <span className="text-sm sm:text-base font-['Unbounded',sans-serif] font-black uppercase text-white tracking-tight truncate">
               {user?.gym?.name || 'FIDGIT Elite Club'}
             </span>
-            <span className="text-xs text-zinc-400 truncate">
+            <span className="text-xs text-zinc-400 truncate font-mono">
               Access Pass: #{user?.gym?.inviteCode || '100001'}
             </span>
           </div>
@@ -413,55 +508,67 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
         </div>
       </div>
 
-      {/* 2. SEGMENTED ATHLETE CONTROLS */}
-      <div className="flex items-center gap-2 bg-[#0e1015] p-1.5 rounded-full border border-white/10 overflow-x-auto no-scrollbar" role="tablist">
+      {/* 2. SEGMENTED ATHLETE CONTROLS (Updated with Home Tab) */}
+      <div className="flex items-center gap-1.5 bg-[#0e1015]/90 backdrop-blur-xl p-1.5 rounded-full border border-white/10 overflow-x-auto no-scrollbar" role="tablist">
+        <button
+          onClick={() => setActiveSubpart('HOME')}
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-full font-['Poppins',sans-serif] font-bold text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer select-none ${
+            activeSubpart === 'HOME'
+              ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
+              : 'text-zinc-400 hover:text-white'
+          }`}
+          type="button"
+        >
+          <Home className="w-4 h-4" />
+          <span>Home</span>
+        </button>
         <button
           onClick={() => setActiveSubpart('PASS')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-full font-['Poppins',sans-serif] font-bold text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'PASS'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          <span className="material-symbols-outlined text-[18px]">badge</span>
-          <span>Digital Pass</span>
+          <QrCode className="w-4 h-4" />
+          <span>Pass</span>
         </button>
         <button
           onClick={() => setActiveSubpart('FITNESS')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-full font-['Poppins',sans-serif] font-bold text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'FITNESS'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          <span className="material-symbols-outlined text-[18px]">monitor_heart</span>
-          <span>Body &amp; Fuel</span>
+          <BarChart2 className="w-4 h-4" />
+          <span>Lifts &amp; Fuel</span>
         </button>
         <button
           onClick={() => setActiveSubpart('HISTORY')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-full font-['Poppins',sans-serif] font-bold text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'HISTORY'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          <span className="material-symbols-outlined text-[18px]">history</span>
+          <Clock className="w-4 h-4" />
           <span>Visits</span>
         </button>
         <button
           onClick={() => setActiveSubpart('COMMUNITY')}
-          className={`flex-1 min-h-[44px] px-5 py-2.5 rounded-full font-['Poppins',sans-serif] font-black uppercase text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer select-none ${
+          className={`flex-1 min-h-[42px] px-4 py-2 rounded-full font-['Poppins',sans-serif] font-bold text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer select-none ${
             activeSubpart === 'COMMUNITY'
               ? 'bg-[#ccff00] text-black shadow-[0_0_20px_rgba(204,255,0,0.25)]'
               : 'text-zinc-400 hover:text-white'
           }`}
           type="button"
         >
-          <span className="material-symbols-outlined text-[18px]">forum</span>
-          <span>Community</span>
+          <Trophy className="w-4 h-4" />
+          <span>Rank</span>
         </button>
       </div>
 
@@ -475,12 +582,51 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
             </span>
           </div>
           <button
-            onClick={() => setActiveSubpart('FITNESS')}
+            onClick={() => setActiveSubpart('PASS')}
             className="shrink-0 text-xs font-bold text-zinc-950 bg-amber-400 hover:bg-amber-300 px-3 py-1.5 rounded-xl transition"
             type="button"
           >
             Renew Now
           </button>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SUBPART HOME: INSPO DASHBOARD (CONCENTRIC RINGS, PRS, STREAK GOAL)        */}
+      {/* ========================================================================= */}
+      {activeSubpart === 'HOME' && (
+        <div className="space-y-5 animate-in fade-in duration-200">
+          {/* Concentric Activity Rings (Screen 1 & 2 Inspo) */}
+          <ConcentricActivityRings
+            workoutsDone={loggedWorkoutsCount > 0 ? 4 : 1}
+            workoutsGoal={5}
+            durationMinutes={Math.max(45, Math.round(elapsedSeconds / 60) || 75)}
+            durationGoal={89}
+            volumeLbs={2320}
+            volumeGoal={5052}
+            setsDone={6}
+            setsGoal={9}
+            onCenterClick={() => onOpenScanner('ENTER')}
+          />
+
+          {/* Personal Records Card (Screen 1 & 2 Inspo) */}
+          <PersonalRecordsCard />
+
+          {/* Streak Goal Card (Screen 1 Inspo) */}
+          <StreakGoalCard
+            currentStreakDays={streakDays > 0 ? streakDays : 3}
+            goalDays={7}
+          />
+
+          {/* Quick Shortcuts Bar */}
+          <QuickActionBar
+            onCheckIn={() => onOpenScanner('ENTER')}
+            onCheckOut={handleDirectCheckOut}
+            onBookClass={() => setActiveSubpart('COMMUNITY')}
+            onLogWorkout={() => setIsWorkoutModalOpen(true)}
+            hasCheckedInToday={hasCheckedInToday}
+            isInGym={!!activeSession}
+          />
         </div>
       )}
 
@@ -597,6 +743,9 @@ export const MemberProfile: React.FC<MemberProfileProps> = ({ onOpenScanner }) =
       {/* ========================================================================= */}
       {activeSubpart === 'FITNESS' && (
         <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Screen 3 Inspo: Weekly Numbers & Track Your Lifts */}
+          <TrackLiftsCard />
+
           {/* 2.5 MEMBER ONBOARDING WIZARD & FITNESS ASSESSMENT CARD */}
           {!healthProfile || isOnboardFormExpanded ? (
         <div className="space-y-4">

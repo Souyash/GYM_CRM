@@ -1,5 +1,17 @@
-import React from 'react';
-import { MessageSquare, QrCode, Calendar, User, Shield, HeartPulse, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Home,
+  BarChart2,
+  Plus,
+  Trophy,
+  User,
+  Shield,
+  Calendar,
+  HeartPulse,
+  QrCode,
+  Bell,
+  MessageSquare
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -16,125 +28,190 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 }) => {
   const { user } = useAuth();
   const { unreadCount, setIsCenterOpen } = useNotifications();
+  const [memberSubpart, setMemberSubpart] = useState<string>('HOME');
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      if (e.detail) setMemberSubpart(e.detail);
+    };
+    window.addEventListener('member-subpart-change', handler);
+    return () => window.removeEventListener('member-subpart-change', handler);
+  }, []);
 
   if (!user) return null;
 
+  const handleMemberNav = (targetSubpart: 'HOME' | 'FITNESS' | 'PASS' | 'COMMUNITY') => {
+    if (targetSubpart === 'COMMUNITY') {
+      setCurrentTab('community_feed');
+      setMemberSubpart('COMMUNITY');
+    } else {
+      setCurrentTab('member_profile');
+      setMemberSubpart(targetSubpart);
+      window.dispatchEvent(new CustomEvent('member-subpart-change', { detail: targetSubpart }));
+    }
+  };
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#050507]/95 backdrop-blur-xl border-t border-white/10 px-3 py-2 bottom-notch-safe">
-      <div className="flex items-center justify-around max-w-md mx-auto">
+    <div className="md:hidden fixed bottom-3 left-4 right-4 z-40 max-w-md mx-auto">
+      <div className="snapset-dock rounded-full px-4 py-2 flex items-center justify-around">
         {user.role === 'MEMBER' ? (
           <>
-            {/* Feed & Community */}
+            {/* 1. Home Tab (Screen 1 Inspo) */}
             <button
-              onClick={() => setCurrentTab('community_feed')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'community_feed'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+              type="button"
+              onClick={() => handleMemberNav('HOME')}
+              className={`flex flex-col items-center gap-0.5 p-1 transition cursor-pointer ${
+                currentTab === 'member_profile' && memberSubpart === 'HOME'
+                  ? 'text-white font-bold'
+                  : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
-              <MessageSquare className="w-5 h-5" />
-              <span className="text-[10px]">Community</span>
+              <div
+                className={`p-1.5 rounded-full transition ${
+                  currentTab === 'member_profile' && memberSubpart === 'HOME'
+                    ? 'bg-white/15 text-[#ccff00]'
+                    : ''
+                }`}
+              >
+                <Home className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] tracking-tight">Home</span>
             </button>
 
-            {/* Central Turnstile Check-In Action */}
+            {/* 2. Progress / Lifts Tab (Screen 3 Inspo) */}
             <button
-              onClick={onOpenScanner}
-              className="flex flex-col items-center gap-1 -mt-5"
+              type="button"
+              onClick={() => handleMemberNav('FITNESS')}
+              className={`flex flex-col items-center gap-0.5 p-1 transition cursor-pointer ${
+                currentTab === 'member_profile' && memberSubpart === 'FITNESS'
+                  ? 'text-white font-bold'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
             >
-              <div className="w-12 h-12 rounded-full bg-[#ccff00] text-black flex items-center justify-center shadow-[0_0_20px_rgba(204,255,0,0.35)] active:scale-95 transition">
-                <QrCode className="w-6 h-6 stroke-[2.5]" />
+              <div
+                className={`p-1.5 rounded-full transition ${
+                  currentTab === 'member_profile' && memberSubpart === 'FITNESS'
+                    ? 'bg-white/15 text-[#ccff00]'
+                    : ''
+                }`}
+              >
+                <BarChart2 className="w-4 h-4" />
               </div>
-              <span className="text-[10px] font-black text-[#ccff00]">
-                Check In
+              <span className="text-[10px] tracking-tight">Progress</span>
+            </button>
+
+            {/* 3. Center Elevated Action Pod (+) */}
+            <button
+              type="button"
+              onClick={onOpenScanner}
+              className="relative -mt-6 flex flex-col items-center cursor-pointer group"
+              title="Quick Turnstile QR Check-In"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#181C28] border-2 border-[#ccff00] text-[#ccff00] group-hover:bg-[#ccff00] group-hover:text-black flex items-center justify-center shadow-[0_0_22px_rgba(204,255,0,0.35)] active:scale-95 transition-all duration-200">
+                <Plus className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <span className="text-[9px] font-black text-[#ccff00] tracking-wider uppercase mt-1">
+                Scan
               </span>
             </button>
 
-            {/* Membership Card */}
+            {/* 4. Rank / Community Tab */}
             <button
-              onClick={() => setCurrentTab('member_profile')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'member_profile'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+              type="button"
+              onClick={() => handleMemberNav('COMMUNITY')}
+              className={`flex flex-col items-center gap-0.5 p-1 transition cursor-pointer ${
+                currentTab === 'community_feed'
+                  ? 'text-white font-bold'
+                  : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
-              <User className="w-5 h-5" />
-              <span className="text-[10px]">My Pass</span>
+              <div
+                className={`p-1.5 rounded-full transition ${
+                  currentTab === 'community_feed' ? 'bg-white/15 text-[#ccff00]' : ''
+                }`}
+              >
+                <Trophy className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] tracking-tight">Rank</span>
             </button>
 
-            {/* Zomato Activity & Notifications */}
+            {/* 5. Profile / Pass Tab */}
             <button
-              onClick={() => setIsCenterOpen(true)}
-              className="relative flex flex-col items-center gap-1 p-1.5 transition text-zinc-400 hover:text-[#ccff00]"
+              type="button"
+              onClick={() => handleMemberNav('PASS')}
+              className={`flex flex-col items-center gap-0.5 p-1 transition cursor-pointer ${
+                currentTab === 'member_profile' && memberSubpart === 'PASS'
+                  ? 'text-white font-bold'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
             >
-              <div className="relative">
-                <Bell className="w-5 h-5 text-[#ccff00]" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-2 flex h-3.5 min-w-[14px] px-1 items-center justify-center rounded-full bg-rose-500 text-white text-[8px] font-black animate-pulse">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
+              <div
+                className={`p-1.5 rounded-full transition ${
+                  currentTab === 'member_profile' && memberSubpart === 'PASS'
+                    ? 'bg-white/15 text-[#ccff00]'
+                    : ''
+                }`}
+              >
+                <User className="w-4 h-4" />
               </div>
-              <span className="text-[10px]">Alerts</span>
+              <span className="text-[10px] tracking-tight">Profile</span>
             </button>
           </>
         ) : (
+          /* Staff & Manager Navigation with the same sleek floating dock */
           <>
-            {/* Admin / Manager Navigation */}
             <button
-              onClick={() => setCurrentTab(user.role === 'SUPER_ADMIN' ? 'admin_dashboard' : 'manager_dashboard')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
+              type="button"
+              onClick={() =>
+                setCurrentTab(user.role === 'SUPER_ADMIN' ? 'admin_dashboard' : 'manager_dashboard')
+              }
+              className={`flex flex-col items-center gap-0.5 p-1 transition ${
                 currentTab === 'admin_dashboard' || currentTab === 'manager_dashboard'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'text-[#ccff00] font-bold'
+                  : 'text-zinc-500 hover:text-white'
               }`}
             >
-              <Shield className="w-5 h-5" />
+              <Shield className="w-4 h-4" />
               <span className="text-[10px]">Dashboard</span>
             </button>
             <button
+              type="button"
               onClick={() => setCurrentTab('community_feed')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'community_feed'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+              className={`flex flex-col items-center gap-0.5 p-1 transition ${
+                currentTab === 'community_feed' ? 'text-[#ccff00] font-bold' : 'text-zinc-500 hover:text-white'
               }`}
             >
-              <MessageSquare className="w-5 h-5" />
-              <span className="text-[10px]">Community</span>
+              <MessageSquare className="w-4 h-4" />
+              <span className="text-[10px]">Feed</span>
             </button>
             <button
+              type="button"
               onClick={() => setCurrentTab('desk_billing')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'desk_billing'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+              className={`flex flex-col items-center gap-0.5 p-1 transition ${
+                currentTab === 'desk_billing' ? 'text-[#ccff00] font-bold' : 'text-zinc-500 hover:text-white'
               }`}
             >
-              <Calendar className="w-5 h-5" />
+              <Calendar className="w-4 h-4" />
               <span className="text-[10px]">Billing</span>
             </button>
             <button
+              type="button"
               onClick={() => setCurrentTab('health_intelligence')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'health_intelligence'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+              className={`flex flex-col items-center gap-0.5 p-1 transition ${
+                currentTab === 'health_intelligence' ? 'text-[#ccff00] font-bold' : 'text-zinc-500 hover:text-white'
               }`}
             >
-              <HeartPulse className="w-5 h-5" />
+              <HeartPulse className="w-4 h-4" />
               <span className="text-[10px]">Health</span>
             </button>
             <button
+              type="button"
               onClick={() => setCurrentTab('facility_qr')}
-              className={`flex flex-col items-center gap-1 p-1.5 transition ${
-                currentTab === 'facility_qr'
-                  ? 'text-[#ccff00] font-black'
-                  : 'text-zinc-400 hover:text-white'
+              className={`flex flex-col items-center gap-0.5 p-1 transition ${
+                currentTab === 'facility_qr' ? 'text-[#ccff00] font-bold' : 'text-zinc-500 hover:text-white'
               }`}
             >
-              <QrCode className="w-5 h-5" />
+              <QrCode className="w-4 h-4" />
               <span className="text-[10px]">Poster</span>
             </button>
           </>
@@ -143,4 +220,3 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     </div>
   );
 };
-
