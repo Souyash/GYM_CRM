@@ -1,6 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Archivo:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.font-heading {
+  font-family: "Zilla Slab", "Unbounded", serif;
+}
+
+.font-body {
+  font-family: "Archivo", "Outfit", sans-serif;
+}
+
+.vertical-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+@keyframes breathe-in {
+  0%, 42% { opacity: 1; filter: blur(0px); }
+  50%, 92% { opacity: 0; filter: blur(8px); }
+  100% { opacity: 1; filter: blur(0px); }
+}
+
+@keyframes breathe-out {
+  0%, 42% { opacity: 0; filter: blur(8px); }
+  50%, 92% { opacity: 1; filter: blur(0px); }
+  100% { opacity: 0; filter: blur(8px); }
+}
+
+.breathe-in {
+  animation: breathe-in 12s ease-in-out infinite;
+}
+
+.breathe-out {
+  animation: breathe-out 12s ease-in-out infinite;
+}
 
 @layer base {
   :root {
